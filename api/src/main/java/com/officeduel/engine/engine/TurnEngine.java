@@ -68,9 +68,9 @@ public final class TurnEngine {
         resolveRecruit(picked, opponent, active); // opponent gets picked effect
         resolveRecruit(remaining, active, opponent); // active gets remaining effect
 
-        // Move cards to tableau
-        active.state().getTableau().add(new com.officeduel.engine.model.Cards(faceUpId));
-        active.state().getTableau().add(new com.officeduel.engine.model.Cards(faceDownId));
+        // Move cards to tableau: opponent gets picked, active gets remaining
+        opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(picked));
+        active.state().getTableau().add(new com.officeduel.engine.model.Cards(remaining));
 
         // Remove from hand (by id, first occurrence)
         removeFirstById(active.state(), faceUpId);
@@ -122,6 +122,12 @@ public final class TurnEngine {
         MatchPlayer active = new MatchPlayer(state.getActivePlayer());
         MatchPlayer opponent = new MatchPlayer(state.getInactivePlayer());
 
+        System.out.println("DEBUG playTurnWithChoice:");
+        System.out.println("  Picked card: " + pickedCardId);
+        System.out.println("  Remaining card: " + remainingCardId);
+        System.out.println("  Active player tableau before: " + active.state().getTableau().stream().map(c -> c.cardId()).toList());
+        System.out.println("  Opponent tableau before: " + opponent.state().getTableau().stream().map(c -> c.cardId()).toList());
+
         if (active.state().isSkipNextTurn()) {
             active.state().setSkipNextTurn(false);
             endStep();
@@ -129,12 +135,18 @@ public final class TurnEngine {
         }
 
         // Resolve effects: remaining card first (submitter), then picked card (opponent)
+        System.out.println("  Resolving remaining card effects...");
         resolveRecruit(remainingCardId, active, opponent);
+        System.out.println("  Resolving picked card effects...");
         resolveRecruit(pickedCardId, opponent, active);
 
         // Move cards to tableau: active gets remaining card, opponent gets picked card
+        System.out.println("  Adding cards to tableau...");
         active.state().getTableau().add(new com.officeduel.engine.model.Cards(remainingCardId));
         opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(pickedCardId));
+        
+        System.out.println("  Active player tableau after: " + active.state().getTableau().stream().map(c -> c.cardId()).toList());
+        System.out.println("  Opponent tableau after: " + opponent.state().getTableau().stream().map(c -> c.cardId()).toList());
 
         // Remove from hand
         removeFirstById(active.state(), state.getFaceUpCardId());
@@ -154,10 +166,36 @@ public final class TurnEngine {
 
     private void resolveRecruit(String cardId, MatchPlayer recipient, MatchPlayer other) {
         CardDefinitionSet.CardDef def = index.get(cardId);
-        int copies = (int) recipient.state().getTableau().stream().filter(c -> c.cardId().equals(cardId)).count() + 1;
+        
+        // Debug logging
+        int existingCopies = (int) recipient.state().getTableau().stream().filter(c -> c.cardId().equals(cardId)).count();
+        System.out.println("DEBUG resolveRecruit:");
+        System.out.println("  Card ID: " + cardId);
+        System.out.println("  Card Name: " + def.name());
+        System.out.println("  Recipient: " + (recipient.state() == state.getPlayerA() ? "Player A" : "Player B"));
+        System.out.println("  Existing copies in tableau: " + existingCopies);
+        System.out.println("  Tableau contents: " + recipient.state().getTableau().stream().map(c -> c.cardId()).toList());
+        
+        // Count existing copies in tableau + 1 for the card being played
+        int copies = existingCopies + 1;
         int tierIdx = Math.min(def.tiers().size(), Math.max(1, copies)) - 1;
         List<CardDefinitionSet.Action> actions = def.tiers().get(tierIdx).actions();
+        
+        System.out.println("  Calculated copies: " + copies);
+        System.out.println("  Tier index: " + tierIdx);
+        System.out.println("  Actions count: " + actions.size());
+        
+        // Generate effect description before applying
+        String effectDescription = generateEffectDescription(def.name(), actions, recipient, other);
+        
         effects.applyActions(actions, recipient, other);
+        
+        // Add effect feedback after applying
+        String playerName = recipient.state() == state.getPlayerA() ? "Jugador A" : "Jugador B";
+        state.addEffectFeedback(playerName, def.name(), effectDescription);
+        
+        // After applying the card effects, immediately check if the match has been decided
+        checkWinnerMidTurn();
         if (telemetry != null) telemetry.emit(new Telemetry.CardPlayed(recipient.state() == state.getPlayerA() ? 0 : 1, cardId, tierIdx + 1));
     }
 
@@ -197,6 +235,10 @@ public final class TurnEngine {
         // Tick statuses
         state.getPlayerA().getBuffs().getStatuses().tickEndOfTurn();
         state.getPlayerB().getBuffs().getStatuses().tickEndOfTurn();
+        
+        // Clear recent effects at the end of each turn to avoid accumulation
+        state.clearRecentEffects();
+        
         // Next turn
         state.swapActive();
     }
@@ -213,6 +255,85 @@ public final class TurnEngine {
     private void requirePhase(com.officeduel.engine.model.GameState.Phase expectedPhase) {
         if (state.getPhase() != expectedPhase) {
             throw new IllegalStateException("Invalid phase: expected " + expectedPhase + " but was " + state.getPhase());
+        }
+    }
+    
+    private String generateEffectDescription(String cardName, List<CardDefinitionSet.Action> actions, MatchPlayer recipient, MatchPlayer other) {
+        if (actions.isEmpty()) return cardName + " no tiene efectos";
+        
+        StringBuilder desc = new StringBuilder();
+        desc.append(cardName).append(": ");
+        
+        for (int i = 0; i < actions.size(); i++) {
+            if (i > 0) desc.append(", ");
+            
+            CardDefinitionSet.Action action = actions.get(i);
+            String target = getTargetDescription(action.target());
+            
+            switch (action.type()) {
+                case "damage" -> desc.append("inflige ").append(action.amount()).append(" de daño a ").append(target);
+                case "heal" -> desc.append("cura ").append(action.amount()).append(" LP a ").append(target);
+                case "draw" -> desc.append("hace que ").append(target).append(" robe ").append(action.count()).append(" carta(s)");
+                case "skip_next_turn" -> desc.append("hace que ").append(target).append(" salte el siguiente turno");
+                case "block_next_draw" -> desc.append("bloquea ").append(action.count()).append(" robo(s) de ").append(target);
+                case "discard_random" -> desc.append("hace que ").append(target).append(" descarte ").append(action.count()).append(" carta(s) al azar");
+                case "discard_hand" -> desc.append("hace que ").append(target).append(" descarte toda la mano");
+                case "set_lp_to_full" -> desc.append("restaura los LP de ").append(target).append(" al máximo");
+                case "status" -> desc.append("aplica estado ").append(action.status()).append(" a ").append(target);
+                case "reveal_random_cards" -> desc.append("revela ").append(action.count()).append(" carta(s) de ").append(target);
+                case "steal_random_card_from_hand" -> desc.append("roba ").append(action.count()).append(" carta(s) de la mano de ").append(target);
+                case "destroy_random_cards_in_tableau" -> desc.append("destruye ").append(action.count()).append(" carta(s) del tableau de ").append(target);
+                case "modify_max_hand_size" -> desc.append("modifica el tamaño de mano de ").append(target).append(" en ").append(action.delta());
+                case "grant_extra_face_down_play" -> desc.append("permite que ").append(target).append(" juegue ").append(action.count()).append(" carta(s) boca abajo extra");
+                case "win_if_condition" -> desc.append("gana si ").append(target).append(" cumple la condición");
+                case "copy_last_card_effect" -> desc.append("copia el último efecto ").append(action.times()).append(" vez(es) para ").append(target);
+                default -> desc.append(action.type()).append(" a ").append(target);
+            }
+        }
+        
+        return desc.toString();
+    }
+    
+    private String getTargetDescription(String target) {
+        if (target == null) {
+            return "objetivo desconocido";
+        }
+        return switch (target) {
+            case "self" -> "sí mismo";
+            case "opponent" -> "el oponente";
+            case "both" -> "ambos jugadores";
+            default -> target;
+        };
+    }
+
+    /**
+     * Checks for a winner right after an effect has been resolved during the turn. This mirrors the logic in
+     * {@link #endStep()} but without advancing the game phase or ticking statuses. It allows the engine to detect
+     * a victory condition immediately after an effect is applied (for example, when a dot threshold is reached or
+     * a player’s life points drop to zero) rather than waiting until the end of the turn.
+     */
+    private void checkWinnerMidTurn() {
+        int winner = state.winnerIndexOrMinusOne();
+        if (winner != -1) {
+            if (telemetry != null) telemetry.emit(new Telemetry.MatchEnd(winner, state.getPlayerA().getLifePoints(), state.getPlayerB().getLifePoints()));
+            return;
+        }
+
+        // Legacy LP system checks (same as in endStep)
+        if (state.getPlayerA().getLifePoints() <= 0 && state.getPlayerB().getLifePoints() <= 0) {
+            // Active player wins the tie
+            if (state.getActivePlayerIndex() == 0) {
+                state.getPlayerB().setLifePoints(0);
+                state.getPlayerA().setLifePoints(1);
+            } else {
+                state.getPlayerA().setLifePoints(0);
+                state.getPlayerB().setLifePoints(1);
+            }
+            return;
+        }
+
+        if (state.getPlayerA().getLifePoints() <= 0 || state.getPlayerB().getLifePoints() <= 0) {
+            if (telemetry != null) telemetry.emit(new Telemetry.MatchEnd(state.winnerIndexOrMinusOne(), state.getPlayerA().getLifePoints(), state.getPlayerB().getLifePoints()));
         }
     }
 }

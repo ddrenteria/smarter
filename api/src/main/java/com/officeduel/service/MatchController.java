@@ -33,12 +33,13 @@ public class MatchController {
         
         // If match not started yet, return lobby state
         if (!e.started()) {
-            return ResponseEntity.ok(new MatchStateDto(
-                    id, 0, 0, 0, 0, 0, 0, 0, 
-                    List.of(), List.of(), List.of(), 
-                    getCardDefinitions(), "LOBBY", null, null, false, 0,
-                    e.playerA(), e.playerB(), e.readyA(), e.readyB(), false, e.playerAIsBot(), e.playerBIsBot()
-            ));
+        return ResponseEntity.ok(new MatchStateDto(
+                id, 0, 0, 0, 0, 0, 0, 0, 
+                List.of(), List.of(), List.of(), 
+                getCardDefinitions(), "LOBBY", null, null, false, 0,
+                e.playerA(), e.playerB(), e.readyA(), e.readyB(), false, e.playerAIsBot(), e.playerBIsBot(),
+                List.of()
+        ));
         }
         
         var gs = e.state();
@@ -76,7 +77,8 @@ public class MatchController {
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK ? "???" : gs.getFaceDownCardId(),
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
                 gs.getSharedDotCounter(),
-                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot()
+                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
+                convertEffectFeedback(gs.getRecentEffects())
         ));
     }
 
@@ -121,7 +123,8 @@ public class MatchController {
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK ? "???" : gs.getFaceDownCardId(),
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
                 gs.getSharedDotCounter(),
-                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot()
+                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
+                convertEffectFeedback(gs.getRecentEffects())
         ));
     }
 
@@ -175,26 +178,49 @@ public class MatchController {
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK ? "???" : gs.getFaceDownCardId(),
                 true,
                 gs.getSharedDotCounter(),
-                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot()
+                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
+                convertEffectFeedback(gs.getRecentEffects())
         ));
     }
 
     @PostMapping("/{id}/choose")
-    public ResponseEntity<MatchStateDto> choose(@PathVariable String id, @RequestBody OpponentChoiceBody body, @RequestParam(required = false) Integer seat) {
+    public synchronized ResponseEntity<MatchStateDto> choose(@PathVariable String id, @RequestBody OpponentChoiceBody body, @RequestParam(required = false) Integer seat) {
         var e = registry.get(id);
         if (e == null) return ResponseEntity.notFound().build();
         if (e.engine() == null) return ResponseEntity.status(409).body(null); // Match not started
         if (body == null) return ResponseEntity.badRequest().build();
         
+        // Check if we're in the correct phase
+        if (e.state().getPhase() != com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK) {
+            System.out.println("Choose endpoint called but wrong phase: " + e.state().getPhase());
+            return ResponseEntity.status(409).body(null); // Conflict - wrong phase
+        }
+        
         try {
+            // Debug logging
+            System.out.println("Choose endpoint called:");
+            System.out.println("  Match ID: " + id);
+            System.out.println("  Choose face up: " + body.chooseFaceUp());
+            System.out.println("  Current phase: " + e.state().getPhase());
+            System.out.println("  Face up card ID: " + e.state().getFaceUpCardId());
+            System.out.println("  Face down card ID: " + e.state().getFaceDownCardId());
+            
             // Now resolve the turn with the opponent's choice
             String picked = body.chooseFaceUp() ? e.state().getFaceUpCardId() : e.state().getFaceDownCardId();
             String remaining = body.chooseFaceUp() ? e.state().getFaceDownCardId() : e.state().getFaceUpCardId();
             
+            System.out.println("  Picked card: " + picked);
+            System.out.println("  Remaining card: " + remaining);
+            
             // Use the existing manual turn method with the opponent's choice
             e.engine().playTurnWithChoice(picked, remaining);
         } catch (IllegalStateException ex) {
+            System.out.println("  IllegalStateException: " + ex.getMessage());
             return ResponseEntity.status(409).body(null); // Conflict - wrong phase
+        } catch (Exception ex) {
+            System.out.println("  Unexpected error: " + ex.getMessage());
+            ex.printStackTrace();
+            return ResponseEntity.status(500).body(null);
         }
         
         var gs = e.state();
@@ -222,11 +248,12 @@ public class MatchController {
                 tableauIdsB,
                 getCardDefinitions(),
                 gs.getPhase().name(),
-                null,
-                null,
+                gs.getFaceUpCardId(),
+                gs.getFaceDownCardId(),
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
                 gs.getSharedDotCounter(),
-                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot()
+                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
+                convertEffectFeedback(gs.getRecentEffects())
         ));
     }
 
@@ -259,26 +286,57 @@ public class MatchController {
 
     private String generateActionDescription(CardDefinitionSet.Action action) {
         StringBuilder desc = new StringBuilder();
+        String target = getTargetDescription(action.target());
+        
         switch (action.type()) {
-            case "damage" -> desc.append("Daña ").append(action.amount()).append(" LP");
-            case "heal" -> desc.append("Cura ").append(action.amount()).append(" LP");
-            case "draw" -> desc.append("Roba ").append(action.count()).append(" carta(s)");
-            case "skip_next_turn" -> desc.append("Salta el siguiente turno");
-            case "block_next_draw" -> desc.append("Bloquea ").append(action.count()).append(" robo(s)");
-            case "discard_random" -> desc.append("Descarta ").append(action.count()).append(" carta(s) al azar");
-            case "discard_hand" -> desc.append("Descarta toda la mano");
-            case "set_lp_to_full" -> desc.append("Restaura LP al máximo");
-            case "status" -> desc.append("Aplica estado: ").append(action.status());
-            case "reveal_random_cards" -> desc.append("Revela ").append(action.count()).append(" carta(s)");
-            case "steal_random_card_from_hand" -> desc.append("Roba ").append(action.count()).append(" carta(s) de la mano");
-            case "destroy_random_cards_in_tableau" -> desc.append("Destruye ").append(action.count()).append(" carta(s) del tableau");
-            case "modify_max_hand_size" -> desc.append("Modifica tamaño de mano: ").append(action.delta());
-            case "grant_extra_face_down_play" -> desc.append("Permite jugar ").append(action.count()).append(" carta(s) boca abajo extra");
-            case "win_if_condition" -> desc.append("Gana si se cumple condición");
-            case "copy_last_card_effect" -> desc.append("Copia el último efecto ").append(action.times()).append(" vez(es)");
-            default -> desc.append(action.type());
+            case "damage" -> desc.append("Inflige ").append(action.amount()).append(" de daño a ").append(target);
+            case "heal" -> desc.append("Cura ").append(action.amount()).append(" LP a ").append(target);
+            case "draw" -> desc.append("Hace que ").append(target).append(" robe ").append(action.count()).append(" carta(s)");
+            case "skip_next_turn" -> desc.append("Hace que ").append(target).append(" salte el siguiente turno");
+            case "block_next_draw" -> desc.append("Bloquea ").append(action.count()).append(" robo(s) de ").append(target);
+            case "discard_random" -> desc.append("Hace que ").append(target).append(" descarte ").append(action.count()).append(" carta(s) al azar");
+            case "discard_hand" -> desc.append("Hace que ").append(target).append(" descarte toda la mano");
+            case "set_lp_to_full" -> desc.append("Restaura los LP de ").append(target).append(" al máximo");
+            case "status" -> desc.append("Aplica estado ").append(action.status()).append(" a ").append(target);
+            case "reveal_random_cards" -> desc.append("Revela ").append(action.count()).append(" carta(s) de ").append(target);
+            case "steal_random_card_from_hand" -> desc.append("Roba ").append(action.count()).append(" carta(s) de la mano de ").append(target);
+            case "destroy_random_cards_in_tableau" -> desc.append("Destruye ").append(action.count()).append(" carta(s) del tableau de ").append(target);
+            case "modify_max_hand_size" -> desc.append("Modifica el tamaño de mano de ").append(target).append(" en ").append(action.delta());
+            case "grant_extra_face_down_play" -> desc.append("Permite que ").append(target).append(" juegue ").append(action.count()).append(" carta(s) boca abajo extra");
+            case "win_if_condition" -> desc.append("Gana si ").append(target).append(" cumple la condición");
+            case "copy_last_card_effect" -> desc.append("Copia el último efecto ").append(action.times()).append(" vez(es) para ").append(target);
+            default -> desc.append(action.type()).append(" a ").append(target);
         }
         return desc.toString();
+    }
+    
+    private String getTargetDescription(String target) {
+        if (target == null) {
+            return "objetivo desconocido";
+        }
+        return switch (target) {
+            case "self" -> "ti mismo";
+            case "opponent" -> "el oponente";
+            case "both" -> "ambos jugadores";
+            default -> target;
+        };
+    }
+    
+    private List<MatchStateDto.EffectFeedback> convertEffectFeedback(List<com.officeduel.engine.model.GameState.EffectFeedback> effects) {
+        if (effects == null) {
+            return List.of();
+        }
+        return effects.stream()
+            .map(effect -> new MatchStateDto.EffectFeedback(
+                effect.playerName(),
+                effect.cardName(),
+                effect.effectDescription(),
+                effect.dotChange(),
+                effect.lpChangeA(),
+                effect.lpChangeB(),
+                effect.timestamp()
+            ))
+            .toList();
     }
     
     @PostMapping("/{id}/join")

@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Office Duel - New UI v17.0 - Double Turn Phase Timers</title>
+  <title>Office Duell - New UI v17.1 - Double Turn Phase Timers</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
-    // Force refresh if cached
+    // Force refresh if cached - v17.1
+    console.log('Loading Office Duel v17.1 - Board Symmetry Fix');
     if(window.location.search.indexOf('v=') === -1) {
       window.location.href = window.location.href + '?v=' + Date.now();
     }
@@ -163,6 +164,431 @@
     .game-footer { grid-column: 2; grid-row: 3; }
     .game-sidebar { grid-column: 1; grid-row: 1 / 4; }
     .player-section { border: 2px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    
+    .card-selection-panel {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 2px solid #dee2e6;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 10px 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 10;
+      min-height: 300px;
+    }
+    
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #dee2e6;
+    }
+    
+    .panel-header h3 {
+      margin: 0;
+      color: #333;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    
+    .phase-info {
+      background: #007bff;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      color: #666;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    .legend-color.blue {
+      background: #007bff;
+    }
+    
+    .legend-color.orange {
+      background: #ff9800;
+    }
+    
+    .card-choice-container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .card-choice {
+      background: white;
+      border: 2px solid #28a745;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      min-width: 250px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .card-choice h4 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 1.2em;
+    }
+    
+    .card-preview {
+      min-height: 200px;
+      border: 2px dashed #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .card-preview.has-card {
+      border: 2px solid #007bff;
+      background: white;
+    }
+    
+    .placeholder {
+      color: #999;
+      font-style: italic;
+    }
+    
+    .choose-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .choose-btn:hover:not(:disabled) {
+      background: #218838;
+    }
+    
+    .choose-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .play-controls {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .selected-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    
+    .selected-card {
+      background: white;
+      border: 2px solid #007bff;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      min-width: 200px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .selected-card h4 {
+      margin: 0 0 10px 0;
+      color: #007bff;
+      font-size: 1em;
+    }
+    
+    .card-preview {
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px dashed #6c757d;
+      color: #6c757d;
+      font-style: italic;
+    }
+    
+    .card-preview.has-card {
+      background: white;
+      border: 2px solid #28a745;
+      color: #333;
+      font-style: normal;
+    }
+    
+    .play-controls {
+      text-align: center;
+    }
+    
+    .play-controls .status {
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #495057;
+    }
+    
+    .preview-card {
+      text-align: center;
+    }
+    
+    .preview-name {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    
+    .preview-tags {
+      font-size: 0.9em;
+      color: #666;
+      font-style: italic;
+    }
+    
+    .central-card {
+      background: white;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .central-card:hover {
+      border-color: #007bff;
+      box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+    }
+    
+    .central-card.selected {
+      border-color: #28a745;
+      background: #f8fff9;
+      box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .card-header h4 {
+      margin: 0;
+      color: #333;
+      font-size: 1.1em;
+    }
+    
+    .card-count {
+      background: #007bff;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+    
+    .card-tags {
+      color: #666;
+      font-size: 0.9em;
+      font-style: italic;
+      margin-bottom: 15px;
+    }
+    
+    .card-tiers {
+      margin-bottom: 15px;
+    }
+    
+    .tier {
+      margin-bottom: 10px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 3px solid #007bff;
+    }
+    
+    .tier-header {
+      font-weight: bold;
+      color: #007bff;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+    
+    .tier-actions {
+      font-size: 0.8em;
+      color: #555;
+    }
+    
+    .action {
+      margin-bottom: 3px;
+      padding-left: 10px;
+    }
+    
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .card-actions button {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .select-face-up {
+      background: #28a745;
+      color: white;
+    }
+    
+    .select-face-up:hover {
+      background: #218838;
+    }
+    
+    .select-face-down {
+      background: #ffc107;
+      color: #212529;
+    }
+    
+    .select-face-down:hover {
+      background: #e0a800;
+    }
+    
+    /* Drag and Drop Styles */
+    .hand-card {
+      cursor: grab;
+      transition: all 0.3s ease;
+    }
+    
+    .hand-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .hand-card.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+    
+    .card-preview.drag-over {
+      border-color: #007bff;
+      background: #e3f2fd;
+      border-style: solid;
+    }
+    
+    .card-preview.drag-over .placeholder {
+      color: #007bff;
+      font-weight: bold;
+    }
+    
+    .card-preview.has-card .placeholder {
+      display: none;
+    }
+    
+    .card-preview.has-card {
+      border-style: solid;
+    }
+    
+    .card-preview-content {
+      width: 100%;
+      text-align: left;
+    }
+    
+    .card-preview-name {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+    
+    .card-preview-tiers {
+      font-size: 0.9em;
+    }
+    
+    .tier-preview {
+      margin-bottom: 8px;
+      padding: 5px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border-left: 3px solid #007bff;
+    }
+    
+    .tier-preview.self-effect {
+      border-left-color: #007bff;
+    }
+    
+    .tier-preview.opponent-effect {
+      border-left-color: #ff9800;
+    }
+    
+    .tier-preview-header {
+      font-weight: bold;
+      color: #007bff;
+      font-size: 0.8em;
+      margin-bottom: 3px;
+    }
+    
+    .tier-preview-action {
+      color: #555;
+      font-size: 0.8em;
+    }
+    
+    .mystery-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 2px dashed #6c757d;
+    }
+    
+    .mystery-card .card-preview-name {
+      color: #6c757d;
+      font-style: italic;
+    }
+    
+    .mystery-card .tier-preview {
+      background: #f8f9fa;
+      border-left-color: #6c757d;
+    }
+    
+    .mystery-card .tier-preview-header {
+      color: #6c757d;
+    }
+    
+    .mystery-card .tier-preview-action {
+      color: #6c757d;
+      font-style: italic;
+    }
     .player-section.active { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-color: #2196f3; box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3); }
     .player-section h3 { margin: 0 0 15px 0; font-size: 1.2em; color: #333; }
     .player-area-label { 
@@ -225,6 +651,18 @@
       padding: 2px 6px;
       border-radius: 4px;
       margin: 1px 0;
+    }
+    
+    /* Tier highlighting for central panel */
+    .tier-preview.effect-mine {
+      border: 2px solid #3da7ff !important;
+      background: rgba(61, 167, 255, 0.1) !important;
+      box-shadow: 0 0 8px rgba(61, 167, 255, 0.3);
+    }
+    .tier-preview.effect-opponent {
+      border: 2px solid #ff9d46 !important;
+      background: rgba(255, 157, 70, 0.1) !important;
+      box-shadow: 0 0 8px rgba(255, 157, 70, 0.3);
     }
     .tableau { display: flex; gap: 4px; margin: 10px 0; flex-wrap: wrap; }
     .tableau-card {
@@ -467,14 +905,70 @@
       padding: 15px 0;
     }
     
-    .timer-top-right {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 100;
+    .timer-display-container {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      text-align: center;
+    }
+    
+    .timer-display-container .status {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    
+    .effect-feedback-container {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .effect-feedback-container h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 0.9em;
+    }
+    
+    .effect-feedback-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
+    }
+    
+    .effect-item {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      border-left: 4px solid #2196f3;
+      font-size: 0.8em;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .effect-item.heal {
+      border-left-color: #4caf50;
+    }
+    
+    .effect-item.damage {
+      border-left-color: #f44336;
+    }
+    
+    .effect-item.dot-change {
+      border-left-color: #ff9800;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
     
     .auto-turn-btn {
@@ -677,7 +1171,7 @@
   </style>
 </head>
 <body>
-   <h1>🎮 Office Duel - New 4-Screen UI v17.0 - Double Turn Phase Timers</h1>
+   <h1>🎮 Office Duell - New 4-Screen UI v17.0 - Double Turn Phase Timers</h1>
   
   <!-- Screen 1: Home Screen -->
   <div id="homeScreen" class="screen" style="display: block;">
@@ -724,7 +1218,7 @@
     <div class="screen-content">
       <h2>Waiting Room</h2>
       <div class="match-info">
-        <p><strong>Match ID:</strong> <span id="displayMatchId">-</span></p>
+        <p><strong>Match IDD:</strong> <span id="displayMatchId">-</span></p>
         <button id="copyMatchIdBtn" class="copy-btn">📋 Copy Match ID</button>
       </div>
       <div class="players-status">
@@ -747,11 +1241,6 @@
   <!-- Screen 4: Game Screen -->
   <div id="gameScreen" class="screen" style="display: none;">
     <div class="game-container" id="gameContainer">
-    <!-- Timer in top right -->
-    <div class="timer-top-right">
-      <div class="status">Timer: <span id="timer" class="timer-display">-</span></div>
-        <button id="autoBtn" class="auto-turn-btn">Auto Turn</button>
-    </div>
     
     <!-- Left Sidebar - Shared Counter -->
     <div class="game-sidebar">
@@ -765,6 +1254,19 @@
             <span class="player-label">A Wins (+5)</span>
           </div>
         </div>
+        <!-- Timer moved below dot counter -->
+        <div class="timer-display-container">
+          <div class="status">Timer: <span id="timer" class="timer-display">-</span></div>
+          <button id="autoBtn" class="auto-turn-btn">Auto Turn</button>
+        </div>
+        <!-- Effect Feedback Display -->
+        <div class="effect-feedback-container">
+          <h4>Efectos Recientes</h4>
+          <div id="effectFeedback" class="effect-feedback-list">
+            <!-- Effects will be displayed here -->
+          </div>
+        </div>
+        
         <div id="winnerDisplay" class="winner-display" style="display: none;">
           <h2 id="winnerText">Game Over!</h2>
           <div style="margin-top: 15px;">
@@ -805,13 +1307,50 @@
         <div class="hand" id="handB"></div>
         <h4>Tableau:</h4>
         <div class="tableau" id="tableauB"></div>
+      </div>
+    </div>
+    
+    <!-- Card Selection Panel (Fixed Position Between Areas) -->
+    <div class="card-selection-panel" id="cardSelectionPanel">
+      <div class="panel-header">
+        <h3>Choose Between These Cards</h3>
+        <div class="phase-info">Phase: <span id="currentPhase">PLAY_TWO_CARDS</span></div>
+      </div>
+      
+      <div class="legend">
+        <span class="legend-item">
+          <span class="legend-color blue"></span>
+          Blue = Effect for you
+        </span>
+        <span class="legend-item">
+          <span class="legend-color orange"></span>
+          Orange = Effect for opponent
+        </span>
+      </div>
+      
+      <div class="card-choice-container">
+        <div class="card-choice" id="faceUpCard">
+          <h4>Face Up Card</h4>
+          <div class="card-preview" id="faceUpPreview">
+            <div class="placeholder">Drag a card here</div>
+          </div>
+          <button class="choose-btn" id="chooseFaceUp" disabled>Choose This One</button>
+        </div>
         
-        <!-- Play Cards Section -->
-        <div class="play-cards-section">
-          <div class="status" id="selectionStatus">Selected: Face Up=<span id="selUp">-</span>, Face Down=<span id="selDown">-</span></div>
-          <button id="playBtn" class="play-selected-btn" style="display: none;">🎯 Play Selected Cards</button>
+        <div class="card-choice" id="faceDownCard">
+          <h4>Face Down Card</h4>
+          <div class="card-preview" id="faceDownPreview">
+            <div class="placeholder">Drag a card here</div>
+          </div>
+          <button class="choose-btn" id="chooseFaceDown" disabled>Choose This One</button>
         </div>
       </div>
+      
+      <div class="play-controls">
+        <div class="status" id="selectionStatus">Selected: Face Up=<span id="selUp">-</span>, Face Down=<span id="selDown">-</span></div>
+        <button id="playBtn" class="play-selected-btn" style="display: none;">🎯 Play Selected Cards</button>
+      </div>
+    </div>
     </div>
     
     <!-- Game Footer -->
@@ -822,34 +1361,6 @@
     </div>
   </div>
 
-    <!-- Enhanced Card Choice Modal -->
-    <div id="choiceModal" class="choice-modal" style="display: none;">
-      <div class="choice-modal-content">
-        <h2 id="choiceModalTitle">Choose Between These Cards</h2>
-      <p style="text-align: center; color: #666; margin: 10px 0; font-size: 0.9em;">
-        <span style="color: #3da7ff; font-weight: bold;">Blue</span> = Effect for you | 
-        <span style="color: #ff9d46; font-weight: bold;">Orange</span> = Effect for opponent
-      </p>
-        <div class="choice-cards">
-          <div class="choice-card">
-            <h4>Face Up Card</h4>
-            <div class="modal-card-display" id="faceUpCardDisplay">
-              <div class="modal-card-title">-</div>
-              <div class="modal-card-effects">-</div>
-            </div>
-            <button id="chooseFaceUpBtn" onclick="chooseFaceUp()" class="choice-btn">Choose This One</button>
-          </div>
-          <div class="choice-card">
-            <h4>Face Down Card</h4>
-            <div class="modal-card-display" id="faceDownCardDisplay">
-              <div class="modal-card-title">???</div>
-              <div class="modal-card-effects">???</div>
-            </div>
-            <button id="chooseFaceDownBtn" onclick="chooseFaceDown()" class="choice-btn">Choose This One</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
   <script>
      // Auto-detect API URL based on environment
@@ -1108,36 +1619,76 @@
       // Game started - show game UI
       showGame();
       
-      // Update player info
-      document.getElementById('handSizeA').textContent = gameState.handSizeA;
-      document.getElementById('handSizeB').textContent = gameState.handSizeB;
-      document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA;
-      document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB;
+      // Update player info based on perspective
+      if (playerSeat === 0) {
+        // Player A perspective - A sees themselves at bottom, opponent at top
+        // After DOM reordering: playerA will be at bottom, playerB at top
+        document.getElementById('handSizeA').textContent = gameState.handSizeA; // A's hand (will be at bottom)
+        document.getElementById('handSizeB').textContent = gameState.handSizeB; // B's hand (will be at top)
+        document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA; // A's tableau (will be at bottom)
+        document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB; // B's tableau (will be at top)
+      } else if (playerSeat === 1) {
+        // Player B perspective - B sees themselves at bottom, opponent at top
+        // Original order: playerA at top, playerB at bottom
+        document.getElementById('handSizeA').textContent = gameState.handSizeA; // A's hand (at top)
+        document.getElementById('handSizeB').textContent = gameState.handSizeB; // B's hand (at bottom)
+        document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA; // A's tableau (at top)
+        document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB; // B's tableau (at bottom)
+      }
       document.getElementById('active').textContent = gameState.activePlayer === 0 ? 'A' : 'B';
       document.getElementById('phase').textContent = gameState.phase || 'PLAY_TWO_CARDS';
       
       // Update player names and area labels based on current player
       const playerAName = gameState.playerA || 'Player A';
       const playerBName = gameState.playerB || 'Player B';
-      document.getElementById('playerATitle').textContent = playerAName;
-      document.getElementById('playerBTitle').textContent = playerBName;
+      
+      if (playerSeat === 0) {
+        // Player A perspective - A sees themselves at bottom, opponent at top
+        // After DOM reordering: playerA will be at bottom, playerB at top
+        document.getElementById('playerATitle').textContent = playerAName; // A's name (will be at bottom)
+        document.getElementById('playerBTitle').textContent = playerBName; // B's name (will be at top)
+      } else if (playerSeat === 1) {
+        // Player B perspective - B sees themselves at bottom, opponent at top
+        // Original order: playerA at top, playerB at bottom
+        document.getElementById('playerATitle').textContent = playerAName; // A's name (at top)
+        document.getElementById('playerBTitle').textContent = playerBName; // B's name (at bottom)
+      }
+      
+      // Make board symmetric - both players see themselves at bottom
+      const gameMain = document.querySelector('.game-main');
+      const playerA = document.getElementById('playerA');
+      const playerB = document.getElementById('playerB');
+      const cardSelectionPanel = document.getElementById('cardSelectionPanel');
       
       // Update area labels based on current player perspective
       const playerALabel = document.querySelector('#playerA .player-area-label');
       const playerBLabel = document.querySelector('#playerB .player-area-label');
       
       if (playerSeat === 0) {
-        // Current player is Player A
+        // Current player is Player A - they should see themselves at bottom
+        // Reorder DOM: move playerA to bottom, playerB to top
         playerALabel.textContent = 'Your Area';
         playerALabel.className = 'player-area-label';
         playerBLabel.textContent = 'Opponent Area';
         playerBLabel.className = 'player-area-label opponent';
+        
+        // Move playerA to bottom (after playerB)
+        gameMain.appendChild(playerA);
+        
+        // Ensure card selection panel is always in the middle
+        // Insert it between playerB and playerA
+        gameMain.insertBefore(cardSelectionPanel, playerA);
       } else if (playerSeat === 1) {
-        // Current player is Player B
+        // Current player is Player B - they should see themselves at bottom
+        // Keep original order: playerA at top, playerB at bottom
         playerALabel.textContent = 'Opponent Area';
         playerALabel.className = 'player-area-label opponent';
         playerBLabel.textContent = 'Your Area';
         playerBLabel.className = 'player-area-label';
+        
+        // Ensure card selection panel is always in the middle
+        // Insert it between playerA and playerB
+        gameMain.insertBefore(cardSelectionPanel, playerB);
       }
       
       // Update dot counter with enhanced visual feedback
@@ -1187,9 +1738,21 @@
       renderHands();
       renderTableaus();
       
+      // Render effect feedback
+      renderEffectFeedback();
+      
+      // Render cards in central panel
+      renderCentralCardPanel();
+      
+      // Setup drag and drop for central panel
+      setupDragAndDrop();
+      
       // Ensure interaction is properly toggled
       const isMyTurn = playerSeat !== null && playerSeat === gameState.activePlayer;
       toggleInteraction(isMyTurn);
+      
+      // Show/hide central panel based on phase and player
+      updateCentralPanelVisibility();
       
       // Auto-play bot turns
       if (gameState.started) {
@@ -1365,8 +1928,8 @@
       const realId = realCardId || cardId;
       const displayId = cardId;
       
-        const btn = document.createElement('button');
-      btn.className = 'card' + (isSelectable && (selUp === displayId || selDown === displayId) ? ' selected' : '');
+      const btn = document.createElement('button');
+      btn.className = 'card hand-card' + (isSelectable && (selUp === displayId || selDown === displayId) ? ' selected' : '');
       btn.setAttribute('data-real-id', realId);
       
       if(cardDef){
@@ -1389,6 +1952,20 @@
       const canSelect = isSelectable && (!gameState || !gameState.waitingForOpponentChoice);
       
       if (canSelect) {
+        // Make card draggable
+        btn.draggable = true;
+        
+        // Add drag event listeners
+        btn.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', realId);
+          btn.classList.add('dragging');
+        });
+        
+        btn.addEventListener('dragend', (e) => {
+          btn.classList.remove('dragging');
+        });
+        
+        // Keep click functionality as backup
         btn.onclick = () => {
           if (!selUp) selUp = realId;
           else if (!selDown && realId !== selUp) selDown = realId; 
@@ -1509,6 +2086,358 @@
           card.classList.remove('selected');
         }
       });
+      
+      // Update card previews
+      updateCardPreviews();
+    }
+    
+    function updateCardPreviews() {
+      const faceUpPreview = document.getElementById('faceUpPreview');
+      const faceDownPreview = document.getElementById('faceDownPreview');
+      
+      // Clear previous content and reset classes
+      faceUpPreview.innerHTML = '<div class="placeholder">Drag a card here</div>';
+      faceUpPreview.className = 'card-preview';
+      faceDownPreview.innerHTML = '<div class="placeholder">Drag a card here</div>';
+      faceDownPreview.className = 'card-preview';
+      
+      // Render face up card details if selected
+      if (selUp && gameState && gameState.cardDefinitions) {
+        const cardDef = gameState.cardDefinitions[selUp];
+        if (cardDef) {
+          faceUpPreview.innerHTML = createCardPreviewContent(cardDef);
+          faceUpPreview.className = 'card-preview has-card';
+        }
+      }
+      
+      // Render face down card details if selected
+      if (selDown && gameState && gameState.cardDefinitions) {
+        const cardDef = gameState.cardDefinitions[selDown];
+        if (cardDef) {
+          faceDownPreview.innerHTML = createCardPreviewContent(cardDef);
+          faceDownPreview.className = 'card-preview has-card';
+        }
+      }
+    }
+    
+    function createCardPreviewContent(cardDef) {
+      let content = `
+        <div class="card-preview-content">
+          <div class="card-preview-name">${cardDef.name}</div>
+          <div class="card-preview-tiers">
+      `;
+      
+      // Get tableau information for highlighting
+      const myTableau = playerSeat === 0 ? gameState.tableauCardIdsA : gameState.tableauCardIdsB;
+      const oppTableau = playerSeat === 0 ? gameState.tableauCardIdsB : gameState.tableauCardIdsA;
+      
+      // Find the card ID in tableaus for effect level calculation
+      const cardId = findCardIdInTableau(cardDef, myTableau, oppTableau);
+      const myNextLevel = getNextEffectLevel(cardId, myTableau);
+      const oppNextLevel = getNextEffectLevel(cardId, oppTableau);
+      
+      // Add tiers with color coding and highlighting
+      cardDef.tiers.forEach((tier, index) => {
+        // Determine if this tier will be active for me or opponent
+        let tierHighlightClass = '';
+        if (index === myNextLevel) {
+          tierHighlightClass = 'effect-mine';
+        } else if (index === oppNextLevel) {
+          tierHighlightClass = 'effect-opponent';
+        }
+        
+        content += `
+          <div class="tier-preview ${tierHighlightClass}">
+            <div class="tier-preview-header">Tier ${index + 1}</div>
+        `;
+        
+        tier.actions.forEach(action => {
+          // Determine if this is a self or opponent effect
+          const isSelfEffect = action.target === 'self' || action.target === 'both';
+          const tierClass = isSelfEffect ? 'self-effect' : 'opponent-effect';
+          
+          content += `
+            <div class="tier-preview-action ${tierClass}">
+              ${action.description}
+            </div>
+          `;
+        });
+        
+        content += `</div>`;
+      });
+      
+      content += `
+          </div>
+        </div>
+      `;
+      
+      return content;
+    }
+    
+    function updateChooseButtons() {
+      const chooseFaceUp = document.getElementById('chooseFaceUp');
+      const chooseFaceDown = document.getElementById('chooseFaceDown');
+      const playBtn = document.getElementById('playBtn');
+      
+      if (!gameState) return;
+      
+      const isOpponentPickPhase = gameState.phase === 'OPPONENT_PICK';
+      const isPlayTwoCardsPhase = gameState.phase === 'PLAY_TWO_CARDS';
+      
+      if (isOpponentPickPhase) {
+        // In opponent pick phase, always enable buttons (cards are already selected by active player)
+        if (chooseFaceUp) {
+          chooseFaceUp.disabled = false;
+          chooseFaceUp.style.display = 'block';
+        }
+        if (chooseFaceDown) {
+          chooseFaceDown.disabled = false;
+          chooseFaceDown.style.display = 'block';
+        }
+        if (playBtn) playBtn.style.display = 'none';
+      } else if (isPlayTwoCardsPhase) {
+        // In play two cards phase, show play button when both cards are selected
+        if (chooseFaceUp) chooseFaceUp.style.display = 'none';
+        if (chooseFaceDown) chooseFaceDown.style.display = 'none';
+        if (playBtn) {
+          playBtn.style.display = selUp && selDown ? 'block' : 'none';
+        }
+      } else {
+        // Other phases - disable everything
+        if (chooseFaceUp) {
+          chooseFaceUp.disabled = true;
+          chooseFaceUp.style.display = 'block';
+        }
+        if (chooseFaceDown) {
+          chooseFaceDown.disabled = true;
+          chooseFaceDown.style.display = 'block';
+        }
+        if (playBtn) playBtn.style.display = 'none';
+      }
+    }
+    
+    function updateCentralPanelVisibility() {
+      const cardSelectionPanel = document.getElementById('cardSelectionPanel');
+      if (!cardSelectionPanel || !gameState) return;
+      
+      // Always show the panel, but control interaction based on phase and player
+      cardSelectionPanel.style.display = 'block';
+      
+      const isOpponentPickPhase = gameState.phase === 'OPPONENT_PICK';
+      const isPlayTwoCardsPhase = gameState.phase === 'PLAY_TWO_CARDS';
+      const isInactivePlayer = playerSeat !== null && playerSeat !== gameState.activePlayer;
+      const isActivePlayer = playerSeat !== null && playerSeat === gameState.activePlayer;
+      
+      if (isOpponentPickPhase && isInactivePlayer) {
+        // Inactive player can choose between the two cards
+        enableCentralPanelInteraction(true);
+        updatePanelTitle('Choose Between These Cards');
+      } else if (isPlayTwoCardsPhase && isActivePlayer) {
+        // Active player can select two cards to play
+        enableCentralPanelInteraction(true);
+        updatePanelTitle('Select Your Cards to Play');
+      } else {
+        // Disable interaction for other cases
+        enableCentralPanelInteraction(false);
+        updatePanelTitle('Waiting...');
+      }
+    }
+    
+    function updatePanelTitle(title) {
+      const panelTitle = document.querySelector('#cardSelectionPanel h3');
+      if (panelTitle) {
+        panelTitle.textContent = title;
+      }
+    }
+    
+    function enableCentralPanelInteraction(enabled) {
+      const faceUpPreview = document.getElementById('faceUpPreview');
+      const faceDownPreview = document.getElementById('faceDownPreview');
+      const chooseFaceUp = document.getElementById('chooseFaceUp');
+      const chooseFaceDown = document.getElementById('chooseFaceDown');
+      
+      if (enabled) {
+        // Enable drag and drop
+        if (faceUpPreview) faceUpPreview.style.pointerEvents = 'auto';
+        if (faceDownPreview) faceDownPreview.style.pointerEvents = 'auto';
+        
+        // Enable choose buttons based on current phase
+        const isOpponentPickPhase = gameState && gameState.phase === 'OPPONENT_PICK';
+        const isPlayTwoCardsPhase = gameState && gameState.phase === 'PLAY_TWO_CARDS';
+        
+        if (isOpponentPickPhase) {
+          // In opponent pick phase, always enable buttons (cards are already selected by active player)
+          if (chooseFaceUp) chooseFaceUp.disabled = false;
+          if (chooseFaceDown) chooseFaceDown.disabled = false;
+        } else if (isPlayTwoCardsPhase) {
+          // In play two cards phase, show play button when both cards are selected
+          if (chooseFaceUp) chooseFaceUp.style.display = 'none';
+          if (chooseFaceDown) chooseFaceDown.style.display = 'none';
+          // Show play button instead
+          const playBtn = document.getElementById('playBtn');
+          if (playBtn) {
+            playBtn.style.display = selUp && selDown ? 'block' : 'none';
+          }
+        }
+      } else {
+        // Disable drag and drop
+        if (faceUpPreview) faceUpPreview.style.pointerEvents = 'none';
+        if (faceDownPreview) faceDownPreview.style.pointerEvents = 'none';
+        
+        // Disable all buttons
+        if (chooseFaceUp) {
+          chooseFaceUp.disabled = true;
+          chooseFaceUp.style.display = 'block';
+        }
+        if (chooseFaceDown) {
+          chooseFaceDown.disabled = true;
+          chooseFaceDown.style.display = 'block';
+        }
+        const playBtn = document.getElementById('playBtn');
+        if (playBtn) playBtn.style.display = 'none';
+      }
+    }
+    
+    function setupDragAndDrop() {
+      const faceUpPreview = document.getElementById('faceUpPreview');
+      const faceDownPreview = document.getElementById('faceDownPreview');
+      
+      if (!faceUpPreview || !faceDownPreview) return;
+      
+      // Face Up drop zone
+      faceUpPreview.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (faceUpPreview.style.pointerEvents !== 'none') {
+          faceUpPreview.classList.add('drag-over');
+        }
+      });
+      
+      faceUpPreview.addEventListener('dragleave', (e) => {
+        faceUpPreview.classList.remove('drag-over');
+      });
+      
+      faceUpPreview.addEventListener('drop', (e) => {
+        e.preventDefault();
+        faceUpPreview.classList.remove('drag-over');
+        
+        if (faceUpPreview.style.pointerEvents !== 'none') {
+          const cardId = e.dataTransfer.getData('text/plain');
+          if (cardId) {
+            selUp = cardId;
+            updateCardSelection();
+            updateCardPreviews();
+            updateChooseButtons();
+          }
+        }
+      });
+      
+      // Face Down drop zone
+      faceDownPreview.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (faceDownPreview.style.pointerEvents !== 'none') {
+          faceDownPreview.classList.add('drag-over');
+        }
+      });
+      
+      faceDownPreview.addEventListener('dragleave', (e) => {
+        faceDownPreview.classList.remove('drag-over');
+      });
+      
+      faceDownPreview.addEventListener('drop', (e) => {
+        e.preventDefault();
+        faceDownPreview.classList.remove('drag-over');
+        
+        if (faceDownPreview.style.pointerEvents !== 'none') {
+          const cardId = e.dataTransfer.getData('text/plain');
+          if (cardId) {
+            selDown = cardId;
+            updateCardSelection();
+            updateCardPreviews();
+            updateChooseButtons();
+          }
+        }
+      });
+      
+      // Choose button event listeners
+      const chooseFaceUp = document.getElementById('chooseFaceUp');
+      const chooseFaceDown = document.getElementById('chooseFaceDown');
+      
+      if (chooseFaceUp) {
+        chooseFaceUp.addEventListener('click', () => {
+          if (!chooseFaceUp.disabled) {
+            // Handle face up selection
+            console.log('Chose face up card');
+            // Submit the choice to the backend
+            submitOpponentChoice('faceUp');
+          }
+        });
+      }
+      
+      if (chooseFaceDown) {
+        chooseFaceDown.addEventListener('click', () => {
+          if (!chooseFaceDown.disabled) {
+            // Handle face down selection
+            console.log('Chose face down card');
+            // Submit the choice to the backend
+            submitOpponentChoice('faceDown');
+          }
+        });
+      }
+    }
+
+    // Prevent multiple simultaneous submissions
+    let isSubmittingChoice = false;
+    
+    async function submitOpponentChoice(choice) {
+      if (!matchId || !gameState) {
+        console.error('Missing matchId or gameState:', { matchId, gameState: !!gameState });
+        return;
+      }
+      
+      // Prevent multiple simultaneous submissions
+      if (isSubmittingChoice) {
+        console.log('Choice already being submitted, ignoring duplicate');
+        return;
+      }
+      
+      isSubmittingChoice = true;
+      
+      try {
+        const chooseFaceUp = choice === 'faceUp';
+        const url = `${api}/api/match/${matchId}/choose`;
+        const body = { chooseFaceUp: chooseFaceUp };
+        
+        console.log('Submitting opponent choice:', {
+          choice,
+          chooseFaceUp,
+          url,
+          body,
+          currentPhase: gameState.phase,
+          activePlayer: gameState.activePlayer,
+          playerSeat
+        });
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        if (response.ok) {
+          console.log('Opponent choice submitted successfully');
+          await refresh();
+        } else {
+          const errorText = await response.text();
+          console.error('Failed to submit opponent choice:', response.status, errorText);
+        }
+      } catch (error) {
+        console.error('Error submitting opponent choice:', error);
+      } finally {
+        isSubmittingChoice = false;
+      }
     }
 
     function renderHands() {
@@ -1559,37 +2488,176 @@
       }
     }
     function renderTableaus() {
-      if (!gameState) return;
+      if (!gameState || playerSeat === null) return;
       
-      // Render Player A tableau
-      const tableauA = document.getElementById('tableauA');
-      tableauA.innerHTML = '';
-      const cardCountsA = {};
-      gameState.tableauCardIdsA.forEach(id => {
-        cardCountsA[id] = (cardCountsA[id] || 0) + 1;
+      // Determine which tableau divs belong to me vs opponent based on current perspective
+      const myTableauDiv = playerSeat === 0 ? document.getElementById('tableauA') : document.getElementById('tableauB');
+      const oppTableauDiv = playerSeat === 0 ? document.getElementById('tableauB') : document.getElementById('tableauA');
+      
+      // Get the correct tableau data based on perspective
+      const myTableauIds = playerSeat === 0 ? gameState.tableauCardIdsA : gameState.tableauCardIdsB;
+      const oppTableauIds = playerSeat === 0 ? gameState.tableauCardIdsB : gameState.tableauCardIdsA;
+      
+      // Clear both tableaus
+      myTableauDiv.innerHTML = '';
+      oppTableauDiv.innerHTML = '';
+      
+      // Render my tableau
+      const cardCountsMy = {};
+      myTableauIds.forEach(id => {
+        cardCountsMy[id] = (cardCountsMy[id] || 0) + 1;
       });
       
-      Object.keys(cardCountsA).forEach(id => {
-        const count = cardCountsA[id];
+      Object.keys(cardCountsMy).forEach(id => {
+        const count = cardCountsMy[id];
         const cardDef = gameState.cardDefinitions[id];
         const stackedCard = renderStackedCard(id, cardDef, count);
-        tableauA.appendChild(stackedCard);
+        myTableauDiv.appendChild(stackedCard);
       });
       
-      // Render Player B tableau
-      const tableauB = document.getElementById('tableauB');
-      tableauB.innerHTML = '';
-      const cardCountsB = {};
-      gameState.tableauCardIdsB.forEach(id => {
-        cardCountsB[id] = (cardCountsB[id] || 0) + 1;
+      // Render opponent tableau
+      const cardCountsOpp = {};
+      oppTableauIds.forEach(id => {
+        cardCountsOpp[id] = (cardCountsOpp[id] || 0) + 1;
       });
       
-      Object.keys(cardCountsB).forEach(id => {
-        const count = cardCountsB[id];
+      Object.keys(cardCountsOpp).forEach(id => {
+        const count = cardCountsOpp[id];
         const cardDef = gameState.cardDefinitions[id];
         const stackedCard = renderStackedCard(id, cardDef, count);
-        tableauB.appendChild(stackedCard);
+        oppTableauDiv.appendChild(stackedCard);
       });
+    }
+    
+    function renderEffectFeedback() {
+      if (!gameState || !gameState.recentEffects) return;
+      
+      const effectContainer = document.getElementById('effectFeedback');
+      if (!effectContainer) return;
+      
+      // Clear previous effects
+      effectContainer.innerHTML = '';
+      
+      // Show only the last 5 effects
+      const recentEffects = gameState.recentEffects.slice(-5);
+      
+      recentEffects.forEach(effect => {
+        const effectDiv = document.createElement('div');
+        effectDiv.className = 'effect-item';
+        
+        // Determine effect type for styling
+        if (effect.effectDescription.includes('cura') || effect.effectDescription.includes('heal')) {
+          effectDiv.classList.add('heal');
+        } else if (effect.effectDescription.includes('daño') || effect.effectDescription.includes('damage')) {
+          effectDiv.classList.add('damage');
+        } else if (effect.dotChange !== 0) {
+          effectDiv.classList.add('dot-change');
+        }
+        
+        // Create effect text
+        let effectText = `<strong>${effect.playerName}</strong>: ${effect.effectDescription}`;
+        
+        // Add change indicators
+        if (effect.dotChange !== 0) {
+          const changeText = effect.dotChange > 0 ? `+${effect.dotChange}` : `${effect.dotChange}`;
+          effectText += ` <span style="color: #ff9800;">[${changeText} puntos]</span>`;
+        }
+        
+        if (effect.lpChangeA !== 0 || effect.lpChangeB !== 0) {
+          const lpChanges = [];
+          if (effect.lpChangeA !== 0) lpChanges.push(`A: ${effect.lpChangeA > 0 ? '+' : ''}${effect.lpChangeA}`);
+          if (effect.lpChangeB !== 0) lpChanges.push(`B: ${effect.lpChangeB > 0 ? '+' : ''}${effect.lpChangeB}`);
+          effectText += ` <span style="color: #666;">[${lpChanges.join(', ')} LP]</span>`;
+        }
+        
+        effectDiv.innerHTML = effectText;
+        effectContainer.appendChild(effectDiv);
+      });
+      
+      // Scroll to bottom to show latest effects
+      effectContainer.scrollTop = effectContainer.scrollHeight;
+    }
+    
+    function renderCentralCardPanel() {
+      // Update phase display
+      if (gameState && gameState.phase) {
+        const phaseElement = document.getElementById('currentPhase');
+        if (phaseElement) {
+          phaseElement.textContent = gameState.phase;
+        }
+      }
+      
+      // Load selected cards in OPPONENT_PICK phase
+      if (gameState && gameState.phase === 'OPPONENT_PICK') {
+        loadSelectedCardsForOpponentPick();
+      } else {
+        // Update card previews for other phases
+        updateCardPreviews();
+      }
+      
+      // Update choose buttons
+      updateChooseButtons();
+    }
+    
+    function loadSelectedCardsForOpponentPick() {
+      const faceUpPreview = document.getElementById('faceUpPreview');
+      const faceDownPreview = document.getElementById('faceDownPreview');
+      
+      if (!faceUpPreview || !faceDownPreview || !gameState) return;
+      
+      // Get the selected cards from game state
+      const selectedFaceUpCard = gameState.faceUpCardId;
+      const selectedFaceDownCard = gameState.faceDownCardId;
+      
+      // Load Face Up Card
+      if (selectedFaceUpCard && gameState.cardDefinitions) {
+        const cardDef = gameState.cardDefinitions[selectedFaceUpCard];
+        if (cardDef) {
+          faceUpPreview.innerHTML = createCardPreviewContent(cardDef);
+          faceUpPreview.className = 'card-preview has-card';
+        }
+      } else {
+        faceUpPreview.innerHTML = '<div class="placeholder">No card selected</div>';
+        faceUpPreview.className = 'card-preview';
+      }
+      
+      // Load Face Down Card (mystery card)
+      if (selectedFaceDownCard && gameState.cardDefinitions) {
+        const cardDef = gameState.cardDefinitions[selectedFaceDownCard];
+        if (cardDef) {
+          // Show as mystery card with ???
+          faceDownPreview.innerHTML = `
+            <div class="card-preview-content">
+              <div class="card-preview-name">???</div>
+              <div class="card-preview-tiers">
+                <div class="tier-preview">
+                  <div class="tier-preview-header">Hidden Card</div>
+                  <div class="tier-preview-action">This card's effects are hidden</div>
+                </div>
+              </div>
+            </div>
+          `;
+          faceDownPreview.className = 'card-preview has-card mystery-card';
+          // Disable drag and drop for mystery card
+          faceDownPreview.style.pointerEvents = 'none';
+        }
+      } else {
+        faceDownPreview.innerHTML = '<div class="placeholder">No card selected</div>';
+        faceDownPreview.className = 'card-preview';
+        // Disable drag and drop when no card
+        faceDownPreview.style.pointerEvents = 'none';
+      }
+    }
+    
+    function selectCard(cardId, position) {
+      if (position === 'up') {
+        selUp = cardId;
+      } else {
+        selDown = cardId;
+      }
+      
+      updateCardSelection();
+      updateCardPreviews();
     }
 
     function renderStackedCard(cardId, cardDef, count) {
@@ -1864,28 +2932,9 @@
         }
         
         // Show the choice modal
-        const choiceModal = document.getElementById('choiceModal');
-        if (choiceModal) {
-          choiceModal.style.display = 'flex';
-          choiceModal.classList.add('show');
-        
-        if (isOpponentTurn) {
-          document.getElementById('choiceModalTitle').textContent = 'Choose Between These Cards';
-          document.querySelectorAll('#choiceModal .choice-btn').forEach(btn => btn.style.display = 'block');
-        } else {
-          document.getElementById('choiceModalTitle').textContent = 'Waiting for opponent to choose...';
-          document.querySelectorAll('#choiceModal .choice-btn').forEach(btn => btn.style.display = 'none');
-        }
-        }
+        // Modal removed - using central panel instead
       } else {
-        // Hide modal when not waiting for choice
-        const choiceModal = document.getElementById('choiceModal');
-        if (choiceModal) {
-          choiceModal.classList.remove('show');
-        setTimeout(() => {
-            choiceModal.style.display = 'none';
-          }, 300);
-        }
+        // Modal removed - using central panel instead
       }
     }
     function toggleInteraction(isMyTurn) {
@@ -1984,13 +3033,7 @@
       if (!matchId) return;
       clearTimers();
       // Hide modal immediately
-      const choiceModal = document.getElementById('choiceModal');
-      if (choiceModal) {
-        choiceModal.classList.remove('show');
-        setTimeout(() => {
-          choiceModal.style.display = 'none';
-        }, 300);
-      }
+      // Modal removed - using central panel instead
       const body = JSON.stringify({ chooseFaceUp: true });
       const url = playerSeat !== null ? 
         api + '/api/match/' + matchId + '/choose?seat=' + playerSeat :
@@ -2004,13 +3047,7 @@
       if (!matchId) return;
       clearTimers();
       // Hide modal immediately
-      const choiceModal = document.getElementById('choiceModal');
-      if (choiceModal) {
-        choiceModal.classList.remove('show');
-        setTimeout(() => {
-          choiceModal.style.display = 'none';
-        }, 300);
-      }
+      // Modal removed - using central panel instead
       const body = JSON.stringify({ chooseFaceUp: false });
       const url = playerSeat !== null ? 
         api + '/api/match/' + matchId + '/choose?seat=' + playerSeat :
@@ -2163,11 +3200,7 @@
       }
       
       // Hide choice modal
-      const choiceModal = document.getElementById('choiceModal');
-      if (choiceModal) {
-        choiceModal.classList.remove('show');
-        choiceModal.style.display = 'none';
-      }
+      // Modal removed - using central panel instead
       
       // Hide winner display
       const winnerDisplay = document.getElementById('winnerDisplay');
@@ -2258,11 +3291,7 @@
       }
       
       // Hide choice modal
-      const choiceModal = document.getElementById('choiceModal');
-      if (choiceModal) {
-        choiceModal.classList.remove('show');
-        choiceModal.style.display = 'none';
-      }
+      // Modal removed - using central panel instead
       
       // Hide winner display
       const winnerDisplay = document.getElementById('winnerDisplay');

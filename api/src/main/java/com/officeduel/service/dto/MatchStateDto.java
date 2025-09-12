@@ -28,7 +28,9 @@ public record MatchStateDto(
         boolean readyB,
         boolean started,
         boolean playerAIsBot,
-        boolean playerBIsBot
+        boolean playerBIsBot,
+        // Effect feedback
+        List<EffectFeedback> recentEffects
 ) {
     public record CardInfo(
             String name,
@@ -46,6 +48,16 @@ public record MatchStateDto(
             Integer amount,
             Integer count,
             String description
+    ) {}
+    
+    public record EffectFeedback(
+            String playerName,
+            String cardName,
+            String effectDescription,
+            int dotChange,
+            int lpChangeA,
+            int lpChangeB,
+            long timestamp
     ) {}
 }
 

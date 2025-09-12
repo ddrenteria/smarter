@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Office Duel - Enhanced UI v2.0</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <style>
+    body { 
+      font-family: sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Screen Management Styles */
+    .screen {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .screen-content {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+    
+    .screen-content h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 2em;
+    }
+    
+    .screen-content p {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
+    /* Home Screen Styles */
+    .home-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .home-btn {
+      background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+      color: white;
+      border: none;
+      padding: 20px 30px;
+      border-radius: 12px;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+    }
+    
+    .home-btn:hover {
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    }
+    
+    .home-btn:active {
+      transform: translateY(0);
+    }
+    
+    /* Input Group Styles */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .input-group input {
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s ease;
+    }
+    
+    .input-group input:focus {
+      outline: none;
+      border-color: #2196f3;
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+    
+    .action-btn {
+      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+    }
+    
+    .action-btn:hover {
+      background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    }
+    
+    .secondary-btn {
+      background: transparent;
+      color: #666;
+      border: 2px solid #ddd;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+    
+    .secondary-btn:hover {
+      background: #f5f5f5;
+      border-color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Office Duel - Enhanced UI</h1>
+  
+  <!-- Screen 1: Home Screen -->
+  <div id="homeScreen" class="screen" style="display: block;">
+    <div class="screen-content">
+      <h2>🎮 Welcome to Office Duel!</h2>
+      <p>Choose how you want to play:</p>
+      <div class="home-buttons">
+        <button id="createMatchBtn" class="home-btn">🏢 Create Match</button>
+        <button id="joinMatchBtn" class="home-btn">🔗 Join Match</button>
+        <button id="playBotBtn" class="home-btn">🤖 Play vs Bot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Create Match Screen -->
+  <div id="createMatchScreen" class="screen" style="display: none;">
+    <div class="screen-content">
+      <h2>Create New Match</h2>
+      <p>Enter your name to create a match:</p>
+      <div class="input-group">
+        <input id="createPlayerName" type="text" placeholder="Your name" />
+        <button id="confirmCreateBtn" class="action-btn">Create Match</button>
+      </div>
+      <button id="backToHomeBtn" class="secondary-btn">← Back to Home</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Join Match Screen -->
+  <div id="joinMatchScreen" class="screen" style="display: none;">
+    <div class="screen-content">
+      <h2>Join Existing Match</h2>
+      <p>Enter the match ID and your name:</p>
+      <div class="input-group">
+        <input id="joinMatchId" type="text" placeholder="Match ID" />
+        <input id="joinPlayerName" type="text" placeholder="Your name" />
+        <button id="confirmJoinBtn" class="action-btn">Join Match</button>
+      </div>
+      <button id="backToHomeBtn2" class="secondary-btn">← Back to Home</button>
+    </div>
+  </div>
+
+  <script>
+    // Screen management functions
+    function showScreen(screenId) {
+      const screens = ['homeScreen', 'createMatchScreen', 'joinMatchScreen'];
+      screens.forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById(screenId).style.display = 'block';
+      console.log('Showing screen:', screenId);
+    }
+
+    // Event listeners
+    document.getElementById('createMatchBtn').onclick = () => {
+      console.log('Create match clicked');
+      showScreen('createMatchScreen');
+    };
+
+    document.getElementById('joinMatchBtn').onclick = () => {
+      console.log('Join match clicked');
+      showScreen('joinMatchScreen');
+    };
+
+    document.getElementById('playBotBtn').onclick = () => {
+      console.log('Play bot clicked');
+      alert('Bot functionality coming soon!');
+    };
+
+    document.getElementById('confirmCreateBtn').onclick = () => {
+      const name = document.getElementById('createPlayerName').value.trim();
+      if (!name) {
+        alert('Please enter your name');
+        return;
+      }
+      alert('Creating match for: ' + name);
+      showScreen('homeScreen');
+    };
+
+    document.getElementById('confirmJoinBtn').onclick = () => {
+      const matchId = document.getElementById('joinMatchId').value.trim();
+      const name = document.getElementById('joinPlayerName').value.trim();
+      if (!matchId || !name) {
+        alert('Please enter both match ID and your name');
+        return;
+      }
+      alert('Joining match: ' + matchId + ' as: ' + name);
+      showScreen('homeScreen');
+    };
+
+    document.getElementById('backToHomeBtn').onclick = () => {
+      showScreen('homeScreen');
+    };
+
+    document.getElementById('backToHomeBtn2').onclick = () => {
+      showScreen('homeScreen');
+    };
+
+    // Enter key support
+    document.getElementById('createPlayerName').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('confirmCreateBtn').click();
+    });
+
+    document.getElementById('joinMatchId').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('confirmJoinBtn').click();
+    });
+
+    document.getElementById('joinPlayerName').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('confirmJoinBtn').click();
+    });
+
+    // Force show home screen on load
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, showing home screen');
+      showScreen('homeScreen');
+    });
+
+    // Also show home screen immediately
+    showScreen('homeScreen');
+  </script>
+</body>
+</html>
