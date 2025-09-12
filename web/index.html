@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Office Duel - New UI v3.0</title>
+  <title>Office Duel - New UI v17.0 - Double Turn Phase Timers</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -339,6 +339,41 @@
       color: #fff;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
+    
+    .winner-display .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .winner-display .btn-primary {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .winner-display .btn-primary:hover {
+      background: linear-gradient(45deg, #45a049, #3d8b40);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+
+    .winner-display .btn-secondary {
+      background: linear-gradient(45deg, #6c757d, #5a6268);
+      color: white;
+    }
+
+    .winner-display .btn-secondary:hover {
+      background: linear-gradient(45deg, #5a6268, #495057);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    }
     /* Enhanced Timer Styling */
     .timer-display {
       display: inline-block;
@@ -642,7 +677,7 @@
   </style>
 </head>
 <body>
-  <h1>🎮 Office Duel - New 4-Screen UI v3.0</h1>
+   <h1>🎮 Office Duel - New 4-Screen UI v17.0 - Double Turn Phase Timers</h1>
   
   <!-- Screen 1: Home Screen -->
   <div id="homeScreen" class="screen" style="display: block;">
@@ -669,7 +704,7 @@
       <button id="backToHomeBtn" class="secondary-btn">← Back to Home</button>
     </div>
   </div>
-
+  
   <!-- Screen 2: Join Match Screen -->
   <div id="joinMatchScreen" class="screen" style="display: none;">
     <div class="screen-content">
@@ -732,6 +767,10 @@
         </div>
         <div id="winnerDisplay" class="winner-display" style="display: none;">
           <h2 id="winnerText">Game Over!</h2>
+          <div style="margin-top: 15px;">
+            <button id="rematchBtn" class="btn btn-primary" style="margin-right: 10px;">🔄 Rematch</button>
+            <button id="gameBackToHomeBtn" class="btn btn-secondary">🏠 Back to Home</button>
+          </div>
         </div>
       </div>
     </div>
@@ -813,10 +852,13 @@
     </div>
 
   <script>
-    // Auto-detect API URL based on environment
-    const api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-      ? '' // Local development - use same host
-      : 'https://smarter-co00.onrender.com'; // Production - use remote API
+     // Auto-detect API URL based on environment
+     const api = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+       ? '' // Local development - use same host
+       : 'https://smarter-co00.onrender.com'; // Production - use remote API
+     
+     console.log('🌐 Environment detected:', window.location.hostname);
+     console.log('🔗 Using API:', api || 'same host (' + window.location.origin + ')');
     let matchId = '';
     let playerSeat = null;
     let playerName = null;
@@ -824,8 +866,8 @@
     let selUp = null, selDown = null;
     let turnTimer = null;
     let choiceTimer = null;
-    let turnTimeLeft = 30;
-    let choiceTimeLeft = 15;
+    let turnTimeLeft = 60; // Doubled from 30 to 60 seconds for card selection
+    let choiceTimeLeft = 30; // Doubled from 15 to 30 seconds for choice selection
 
     // Screen management functions
     function showScreen(screenId) {
@@ -858,7 +900,7 @@
         el.scrollTop = el.scrollHeight;
       }
     }
-
+    
     // Read matchId from URL and check for existing seat
     (function initMatchFromUrl(){
       const url = new URL(window.location.href);
@@ -935,6 +977,8 @@
         // Store in localStorage
         localStorage.setItem('match_' + matchId + '_seat', playerSeat);
         localStorage.setItem('match_' + matchId + '_name', playerName);
+        localStorage.setItem('playerName', playerName);
+        localStorage.setItem('wasVsBot', 'false'); // Player vs Player
         
         document.getElementById('displayMatchId').textContent = matchId;
         showScreen('readyScreen');
@@ -968,6 +1012,8 @@
         // Store in localStorage
         localStorage.setItem('match_' + matchId + '_seat', playerSeat);
         localStorage.setItem('match_' + matchId + '_name', playerName);
+        localStorage.setItem('playerName', playerName);
+        localStorage.setItem('wasVsBot', 'true');
         
         document.getElementById('displayMatchId').textContent = matchId;
         showScreen('readyScreen');
@@ -1001,11 +1047,13 @@
 
         playerSeat = response.seat;
         playerName = name;
-
+        
         // Persist for reloads
         localStorage.setItem('match_' + id + '_seat', playerSeat);
         localStorage.setItem('match_' + id + '_name', playerName);
-
+        localStorage.setItem('playerName', playerName);
+        localStorage.setItem('wasVsBot', 'false'); // Player vs Player
+        
         document.getElementById('displayMatchId').textContent = matchId;
         showScreen('readyScreen');
         startAutoRefresh();
@@ -1215,7 +1263,7 @@
       } else if (!gameState.readyA || !gameState.readyB) {
         readyBtn.style.display = 'none';
         waitingMsg.textContent = 'Waiting for the other player to be ready...';
-      } else {
+        } else {
         readyBtn.style.display = 'none';
         waitingMsg.textContent = 'Both players ready! Starting game...';
       }
@@ -1309,14 +1357,931 @@
       await refresh();
     }
 
-    // Placeholder functions for game logic (to be implemented fully)
-    function renderHands() { /* Implementation needed */ }
-    function renderTableaus() { /* Implementation needed */ }
-    function updateUIForPhase() { /* Implementation needed */ }
-    function toggleInteraction(isMyTurn) { /* Implementation needed */ }
-    function checkWinConditions() { /* Implementation needed */ }
-    function chooseFaceUp() { /* Implementation needed */ }
-    function chooseFaceDown() { /* Implementation needed */ }
+    // Complete game functions implementation
+    function renderCard(cardId, cardDef, isSelectable = false, realCardId = null) {
+      const div = document.createElement('div');
+      div.className = 'card-tooltip';
+      
+      const realId = realCardId || cardId;
+      const displayId = cardId;
+      
+        const btn = document.createElement('button');
+      btn.className = 'card' + (isSelectable && (selUp === displayId || selDown === displayId) ? ' selected' : '');
+      btn.setAttribute('data-real-id', realId);
+      
+      if(cardDef){
+          const title = document.createElement('div');
+          title.className = 'card-title';
+          title.textContent = cardDef.name;
+          btn.appendChild(title);
+          const ul = document.createElement('ul');
+          ul.className = 'card-effects';
+          cardDef.tiers.forEach((tier, idx)=>{
+             const li=document.createElement('li');
+             li.textContent = (idx+1)+'. '+ (tier.actions[0]?.description || '');
+             ul.appendChild(li);
+          });
+          btn.appendChild(ul);
+      } else {
+          btn.textContent = displayId;
+      }
+      
+      const canSelect = isSelectable && (!gameState || !gameState.waitingForOpponentChoice);
+      
+      if (canSelect) {
+        btn.onclick = () => {
+          if (!selUp) selUp = realId;
+          else if (!selDown && realId !== selUp) selDown = realId; 
+          else { selUp = realId; selDown = null; }
+          document.getElementById('selUp').textContent = selUp || '-';
+          document.getElementById('selDown').textContent = selDown || '-';
+          updateCardSelection();
+        };
+      }
+      
+      if (cardDef) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-content';
+        tooltip.innerHTML = generateCardTooltip(cardDef);
+        div.appendChild(tooltip);
+      }
+      
+      div.appendChild(btn);
+      return div;
+    }
+
+    function generateCardTooltip(cardDef) {
+      let html = `<strong>${cardDef.name}</strong><br>`;
+      html += `Tags: ${cardDef.tags.join(', ')}<br><br>`;
+      
+      cardDef.tiers.forEach((tier, index) => {
+        html += `<strong>Tier ${index + 1}:</strong><br>`;
+        tier.actions.forEach(action => {
+          html += `• ${action.description}<br>`;
+        });
+        html += '<br>';
+      });
+      
+      return html;
+    }
+
+    function getNextEffectLevel(cardId, playerTableau) {
+      if (!cardId || !playerTableau) return 0;
+      const count = playerTableau.filter(id => id === cardId).length;
+      console.log(`Effect level calculation: cardId=${cardId}, tableau=[${playerTableau.join(', ')}], count=${count}, nextLevel=${Math.min(count, 2)}`);
+      return Math.min(count, 2); // 0, 1, or 2 (tiers are 0-indexed)
+    }
+
+    function generateEffectsHTMLWithHighlighting(cardDef, myTableau, oppTableau) {
+      if (!cardDef) return 'Unknown card';
+      
+      // The card being evaluated (from choice panel) needs to be matched against tableau IDs
+      // We need to find what ID this card would have in the tableau
+      const cardId = findCardIdInTableau(cardDef, myTableau, oppTableau);
+      
+      let html = '<ul class="card-effects">';
+      cardDef.tiers.forEach((tier, index) => {
+        tier.actions.forEach(action => {
+          const myNextLevel = getNextEffectLevel(cardId, myTableau);
+          const oppNextLevel = getNextEffectLevel(cardId, oppTableau);
+          
+          let className = '';
+          if (index === myNextLevel) {
+            className = 'effect-mine';
+          } else if (index === oppNextLevel) {
+            className = 'effect-opponent';
+          }
+          
+          html += `<li class="${className}"><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
+        });
+      });
+      html += '</ul>';
+      return html;
+    }
+    
+    function findCardIdInTableau(cardDef, myTableau, oppTableau) {
+      // Find the tableau ID that corresponds to this card
+      const allTableauIds = [...myTableau, ...oppTableau];
+      
+      // Look for a tableau ID whose definition matches this card's name
+      for (const tableauId of allTableauIds) {
+        const tableauCardDef = gameState.cardDefinitions[tableauId];
+        if (tableauCardDef && tableauCardDef.name === cardDef.name) {
+          console.log(`✅ Found match: ${cardDef.name} → ${tableauId}`);
+          return tableauId;
+        }
+      }
+      
+      console.log(`❌ No match found for ${cardDef.name} in tableaus:`, {
+        cardName: cardDef.name,
+        myTableau: myTableau,
+        oppTableau: oppTableau,
+        cardDefinitions: Object.keys(gameState.cardDefinitions).map(id => ({
+          id: id,
+          name: gameState.cardDefinitions[id]?.name
+        }))
+      });
+      
+      // Fallback to card definition ID or name
+      return cardDef.id || cardDef.name;
+    }
+
+    function generateEffectsHTML(cardDef) {
+      if (!cardDef) return 'Unknown card';
+      
+      let html = '<ul class="card-effects">';
+      cardDef.tiers.forEach((tier, index) => {
+        tier.actions.forEach(action => {
+          html += `<li><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
+        });
+      });
+      html += '</ul>';
+      return html;
+    }
+
+    function updateCardSelection() {
+      const handCards = document.querySelectorAll('.hand .card');
+      handCards.forEach(card => {
+        const realId = card.getAttribute('data-real-id');
+        if (realId === selUp || realId === selDown) {
+          card.classList.add('selected');
+        } else {
+          card.classList.remove('selected');
+        }
+      });
+    }
+
+    function renderHands() {
+      if (!gameState || playerSeat === null) return;
+      
+      // Determine which hand divs belong to me vs opponent
+      const myHandDiv = playerSeat === 0 ? document.getElementById('handA') : document.getElementById('handB');
+      const oppHandDiv = playerSeat === 0 ? document.getElementById('handB') : document.getElementById('handA');
+      
+      // Clear both hands
+      myHandDiv.innerHTML = '';
+      oppHandDiv.innerHTML = '';
+      
+      // Render my hand with real cards
+      if (gameState.activeHandCardIds && gameState.activeHandCardIds.length > 0) {
+        const cardCounts = {};
+        gameState.activeHandCardIds.forEach(id => {
+          cardCounts[id] = (cardCounts[id] || 0) + 1;
+        });
+        
+        Object.keys(cardCounts).forEach(id => {
+          const count = cardCounts[id];
+          const cardDef = gameState.cardDefinitions[id];
+          for (let i = 0; i < count; i++) {
+            const uniqueId = count > 1 ? `${id}_${i}` : id;
+            myHandDiv.appendChild(renderCard(uniqueId, cardDef, true, id));
+          }
+        });
+      }
+      
+      // Render opponent hand with card backs
+      const oppHandSize = playerSeat === 0 ? gameState.handSizeB : gameState.handSizeA;
+      for (let i = 0; i < oppHandSize; i++) {
+        const cardBack = document.createElement('div');
+        cardBack.className = 'card-tooltip';
+        cardBack.style.width = '140px';
+        cardBack.style.height = '200px';
+        cardBack.style.border = '2px solid #666';
+        cardBack.style.borderRadius = '8px';
+        cardBack.style.backgroundColor = '#333';
+        cardBack.style.display = 'flex';
+        cardBack.style.alignItems = 'center';
+        cardBack.style.justifyContent = 'center';
+        cardBack.style.fontSize = '24px';
+        cardBack.style.color = '#fff';
+        cardBack.textContent = '?';
+        oppHandDiv.appendChild(cardBack);
+      }
+    }
+    function renderTableaus() {
+      if (!gameState) return;
+      
+      // Render Player A tableau
+      const tableauA = document.getElementById('tableauA');
+      tableauA.innerHTML = '';
+      const cardCountsA = {};
+      gameState.tableauCardIdsA.forEach(id => {
+        cardCountsA[id] = (cardCountsA[id] || 0) + 1;
+      });
+      
+      Object.keys(cardCountsA).forEach(id => {
+        const count = cardCountsA[id];
+        const cardDef = gameState.cardDefinitions[id];
+        const stackedCard = renderStackedCard(id, cardDef, count);
+        tableauA.appendChild(stackedCard);
+      });
+      
+      // Render Player B tableau
+      const tableauB = document.getElementById('tableauB');
+      tableauB.innerHTML = '';
+      const cardCountsB = {};
+      gameState.tableauCardIdsB.forEach(id => {
+        cardCountsB[id] = (cardCountsB[id] || 0) + 1;
+      });
+      
+      Object.keys(cardCountsB).forEach(id => {
+        const count = cardCountsB[id];
+        const cardDef = gameState.cardDefinitions[id];
+        const stackedCard = renderStackedCard(id, cardDef, count);
+        tableauB.appendChild(stackedCard);
+      });
+    }
+
+    function renderStackedCard(cardId, cardDef, count) {
+      const div = document.createElement('div');
+      div.className = 'card-tooltip stacked-card';
+      
+      const btn = document.createElement('button');
+      btn.className = 'tableau-card';
+      btn.style.width = '140px';
+      btn.style.minHeight = '200px';
+      btn.style.position='relative';
+      
+      if(cardDef){
+          const title=document.createElement('div');
+          title.className='card-title';
+          title.textContent=cardDef.name;
+          btn.appendChild(title);
+          const ul=document.createElement('ul');
+          ul.className='card-effects';
+          cardDef.tiers.forEach((tier,idx)=>{
+              const li=document.createElement('li');
+              li.textContent=(idx+1)+'. '+(tier.actions[0]?.description||'');
+              if(idx===Math.min(count-1,2)) li.classList.add('active');
+              ul.appendChild(li);
+          });
+          btn.appendChild(ul);
+      } else {
+          btn.textContent=cardId;
+      }
+      
+      // Add count badge if more than 1
+      if (count > 1) {
+        const badge = document.createElement('span');
+        badge.className = 'card-count-badge';
+        badge.textContent = count;
+        btn.appendChild(badge);
+      }
+      
+      if (cardDef) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-content';
+        tooltip.innerHTML = generateCardTooltip(cardDef);
+        div.appendChild(tooltip);
+      }
+      
+      div.appendChild(btn);
+      return div;
+    }
+    function startTurnTimer() {
+      clearTimers();
+      turnTimeLeft = 60; // Doubled from 30 to 60 seconds
+      updateTimerDisplay();
+      
+      turnTimer = setInterval(() => {
+        turnTimeLeft--;
+        updateTimerDisplay();
+        
+        if (turnTimeLeft <= 0) {
+          clearTimers();
+          log('Turn timer expired! Auto-selecting random cards...');
+          autoSelectRandomCards();
+        }
+      }, 1000);
+    }
+
+    function startChoiceTimer() {
+      clearTimers();
+      choiceTimeLeft = 30; // Doubled from 15 to 30 seconds
+      updateTimerDisplay();
+      
+      choiceTimer = setInterval(() => {
+        choiceTimeLeft--;
+        updateTimerDisplay();
+        
+        if (choiceTimeLeft <= 0) {
+          clearTimers();
+          log('Choice timer expired! Auto-selecting random choice...');
+          autoSelectRandomChoice();
+        }
+      }, 1000);
+    }
+    
+    function updateTimerDisplay() {
+      const timerElement = document.getElementById('timer');
+      if (!timerElement) return;
+      
+      const currentTime = turnTimer ? turnTimeLeft : choiceTimeLeft;
+      timerElement.textContent = currentTime + 's';
+      
+      // Update timer styling based on time remaining (proportional to timer type)
+      timerElement.className = 'timer-display';
+      const isChoicePhase = choiceTimer !== null;
+      
+      if (isChoicePhase) {
+        // Choice phase: 30 seconds total
+        if (currentTime <= 5) {
+          timerElement.classList.add('danger');
+        } else if (currentTime <= 10) {
+          timerElement.classList.add('warning');
+        }
+      } else {
+        // Turn phase: 60 seconds total  
+        if (currentTime <= 10) {
+          timerElement.classList.add('danger');
+        } else if (currentTime <= 20) {
+          timerElement.classList.add('warning');
+        }
+      }
+    }
+
+    function clearTimers() {
+      if (turnTimer) {
+        clearInterval(turnTimer);
+        turnTimer = null;
+      }
+      if (choiceTimer) {
+        clearInterval(choiceTimer);
+        choiceTimer = null;
+      }
+    }
+
+    async function autoSelectRandomCards() {
+      if (!matchId || !gameState || gameState.waitingForOpponentChoice) return;
+      
+      const handIds = gameState.activeHandCardIds;
+      if (handIds.length < 2) return;
+      
+      // Select two random cards
+      const random1 = handIds[Math.floor(Math.random() * handIds.length)];
+      let random2 = handIds[Math.floor(Math.random() * handIds.length)];
+      while (random2 === random1 && handIds.length > 1) {
+        random2 = handIds[Math.floor(Math.random() * handIds.length)];
+      }
+      
+      selUp = random1;
+      selDown = random2;
+      document.getElementById('selUp').textContent = selUp;
+      document.getElementById('selDown').textContent = selDown;
+      
+      // Make the API call
+      clearTimers();
+      const body = JSON.stringify({ faceUpId: selUp, faceDownId: selDown });
+      const url = playerSeat !== null ? 
+        api + '/api/match/' + matchId + '/play?seat=' + playerSeat :
+        api + '/api/match/' + matchId + '/play';
+      gameState = await req(url, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+      log('Auto-played: up=' + selUp + ', down=' + selDown);
+      
+      // Reset selection after playing
+      resetSelection();
+      
+      await refresh();
+    }
+
+    async function autoSelectRandomChoice() {
+      if (!matchId || !gameState || !gameState.waitingForOpponentChoice) return;
+      
+      const chooseFaceUpOption = Math.random() < 0.5;
+      if (chooseFaceUpOption) {
+        await chooseFaceUp();
+        } else {
+        await chooseFaceDown();
+      }
+    }
+
+    function resetSelection() {
+      selUp = null;
+      selDown = null;
+      document.getElementById('selUp').textContent = '-';
+      document.getElementById('selDown').textContent = '-';
+      updateCardSelection();
+    }
+
+    function updateUIForPhase() {
+      const isWaitingForChoice = gameState.waitingForOpponentChoice;
+      const phase = gameState.phase || 'PLAY_TWO_CARDS';
+      const isMyTurn = playerSeat !== null && playerSeat === gameState.activePlayer;
+      
+      // Show/hide selection status
+      const selectionStatus = document.getElementById('selectionStatus');
+      if (selectionStatus) {
+        selectionStatus.style.display = isWaitingForChoice ? 'none' : 'block';
+      }
+      
+      // Show/hide buttons
+      const playBtn = document.getElementById('playBtn');
+      if (playBtn) {
+        playBtn.style.display = !isWaitingForChoice ? 'block' : 'none';
+      }
+      
+      // Start appropriate timer only if not already running
+      if (isWaitingForChoice && !choiceTimer) {
+        startChoiceTimer();
+      } else if (!isWaitingForChoice && !turnTimer) {
+        startTurnTimer();
+      }
+      
+      // Toggle interaction based on turn
+      toggleInteraction(isMyTurn);
+      
+      if (isWaitingForChoice) {
+        // Show the cards that need to be chosen between
+        const faceUpDef = gameState.cardDefinitions[gameState.faceUpCardId];
+        const faceDownDef = gameState.cardDefinitions[gameState.faceDownCardId];
+        
+        // Only show choice buttons to the opponent (not the player who submitted the cards)
+        const isOpponentTurn = playerSeat !== null && playerSeat !== gameState.activePlayer;
+        const isCardSubmitter = playerSeat !== null && playerSeat === gameState.activePlayer;
+        
+        // Get current player's tableaus for effect highlighting
+        const myTableau = playerSeat === 0 ? gameState.tableauCardIdsA : gameState.tableauCardIdsB;
+        const oppTableau = playerSeat === 0 ? gameState.tableauCardIdsB : gameState.tableauCardIdsA;
+        
+        // Debug: Log current state
+        console.log('Choice Panel Debug:');
+        console.log('  My tableau:', myTableau.map(id => `${id} = ${gameState.cardDefinitions[id]?.name || 'Unknown'}`));
+        console.log('  Opp tableau:', oppTableau.map(id => `${id} = ${gameState.cardDefinitions[id]?.name || 'Unknown'}`));
+        console.log('  Face up card ID:', gameState.faceUpCardId);
+        console.log('  Face down card ID:', gameState.faceDownCardId);
+        console.log('  Face up def:', faceUpDef);
+        console.log('  Face down def:', faceDownDef);
+        
+        // Update Face Up Card display
+        const faceUpTitle = document.querySelector('#faceUpCardDisplay .modal-card-title');
+        const faceUpEffects = document.querySelector('#faceUpCardDisplay .modal-card-effects');
+        
+        if (faceUpDef && faceUpTitle && faceUpEffects) {
+          faceUpTitle.textContent = faceUpDef.name;
+          faceUpEffects.innerHTML = generateEffectsHTMLWithHighlighting(faceUpDef, myTableau, oppTableau);
+        } else if (faceUpTitle && faceUpEffects) {
+          // Fallback if card definition is missing
+          faceUpTitle.textContent = gameState.faceUpCardId || 'Face Up Card';
+          faceUpEffects.innerHTML = '<p>Card details loading...</p>';
+        }
+        
+        // Update Face Down Card display
+        const faceDownTitle = document.querySelector('#faceDownCardDisplay .modal-card-title');
+        const faceDownEffects = document.querySelector('#faceDownCardDisplay .modal-card-effects');
+        if (faceDownTitle && faceDownEffects) {
+          // If backend sends "???" but we are the card submitter, use our stored card
+          let actualFaceDownDef = faceDownDef;
+          if (isCardSubmitter && !faceDownDef && myLastFaceDownCard) {
+            actualFaceDownDef = gameState.cardDefinitions[myLastFaceDownCard];
+            console.log('🎭 Using stored face-down card:', myLastFaceDownCard, '→', actualFaceDownDef?.name);
+          }
+          
+          console.log('Face Down Card logic:', {
+            isCardSubmitter: isCardSubmitter,
+            backendFaceDownId: gameState.faceDownCardId,
+            myStoredCard: myLastFaceDownCard,
+            faceDownDef: faceDownDef,
+            actualFaceDownDef: actualFaceDownDef,
+            playerSeat: playerSeat,
+            activePlayer: gameState.activePlayer
+          });
+          
+          if (isCardSubmitter && actualFaceDownDef) {
+            // Show complete details to the player who submitted the cards (they know what it is)
+            faceDownTitle.textContent = actualFaceDownDef.name + ' (You selected this)';
+            faceDownTitle.className = 'modal-card-title';
+            faceDownTitle.style.fontStyle = 'italic';
+            faceDownTitle.style.color = '#666';
+            faceDownEffects.innerHTML = generateEffectsHTMLWithHighlighting(actualFaceDownDef, myTableau, oppTableau);
+        } else {
+            // Opponent cannot see the face down card details
+          faceDownTitle.textContent = '???';
+          faceDownTitle.className = 'modal-card-title';
+            faceDownTitle.style.fontStyle = 'normal';
+            faceDownTitle.style.color = 'inherit';
+            faceDownEffects.innerHTML = '<p>Hidden card</p>';
+          }
+        }
+        
+        // Show the choice modal
+        const choiceModal = document.getElementById('choiceModal');
+        if (choiceModal) {
+          choiceModal.style.display = 'flex';
+          choiceModal.classList.add('show');
+        
+        if (isOpponentTurn) {
+          document.getElementById('choiceModalTitle').textContent = 'Choose Between These Cards';
+          document.querySelectorAll('#choiceModal .choice-btn').forEach(btn => btn.style.display = 'block');
+        } else {
+          document.getElementById('choiceModalTitle').textContent = 'Waiting for opponent to choose...';
+          document.querySelectorAll('#choiceModal .choice-btn').forEach(btn => btn.style.display = 'none');
+        }
+        }
+      } else {
+        // Hide modal when not waiting for choice
+        const choiceModal = document.getElementById('choiceModal');
+        if (choiceModal) {
+          choiceModal.classList.remove('show');
+        setTimeout(() => {
+            choiceModal.style.display = 'none';
+          }, 300);
+        }
+      }
+    }
+    function toggleInteraction(isMyTurn) {
+      const phase = gameState.phase || 'PLAY_TWO_CARDS';
+      const canInteract = isMyTurn && phase === 'PLAY_TWO_CARDS';
+      
+      // Enable/disable hand cards
+      const handCards = document.querySelectorAll('.hand .card');
+      handCards.forEach(card => {
+        if (canInteract) {
+          card.style.pointerEvents = 'auto';
+          card.style.opacity = '1';
+        } else {
+          card.style.pointerEvents = 'none';
+          card.style.opacity = '0.5';
+        }
+      });
+      
+      // Show/hide play button and selection status
+      const playBtn = document.getElementById('playBtn');
+      const selectionStatus = document.getElementById('selectionStatus');
+      
+      if (canInteract && playBtn && selectionStatus) {
+        playBtn.style.display = 'block';
+        selectionStatus.style.display = 'block';
+      } else {
+        if (playBtn) playBtn.style.display = 'none';
+        if (selectionStatus) selectionStatus.style.display = 'none';
+      }
+    }
+
+    function checkWinConditions() {
+      const dots = gameState.sharedDotCounter;
+      const winnerDisplay = document.getElementById('winnerDisplay');
+      const winnerText = document.getElementById('winnerText');
+      
+      if (winnerDisplay && winnerText) {
+      if (dots >= 5) {
+        // Player A wins
+        winnerDisplay.style.display = 'block';
+        winnerText.textContent = '🎉 Player A Wins! (+5 dots)';
+        winnerText.style.color = '#4CAF50';
+        log('🎉 Player A wins with ' + dots + ' dots!');
+        disableGameControls();
+      } else if (dots <= -5) {
+        // Player B wins
+        winnerDisplay.style.display = 'block';
+        winnerText.textContent = '🎉 Player B Wins! (-5 dots)';
+        winnerText.style.color = '#4CAF50';
+        log('🎉 Player B wins with ' + dots + ' dots!');
+        disableGameControls();
+      } else {
+        // No winner yet
+        winnerDisplay.style.display = 'none';
+        }
+      }
+    }
+
+    function disableGameControls() {
+      // Disable all game controls when someone wins
+      const controls = ['playBtn', 'autoBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
+      controls.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.disabled = true;
+          element.style.opacity = '0.5';
+        }
+      });
+      
+      // Clear timers
+      clearTimers();
+      
+      // Disable card selection
+      const handCards = document.querySelectorAll('.hand .card');
+      handCards.forEach(card => {
+        card.style.pointerEvents = 'none';
+        card.style.opacity = '0.5';
+      });
+
+      // Show rematch and back to home buttons
+      const rematchBtn = document.getElementById('rematchBtn');
+      const gameBackToHomeBtn = document.getElementById('gameBackToHomeBtn');
+      if (rematchBtn) {
+        rematchBtn.disabled = false;
+        rematchBtn.style.opacity = '1';
+        rematchBtn.style.display = 'inline-block';
+      }
+      if (gameBackToHomeBtn) {
+        gameBackToHomeBtn.disabled = false;
+        gameBackToHomeBtn.style.opacity = '1';
+        gameBackToHomeBtn.style.display = 'inline-block';
+      }
+    }
+
+    async function chooseFaceUp() {
+      if (!matchId) return;
+      clearTimers();
+      // Hide modal immediately
+      const choiceModal = document.getElementById('choiceModal');
+      if (choiceModal) {
+        choiceModal.classList.remove('show');
+        setTimeout(() => {
+          choiceModal.style.display = 'none';
+        }, 300);
+      }
+      const body = JSON.stringify({ chooseFaceUp: true });
+      const url = playerSeat !== null ? 
+        api + '/api/match/' + matchId + '/choose?seat=' + playerSeat :
+        api + '/api/match/' + matchId + '/choose';
+      gameState = await req(url, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+      log('Opponent chose Face Up card');
+      await refresh();
+    }
+
+    async function chooseFaceDown() {
+      if (!matchId) return;
+      clearTimers();
+      // Hide modal immediately
+      const choiceModal = document.getElementById('choiceModal');
+      if (choiceModal) {
+        choiceModal.classList.remove('show');
+        setTimeout(() => {
+          choiceModal.style.display = 'none';
+        }, 300);
+      }
+      const body = JSON.stringify({ chooseFaceUp: false });
+      const url = playerSeat !== null ? 
+        api + '/api/match/' + matchId + '/choose?seat=' + playerSeat :
+        api + '/api/match/' + matchId + '/choose';
+      gameState = await req(url, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+      log('Opponent chose Face Down card');
+      await refresh();
+    }
+
+    // Store the last face-down card we submitted (so we can show it to ourselves later)
+    let myLastFaceDownCard = null;
+
+    // Missing function for play selected cards
+    async function playSelected() {
+      if (!matchId || !selUp || !selDown) { 
+        log('Pick two cards'); 
+        return; 
+      }
+      clearTimers();
+      
+      // Store our face-down card selection locally
+      myLastFaceDownCard = selDown;
+      console.log('🎭 Storing my face-down card:', selDown);
+      
+      const body = JSON.stringify({ faceUpId: selUp, faceDownId: selDown });
+      const url = playerSeat !== null ? 
+        api + '/api/match/' + matchId + '/play?seat=' + playerSeat :
+        api + '/api/match/' + matchId + '/play';
+      gameState = await req(url, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+      log('Played: up=' + selUp + ', down=' + selDown);
+      
+      // Reset selection after playing
+      resetSelection();
+      
+      await refresh();
+    }
+
+    // Add event listener for play button
+    const playBtn = document.getElementById('playBtn');
+    if (playBtn) {
+      playBtn.onclick = playSelected;
+    }
+
+    // Add event listeners for rematch and back to home buttons
+    const rematchBtn = document.getElementById('rematchBtn');
+    if (rematchBtn) {
+      rematchBtn.onclick = startRematch;
+    }
+
+    const gameBackToHomeBtn = document.getElementById('gameBackToHomeBtn');
+    if (gameBackToHomeBtn) {
+      gameBackToHomeBtn.onclick = () => {
+        // Clear game state and return to home
+        clearGameState();
+        showScreen('homeScreen');
+      };
+    }
+
+    async function startRematch() {
+      try {
+        log('🔄 Starting rematch with same players...');
+        
+        // Hide winner display immediately
+        const winnerDisplay = document.getElementById('winnerDisplay');
+        if (winnerDisplay) {
+          winnerDisplay.style.display = 'none';
+        }
+        
+        // Show loading message
+        log('Resetting game state...');
+        
+        // Reset all game visuals but keep matchId and playerSeat
+        resetGameVisuals();
+        
+        // Try to call backend rematch endpoint
+        try {
+          await req(api + '/api/match/' + matchId + '/rematch', { method: 'POST' });
+          log('✅ Backend rematch successful');
+        } catch (backendError) {
+          // If backend endpoint doesn't exist, that's OK - we'll handle it manually
+          if (backendError.message.includes('404') || backendError.message.includes('Not Found')) {
+            log('⚠️ Backend rematch endpoint not available, using manual reset');
+          } else {
+            throw backendError; // Re-throw non-404 errors
+          }
+        }
+        
+        // Show ready screen for both players to confirm they want to play again
+        if (matchId) {
+          document.getElementById('displayMatchId').textContent = matchId;
+          showScreen('readyScreen');
+          
+          log('🎮 Ready screen shown. Both players need to set ready again.');
+          
+          // Start refreshing to get latest state
+          await refresh();
+          startAutoRefresh();
+        } else {
+          throw new Error('Match ID is missing');
+        }
+        
+      } catch (error) {
+        log('❌ Error starting rematch: ' + error.message);
+        alert('Failed to start rematch. Returning to home screen.');
+        
+        // If any error, go back to home screen
+        clearGameState();
+        showScreen('homeScreen');
+      }
+    }
+    
+    function resetGameVisuals() {
+      console.log('🎮 Resetting game visuals for rematch...');
+      
+      // Reset only visual elements, keep matchId and playerSeat
+      gameState = null;
+      selUp = null;
+      selDown = null;
+      myLastFaceDownCard = null; // Clear stored face-down card for new game
+      
+      // Clear timers
+      clearTimers();
+      
+      // Reset UI elements
+      document.getElementById('selUp').textContent = '-';
+      document.getElementById('selDown').textContent = '-';
+      
+      // Clear tableaus and hands
+      const tableauA = document.getElementById('tableauA');
+      const tableauB = document.getElementById('tableauB');
+      const handA = document.getElementById('handA');
+      const handB = document.getElementById('handB');
+      
+      if (tableauA) tableauA.innerHTML = '';
+      if (tableauB) tableauB.innerHTML = '';
+      if (handA) handA.innerHTML = '';
+      if (handB) handB.innerHTML = '';
+      
+      // Reset dot counter display
+      const sharedDotCounter = document.getElementById('sharedDotCounter');
+      if (sharedDotCounter) {
+        sharedDotCounter.textContent = '0';
+      }
+      
+      // Reset timer display
+      const timer = document.getElementById('timer');
+      if (timer) {
+        timer.textContent = '';
+        timer.className = 'timer-display';
+      }
+      
+      // Hide choice modal
+      const choiceModal = document.getElementById('choiceModal');
+      if (choiceModal) {
+        choiceModal.classList.remove('show');
+        choiceModal.style.display = 'none';
+      }
+      
+      // Hide winner display
+      const winnerDisplay = document.getElementById('winnerDisplay');
+      if (winnerDisplay) {
+        winnerDisplay.style.display = 'none';
+      }
+      
+      // Re-enable game controls
+      const controls = ['playBtn', 'autoBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
+      controls.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.disabled = false;
+          element.style.opacity = '1';
+        }
+      });
+      
+      log('Game visuals reset for rematch');
+    }
+
+    function clearGameState() {
+      // Clear all game-related variables
+      gameState = null;
+      matchId = null;
+      playerSeat = null;
+      selUp = null;
+      selDown = null;
+      myLastFaceDownCard = null; // Clear stored face-down card
+      
+      // Clear timers
+      clearTimers();
+      
+      // Stop auto refresh
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+      }
+      
+      // Reset UI elements
+      document.getElementById('selUp').textContent = '-';
+      document.getElementById('selDown').textContent = '-';
+      
+      // Clear tableaus and hands
+      const tableauA = document.getElementById('tableauA');
+      const tableauB = document.getElementById('tableauB');
+      const handA = document.getElementById('handA');
+      const handB = document.getElementById('handB');
+      
+      if (tableauA) tableauA.innerHTML = '';
+      if (tableauB) tableauB.innerHTML = '';
+      if (handA) handA.innerHTML = '';
+      if (handB) handB.innerHTML = '';
+      
+      // Reset dot counter display
+      const sharedDotCounter = document.getElementById('sharedDotCounter');
+      if (sharedDotCounter) {
+        sharedDotCounter.textContent = '0';
+      }
+      
+      // Reset timer display
+      const timer = document.getElementById('timer');
+      if (timer) {
+        timer.textContent = '';
+        timer.className = 'timer-display';
+      }
+      
+      // Reset player displays
+      const playerAName = document.getElementById('playerAName');
+      const playerBName = document.getElementById('playerBName');
+      const playerAStatus = document.getElementById('playerAStatus');
+      const playerBStatus = document.getElementById('playerBStatus');
+      
+      if (playerAName) playerAName.textContent = '';
+      if (playerBName) playerBName.textContent = '';
+      if (playerAStatus) playerAStatus.textContent = '';
+      if (playerBStatus) playerBStatus.textContent = '';
+      
+      // Reset active player display
+      const activePlayerText = document.querySelector('.game-header p');
+      if (activePlayerText) {
+        activePlayerText.textContent = 'Active Player: -';
+      }
+      
+      // Reset phase display
+      const phaseText = document.querySelector('.game-header p:last-child');
+      if (phaseText) {
+        phaseText.textContent = 'Phase: WAITING';
+      }
+      
+      // Hide choice modal
+      const choiceModal = document.getElementById('choiceModal');
+      if (choiceModal) {
+        choiceModal.classList.remove('show');
+        choiceModal.style.display = 'none';
+      }
+      
+      // Hide winner display
+      const winnerDisplay = document.getElementById('winnerDisplay');
+      if (winnerDisplay) {
+        winnerDisplay.style.display = 'none';
+      }
+      
+      // Re-enable game controls
+      const controls = ['playBtn', 'autoBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
+      controls.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.disabled = false;
+          element.style.opacity = '1';
+        }
+      });
+      
+      log('Game state cleared completely for rematch');
+    }
 
     // Force show home screen on load
     document.addEventListener('DOMContentLoaded', function() {
