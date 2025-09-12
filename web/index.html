@@ -1377,8 +1377,8 @@
     let selUp = null, selDown = null;
     let turnTimer = null;
     let choiceTimer = null;
-    let turnTimeLeft = 60; // Doubled from 30 to 60 seconds for card selection
-    let choiceTimeLeft = 30; // Doubled from 15 to 30 seconds for choice selection
+    let turnTimeLeft = 120; // Doubled from 60 to 120 seconds for card selection
+    let choiceTimeLeft = 60; // Doubled from 30 to 60 seconds for choice selection
 
     // Screen management functions
     function showScreen(screenId) {
@@ -2708,7 +2708,7 @@
     }
     function startTurnTimer() {
       clearTimers();
-      turnTimeLeft = 60; // Doubled from 30 to 60 seconds
+      turnTimeLeft = 120; // Doubled from 60 to 120 seconds
       updateTimerDisplay();
       
       turnTimer = setInterval(() => {
@@ -2725,7 +2725,7 @@
 
     function startChoiceTimer() {
       clearTimers();
-      choiceTimeLeft = 30; // Doubled from 15 to 30 seconds
+      choiceTimeLeft = 60; // Doubled from 30 to 60 seconds
       updateTimerDisplay();
       
       choiceTimer = setInterval(() => {
@@ -2752,17 +2752,17 @@
       const isChoicePhase = choiceTimer !== null;
       
       if (isChoicePhase) {
-        // Choice phase: 30 seconds total
-        if (currentTime <= 5) {
-          timerElement.classList.add('danger');
-        } else if (currentTime <= 10) {
-          timerElement.classList.add('warning');
-        }
-      } else {
-        // Turn phase: 60 seconds total  
+        // Choice phase: 60 seconds total
         if (currentTime <= 10) {
           timerElement.classList.add('danger');
         } else if (currentTime <= 20) {
+          timerElement.classList.add('warning');
+        }
+      } else {
+        // Turn phase: 120 seconds total  
+        if (currentTime <= 20) {
+          timerElement.classList.add('danger');
+        } else if (currentTime <= 40) {
           timerElement.classList.add('warning');
         }
       }
