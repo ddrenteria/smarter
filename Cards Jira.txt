@@ -1,0 +1,82 @@
+EP-01 — Rules Engine & Card System
+
+Story: Implement deterministic rules engine (turns, recruit, end step)
+AC: 20 MVP cards executable; 100% unit coverage on effect handlers; 10k fuzz matches w/o crash; deterministic replays.
+
+Task: Timer system (server-authoritative) — 30s/15s, auto-actions on timeout.
+AC: Timers enforced server-side; auto legal actions; client countdown within 200ms.
+
+Task: JSON schema + validator for card definitions.
+AC: Schema published; invalid defs fail fast; golden tests.
+
+EP-02 — Client UI/UX (Unity)
+
+Story: Unity UI: hand, 2-card placement, opponent pick
+AC: Timer UI; correct input gating; tutorial tips toggleable.
+
+Task: Unity networking layer (WS client)
+AC: Reconnect ≤5s; no duplicate actions after reconnect.
+
+EP-03 — Online Matchmaking & Match Service
+
+Story: Match service (authoritative) + WebSocket protocol
+AC: p95 latency <150ms; desync <5%; replays re-simulate identically.
+
+Task: Simple queue with bot backfill stub
+AC: Median wait <15s (bots after 25s), bot seeded near player MMR.
+
+EP-04 — Ranking (Glicko-2) & Seasons
+
+Story (Alpha): Glicko-2 ranking + placement
+AC: MMR converges ≤10 matches; placement applied; visible tiers.
+
+EP-05 — Bots & Campaign
+
+Story: Bot v1 (heuristics, 1-ply)
+AC: Legal move <50ms; 40–60% win rate; deterministic seed.
+
+Story: Campaign v1 (5 nodes)
+AC: Winnable nodes; first-time tooltips; local progress saved.
+
+Story (Soft Launch): Campaign full (12–20 nodes) & scaling bots
+AC: Completion unlocks cosmetic; drop-off tracked.
+
+EP-06 — Telemetry & AB Testing
+
+Story: Telemetry foundation
+AC: Events (match_start, card_played{id,tier}, lp_change, match_end, queue_wait); dashboards for avg match time, LP deltas.
+
+Story (Soft Launch): AB testing & remote rules toggles
+AC: Buckets, toggle “double LP=win”, timer variants, safe rollback.
+
+EP-07 — Monetization: Store & Cosmetics & Ads (Soft Launch)
+
+Story: Store + receipt validation
+AC: Idempotent purchases; restore on reinstall; sandbox tests pass.
+
+Story: Rewarded ads integration
+AC: One reward per view; daily caps; anti-fraud token.
+
+EP-08 — Social: Friends, Challenges, Emojis (Soft Launch)
+
+Story: Friends & direct challenges & emojis
+AC: Invite in <3 taps; flood guard; private matches unranked.
+
+EP-09 — Security, Anti-cheat & Fair Play (Launch)
+
+Story: Anti-cheat hardening + replay diff tool
+AC: No client-authoritative paths; diff explains 95% reports.
+
+EP-10 — CI/CD, Infra & DevEx
+
+Story: CI pipeline + containers + staging env
+AC: PRs block on tests; one-click deploy; rollback <2 min.
+
+EP-11 — QA, Balancing & Content Ops
+
+Cross-epic acceptance on testing, balance cadence, and release tooling.
+
+EP-12 — Launch & Live Ops
+
+Story: Live Ops: seasons, leaderboards, events
+AC: Reliable season resets; cached leaderboards; hot-loaded events.

@@ -1,0 +1,48 @@
+Implementation Phases for Remote Multiplayer Office Duel
+========================================================
+
+Milestone 0 – Current State
+---------------------------
+• Spring Boot REST server with full game logic
+• Single-page HTML/JS client running hot-seat in one browser tab
+• Deterministic engine + unit tests
+
+Milestone 1 – Share-Link Multiplayer
+-----------------------------------
+1. Serve SPA under /app, keep API under /api
+2. Create & join by match ID (URL /app/{id})
+3. Optional WebSocket push on /topic/match/{id}
+   – fall back to REST polling
+
+Deliverable: two browsers load same link and play remotely, no auth.
+
+Milestone 2 – User Accounts
+---------------------------
+1. Add DB (H2/Postgres)
+2. Spring Security + JWT (register/login)
+3. Match table stores playerA/playerB
+4. POST /api/match/{id}/join for second player
+5. SPA login/register + “My Matches” view
+
+Deliverable: authenticated matches, only invited user can join.
+
+Milestone 3 – Friends & Invitations
+----------------------------------
+1. Friend request endpoints/table
+2. /api/invite {matchId,toUser} with WebSocket toast
+3. Fallback: share-link if invite not accepted
+
+Milestone 4 – Mobile Client (PWA/APK)
+-------------------------------------
+A. Progressive Web App: manifest + service-worker
+B. Native Android wrapper (Capacitor/Cordova or Kotlin WebView)
+
+Milestone 5 – Polish for Public Beta
+-----------------------------------
+• Full WebSocket (no polling)
+• Reconnect & state-sync
+• Persist history, resume games
+• Simple stats/ELO (optional)
+• Error tracking (Sentry)
+• CI/CD pipeline (GitHub Actions → Docker → hosting)
+

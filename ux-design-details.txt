@@ -1,0 +1,198 @@
+# UX Design Details for Office Duel Card Game
+
+## Overview
+Based on the wireframe sketches, here's a comprehensive UX design document that captures the core layout ideas and provides iterations for better testing experience.
+
+## 1. Main Game Board Layout
+
+### Core Structure (From Sketch)
+- **Horizontal Division**: Clear separation between enemy area (top) and player area (bottom)
+- **Left Sidebar**: Vertical counter/game state indicator
+- **Top Right**: Timer placement
+- **Central Focus**: Game board with card interactions
+
+### Detailed Layout Breakdown
+
+#### Enemy Area (Top Section)
+**Current Implementation:**
+- Enemy hand shows only card count (fog of war)
+- Enemy tableau shows full cards with effects
+
+**Sketch Ideas & Iterations:**
+- **Enemy Hand**: 
+  - Display as "Opponent's Hand (X cards)" with visual card backs
+  - Consider a stack of 3-5 slightly offset card backs with count overlay
+  - No individual card details visible (maintain fog of war)
+
+- **Enemy Tableau**:
+  - Full card display with title and effects
+  - Same 140x200px card size as player cards
+  - Show all effects but don't highlight active ones (opponent's private game state)
+  - Clear labeling: "Opponent's Tableau"
+
+#### Player Area (Bottom Section)
+**Current Implementation:**
+- Player hand with selectable cards
+- Player tableau with active effect highlighting
+
+**Sketch Ideas & Iterations:**
+- **Player Tableau**:
+  - Full card display with title and effects
+  - Highlight active effect in green based on card copies
+  - Clear labeling: "Your Tableau"
+  - Consider visual stacking for multiple copies
+
+- **Player Hand**:
+  - 5 cards visible (as per sketch)
+  - Each card shows: Title, Effect 1, Effect 2, Effect 3
+  - Clear selection state (border/glow when selected)
+  - Disabled state when not your turn
+
+#### Shared Elements
+**Left Sidebar - Counter:**
+- Vertical stack of circles (sketch shows varying sizes)
+- Current implementation: Shared dot counter with gradient background
+- **Win/Loss Mechanism**: The counter now determines who's winning/losing (replaces HP system)
+- Iteration: Add numerical value display alongside visual representation
+- Consider progress bar or track with marker for clearer win/loss state indication
+
+**Timer (Top Right):**
+- Current: Text-based timer display
+- Iteration: Visual countdown with color changes (green → yellow → red)
+- Clear indication of whose turn it is
+- Consider adding pause/resume functionality
+
+## 2. Card Choice Modal (Second Sketch)
+
+### Modal Design Requirements
+**Core Functionality:**
+- Appears when opponent must choose between two cards
+- Only visible to the choosing player (not the card submitter)
+- Clear visual distinction between the two options
+
+**Layout & Content:**
+- **Modal Overlay**: Semi-transparent background to focus attention
+- **Two Card Display**: Large, prominent card representations
+- **Choice Mechanism**: Clear buttons or clickable areas
+- **Status Messages**: 
+  - For chooser: "Choose between these two cards:"
+  - For submitter: "Waiting for opponent to choose..."
+
+**Visual Elements:**
+- **Known Card**: Full display with title and effects
+- **Unknown Card**: "???" or card back design
+- **Selection Buttons**: "Choose This One" buttons below each card
+- **Visual Feedback**: Highlight selected option before confirmation
+
+## 3. Enhanced UX Features
+
+### Player Information Display
+**Missing from sketches but essential:**
+- **Player Names**: "Player A: [Name]" vs "Player B: [Name]"
+- **Shared Counter**: The counter now represents win/loss state (no more HP)
+- **Active Player Indicator**: Glowing border or arrow showing whose turn
+- **Game Phase**: Clear phase indicator (Play Cards, Opponent Pick, etc.)
+
+### Game State Feedback
+**Visual Cues:**
+- **Turn Transitions**: Smooth animations for turn changes
+- **Card Movement**: Subtle animations for cards moving from hand to tableau
+- **Selection States**: Clear visual feedback for all interactive elements
+- **Action Buttons**: Prominent, well-labeled action buttons
+
+### Responsive Design
+**Layout Considerations:**
+- **Flexible Grid**: CSS Grid/Flexbox for different screen sizes
+- **Card Scaling**: Maintain readability across devices
+- **Modal Responsiveness**: Ensure modal works on mobile/tablet
+- **Touch Support**: Large enough touch targets for mobile
+
+## 4. Information Architecture
+
+### Visual Hierarchy
+1. **Primary**: Active player's turn and available actions
+2. **Secondary**: Game state (shared counter, timer)
+3. **Tertiary**: Opponent information and tableau
+4. **Background**: Game log and match info
+
+### Color Coding
+- **Green**: Active effects, positive actions, your turn
+- **Red**: Negative effects, opponent's turn, warnings
+- **Blue**: Neutral actions, shared elements
+- **Gray**: Disabled/inactive elements
+
+### Typography
+- **Card Titles**: Bold, readable font
+- **Effects**: Smaller but clear font
+- **UI Labels**: Consistent, medium weight
+- **Status Messages**: Prominent, attention-grabbing
+
+## 5. Interaction Patterns
+
+### Card Selection
+- **Hover States**: Subtle highlight on hover
+- **Selection States**: Clear border/glow when selected
+- **Disabled States**: Reduced opacity, no interaction
+- **Feedback**: Immediate visual response to clicks
+
+### Modal Interactions
+- **Opening**: Smooth fade-in animation
+- **Selection**: Clear visual feedback before confirmation
+- **Closing**: Automatic close after choice or manual dismiss
+- **Accessibility**: Keyboard navigation support
+
+### Turn Management
+- **Turn Start**: Clear visual indication of new turn
+- **Action Completion**: Smooth transition to next phase
+- **Waiting States**: Clear messaging about what's happening
+- **Error Handling**: Friendly error messages for invalid actions
+
+## 6. Testing & Debugging Features
+
+### Development Tools
+- **Game Log**: Scrollable area for all game events
+- **Debug Info**: Match ID, player seats, game state
+- **Auto Actions**: "Auto Turn" button for testing
+- **State Inspection**: Easy access to current game state
+
+### User Feedback
+- **Loading States**: Spinners or progress indicators
+- **Success Messages**: Confirmation of actions taken
+- **Error Messages**: Clear, actionable error descriptions
+- **Help Text**: Tooltips and contextual help
+
+## 7. Implementation Priority
+
+### Phase 1 (Core Layout)
+1. Implement the horizontal enemy/player division
+2. Enhance the left sidebar counter display (now the win/loss mechanism)
+3. Improve timer visibility and styling
+4. Add player name displays
+
+### Phase 2 (Card Interactions)
+1. Enhance card selection visual feedback
+2. Implement the card choice modal
+3. Improve tableau card stacking/grouping
+4. Add card movement animations
+
+### Phase 3 (Polish)
+1. Add smooth transitions and animations
+2. Implement responsive design
+3. Add accessibility features
+4. Polish visual design and typography
+
+## 8. Technical Considerations
+
+### Performance
+- **Card Rendering**: Efficient rendering of multiple cards
+- **Animation Performance**: Smooth 60fps animations
+- **Memory Management**: Proper cleanup of event listeners
+- **Network Efficiency**: Minimize API calls during gameplay
+
+### Accessibility
+- **Keyboard Navigation**: Full keyboard support
+- **Screen Readers**: Proper ARIA labels and roles
+- **Color Contrast**: WCAG AA compliance
+- **Focus Management**: Clear focus indicators
+
+This design document provides a roadmap for implementing the wireframe ideas while enhancing them with modern UX principles and technical best practices.

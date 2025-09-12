@@ -1,0 +1,410 @@
+Product & Game Plan
+1) Core Pillars
+Fast, thinky duels (~10 min): Tight timers (30s play / 15s pick).
+
+
+Multi-copy effects: Every card scales by how many copies you’ve already played.
+
+
+One deck to start (balanced), later evolve to collection/deckbuilding.
+
+
+Ranked-only PvP (avoid player-base split) + Campaign vs bots (onboarding + queue filling).
+
+
+Light, funny theme (humorous names, playful VFX/emojis).
+
+
+Fair monetization: Cosmetics + rewarded ads; no pay-to-win.
+
+
+2) Game Rules (MVP)
+LP: 30 each. Hand: 5 cards.
+
+
+Turn:
+
+
+Active player plays 2 cards (1 face up, 1 face down) within 30s.
+
+
+Opponent chooses 1 within 15s; that chosen effect resolves for the chooser, the other resolves for the active player. (Both effects resolve; order: opponent’s pick first, then remaining.)
+
+
+Apply card’s tiered effect based on how many of that card you already have “in play” (face-up tableau).
+
+
+Refill hand to 5 if below.
+
+
+End step: check win/lose (LP ≤ 0; card-based alternate win/lose; optional: “2× LP” instant win can be A/B tested later).
+
+
+Deck/Draw: Start from a default 24–30 card pool with repetition tuned for variety.
+
+
+3) Modes
+Ranked PvP: Core mode; ELO/Glicko-2; strict MMR bands; hidden MMR + visible ranks (Bronze → … → Mythic).
+
+
+Campaign vs Bots: 12–20 short scenarios; tutorialized mechanics; difficulty scales with player MMR; unlock cosmetics and a few starter cards gradually.
+
+
+Friend Matches: Direct challenge (no rank changes).
+
+
+4) Matchmaking & Ranking
+MMR: Glicko-2 (stabilizes quickly for new players).
+
+
+Queues: Single ranked queue; bots backfill if queue > N seconds (use MMR-adjacent bot profiles).
+
+
+Placement: First 5–10 matches seed rating with higher K-factor.
+
+
+Seasons: 4–8 weeks, soft resets, season cosmetics.
+
+
+5) Bots (for queue + campaign)
+Profiles: Easy/Normal/Hard/Elite; scripted priorities + simple Monte Carlo lookahead (1-ply) for Hard+.
+
+
+Personality: Emote packs + funny names; teach via tooltips in early campaign.
+
+
+6) Content: Cards & Progression
+Launch Set: 20–30 unique cards (you already have a 20-card pass; we can expand to 30).
+
+
+Card Rarity (later): purely cosmetic rarity shells; stats remain fair.
+
+
+Progression: Daily/weekly quests (win X, play Y card type), season track (cosmetics, currencies).
+
+
+Economy: Soft currency (matches/quests), premium currency (cosmetics), crafting later.
+
+
+7) Monetization
+Primary: Cosmetic card skins/frames, victory animations, emojis.
+
+
+Secondary: Rewarded ads (extra soft currency, reroll quests).
+
+
+No stats behind paywalls. Strict cosmetics only.
+
+
+8) Social & UX
+Friends list, 1:1 challenges, quick emojis (“GG”, “😱”, “😂”).
+
+
+Low friction UX: 2 taps to queue; sticky recent friends; short post-match recap.
+
+
+9) Analytics & Live-Ops
+KPIs: D1/D7 retention, Av. match time, Time-to-match, MMR distribution, Card pick/ban rates, LP delta per card, Early churn (first 3 matches).
+
+
+AB tests: “Double LP=win” rule ON/OFF; timer lengths; novice bot presence; starter deck variants.
+
+
+Balance cadence: Weekly micro-tuning; monthly content drops.
+
+
+
+Delivery Roadmap (Phased)
+Phase 0 — POC (2–4 weeks of focused build)
+Goal: Fun local/single-device simulation + basic online 1v1.
+Core turn engine (timers, 2-card play, opponent pick).
+
+
+Card system with multi-copy tiers.
+
+
+LP updates, end-step checks.
+
+
+Default deck; 12–20 cards.
+
+
+Local bot (single difficulty).
+
+
+Local persistence (no auth), minimal UI.
+
+
+Exit criteria: 10-minute matches feel tight; 70%+ of internal testers say “I’d play again.”
+Phase 1 — Alpha (Closed)
+Goal: Real backend + ranked; first telemetry.
+Online matchmaking + Glicko-2 ranked.
+
+
+Auth (Guest → optional social), profiles, inventory.
+
+
+Server-authoritative rules; desync detection.
+
+
+20–30 cards; first cosmetics (non-store).
+
+
+Tutorial/campaign v1 (5 nodes) + 3 bot tiers.
+
+
+Basic analytics, crash reporting.
+
+
+Exit criteria: Stable netcode, <5% desyncs, median match ≤ 11 min, healthy MMR distribution.
+Phase 2 — Soft Launch (“First Batch”)
+Goal: Retention/monetization learnings.
+Store: cosmetics + rewarded ads.
+
+
+Full campaign (12–20 nodes), bot backfill in ranked.
+
+
+Friends list + friend matches + emojis.
+
+
+Season 0; leaderboards.
+
+
+Balance tools + remote config.
+
+
+Exit criteria: D1 ≥ 35–40%, median queue < 20s with bots, healthy ARPDAU lift from cosmetics.
+Phase 3 — Global Launch
+Goal: Scale + live-ops.
+Seasonal cadence, event rules, ranked resets.
+
+
+More content (cards, skins), QoL (history, replays), anti-cheat hardening.
+
+
+Live tournaments/time-limited modes (later).
+
+
+
+Technical Plan
+Client
+Engine: Unity (C#) for speed + cross-platform.
+
+
+Key Systems:
+
+
+Deterministic rules engine (card resolution, timers, LP, multi-copy stack).
+
+
+Netcode wrapper (matchmaking, turn submits, state diffs).
+
+
+UI: Hand, tableau, timers, emotes; accessibility (color-blind safe).
+
+
+Content loader: ScriptableObjects for cards; remote config.
+
+
+Server
+Stack: Java 21 + Spring Boot (fits your background)
+
+
+Gateway/API, Matchmaking, Match Service (authoritative), Ranking, Bot Service, Economy/Store, Telemetry.
+
+
+Data: Postgres (players, inventory, ranks, telemetry rollups), Redis (MMR queues, match state cache), S3-compatible blob (replays/config).
+
+
+Matchmaking: Redis sorted sets per MMR band; expanding search window; bot injection after T seconds.
+
+
+Ranking: Glicko-2 jobs post-match; season reset cron.
+
+
+Security: Signed turn payloads, server authority, basic anti-cheat (rate limits, invalid moves), cloud WAF.
+
+
+Infra: Kubernetes (GKE/EKS), autoscaling; CI/CD (GitHub Actions); feature flags.
+
+
+Data Model (high level)
+Player(id, mmrRating, mmrRD, rankTier, cosmetics[], inventory[], createdAt)
+
+
+Match(id, playerA, playerB, seed, state, startedAt, endedAt, verdict)
+
+
+CardDef(id, name, tier1Effect, tier2Effect, tier3Effect, tags[], cooldown?, raritySkinKeys[])
+
+
+PlayerCollection(playerId, counts: Map<CardDefId,int>) (post-MVP)
+
+
+Season(id, start, end, rewards[], resetRules)
+
+
+Telemetry(eventId, playerId, type, payload, ts)
+
+
+APIs (sketch)
+Auth: POST /auth/guest, POST /auth/link
+
+
+MM: POST /queue/ranked, DELETE /queue/ranked, WS /match/{id}
+
+
+Match: POST /match/{id}/submitTurn, POST /match/{id}/emote
+
+
+Profile: GET /me, GET /inventory, GET /rank
+
+
+Friends: POST /friends/add, POST /friends/match
+
+
+Campaign: GET /campaign/progress, POST /campaign/battle
+
+
+Store/Ads: GET /store, POST /purchase, POST /ads/reward
+
+
+
+Design Details Needed for Implementation
+Rules Engine (deterministic)
+State:
+
+
+Players (LP, hand, tableau, discard), Deck(s), Turn owner, Phase, Timers.
+
+
+Card Resolution:
+
+
+Compute tier = count in tableau after recruiting that card.
+
+
+Apply tiered effect; append to history.
+
+
+Refill hand to 5 (unless rule blocks drawing).
+
+
+Order of operations: Opponent’s recruited effect resolves first.
+
+
+Timers: Server authoritative; client shows countdown. On timeout, auto-best-effort action:
+
+
+If active: auto-play 2 random legal cards.
+
+
+If chooser: auto-pick random (or lowest EV for the picker to avoid stalling exploits).
+
+
+Alt Win/Lose: Evaluated in End step, ties → active player wins (keep this rule for clarity).
+
+
+Ranking (Glicko-2)
+Init r=1500, RD=350, vol=0.06; cap RD floor (e.g., 50).
+
+
+K-boost for first 10 games; inactivity RD inflation.
+
+
+Visible rank tiers mapped to MMR (with floors).
+
+
+Bots
+Heuristics:
+
+
+Value function = expected LP delta + future hand quality (simple draw EV).
+
+
+Avoid triggering own “3rd-copy lose” unless lethal.
+
+
+Difficulty knobs: lookahead depth, bluff probability (face-down choice), risk appetite.
+
+
+Telemetry Events (examples)
+match_start, turn_decision_time, card_played{id,tier}, lp_change, match_end{verdict}, queue_wait, ab_bucket.
+
+
+
+Backlog (Engineering)
+P0 (POC)
+Rules engine core (cards, tiers, resolution, LP).
+
+
+Timer system (client + server).
+
+
+Local bot (baseline).
+
+
+Unity UI v1 (hand, tableau, prompts).
+
+
+Test harness for simulations (1000 auto-matches).
+
+
+P1 (Alpha)
+Spring Boot services (Auth, MM, Match, Ranking).
+
+
+WebSocket match channel; reconnection.
+
+
+Glicko-2 implementation + seasonal mapping.
+
+
+Telemetry pipeline + dashboards.
+
+
+Campaign v1 + 3 bot levels.
+
+
+Cosmetics scaffolding (no store yet).
+
+
+P2 (Soft Launch)
+Store (cosmetics), rewarded ads.
+
+
+Friends + direct challenges + emojis.
+
+
+Bot backfill in ranked.
+
+
+Remote config/balance toggles, AB infra.
+
+
+Anti-cheat: rate limits, invalid move guards, replay diff tool.
+
+
+P3 (Launch)
+Collection/deckbuilding.
+
+
+Replays, match history, leaderboards.
+
+
+Seasonal events and content drops.
+
+
+
+QA & Balancing
+Unit tests: rules engine (every card tier, conflict resolution).
+
+
+Property tests: randomized matches never deadlock; invariant LP ≥ 0 unless end state.
+
+
+Load tests: concurrent matches, MM queue spikes.
+
+
+Balance loop: weekly telemetry → adjust card weights, tier numbers, and draw frequencies via remote config.

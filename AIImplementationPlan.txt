@@ -1,0 +1,66 @@
+AI Implementation Plan (Concrete, Phased)
+
+Objectives
+- Deliver a deterministic server-side rules engine capable of running full matches using the provided 20-card set.
+- Provide a simulation harness (1k auto-matches) to validate determinism and stability.
+- Establish JSON card schema + loader, with fast-fail validation.
+
+Tech Stack
+- Language: Java 21 (LTS)
+- Build: Gradle
+- JSON: Jackson
+- Tests: JUnit 5
+
+Scope by Phase
+Phase 0 — POC (this sprint)
+- Deterministic rules engine core: state, turn flow, two-card play, opponent pick, resolution order.
+- Deterministic RNG seeded per match; all random ops draw from it.
+- Card schema loader and validator; ingest provided 20-card JSON.
+- Implement core effect handlers: damage, heal, draw, skip_next_turn, discard_random, discard_hand, set_lp_to_full, block_next_draw, statuses (shield, thorns, reflect_all_damage), destroy_random_cards_in_tableau (tableau abstraction), steal_random_card_from_hand, reveal_random_cards, modify_max_hand_size, grant_extra_face_down_play, copy_last_card_effect, win_if_condition.
+- End-step evaluation (LP ≤ 0, alt win/lose, tie rule → active player wins).
+- CLI to run matches locally; simulation harness for 1000 auto-matches.
+
+Phase 1 — Alpha
+- WebSocket match channel wrapper (protocol skeleton), not in scope for POC deliverable.
+- Persistence stubs for replays and telemetry events.
+- Glicko-2 module (standalone), integrated post-match.
+
+Deliverables (POC)
+1) Gradle project: rules engine library + CLI app.
+2) JSON schema & loader for cards.
+3) Engine modules:
+   - Model: GameState, PlayerState, Deck/Hand/Tableau, Phases, Timers (server-authoritative interface).
+   - Engine: turn system, opponent pick, action resolution, statuses.
+   - RNG: deterministic with seed; replay-compatible.
+   - Effects: handlers for the actions listed above.
+4) Tests:
+   - Unit tests per effect handler (happy-path + edge cases).
+   - Determinism test: same seed → identical transcript.
+5) Tools:
+   - CLI: run single match; run simulations (N matches), print summary (avg turns, win rates, errors=0).
+
+Out of Scope (for POC)
+- Networking, accounts, matchmaking, ranking UI; Unity client.
+- Comprehensive bot heuristics beyond basic legal action selection and random policy.
+
+Architecture Notes
+- DeterministicRng: wraps SplittableRandom with explicit seed; all randomness goes through it.
+- Action application is pure w.r.t. RNG and state; no wall-clock or IO.
+- Transcript: append action + results to history for replay.
+- Statuses: duration tracked in turns; -1 means until end of match.
+- Copy effects: snapshot last effect descriptor and re-apply; guard cycles.
+
+Testing Strategy
+- Golden unit tests for each action type.
+- Fuzz: 10k auto-matches locally; assert no crashes, no illegal states.
+- Replay: serialize seed and starting decks; re-simulate = identical transcript.
+
+Work Plan (POC)
+1) Project skeleton + dependencies.
+2) Models + RNG + loader.
+3) Core turn engine + resolution order.
+4) Effect handlers (incremental), with unit tests.
+5) End-step + alt win.
+6) CLI + simulation harness.
+7) Fuzz pass, fix edge cases.
+
