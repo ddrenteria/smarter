@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.officeduel.engine.CardEffectTargetingTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-09-11T23:38:43" hostname="MacBook-Pro-de-User.local" time="0.113">
-  <properties/>
-  <testcase name="testCardEffectTargeting()" classname="com.officeduel.engine.CardEffectTargetingTest" time="0.113"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -1,4 +1,19 @@
+# Large files
 gradle.zip
 gradle-8.10.2/lib/*.jar
-gradle.zip
-gradle-8.10.2/lib/*.jar
+
+# Build directories
+build/
+api/build/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
