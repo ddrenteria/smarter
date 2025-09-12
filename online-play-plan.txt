@@ -1,0 +1,86 @@
+=== Online Play Deployment Plan ===
+
+Goal: Allow two remote players to join the same match over the Internet.
+
+1.  Architecture Choices
+    • Keep current SPA (static index.html + JS) separate from Spring-Boot API.
+    • Host backend (Spring Boot) on a free-tier cloud PaaS.
+    • Host frontend on GitHub Pages (or Netlify) and point it to the backend URL.
+
+2.  Candidate Services
+    Backend  │ Pros                                   │ Cons / Notes
+    ─────────┼────────────────────────────────────────┼─────────────────────────────────
+    Render   │ Free web-service + Docker support.     │ 750h/mo sleep after 15 m idle.
+    Fly.io   │ Always-on VM; globally distributed.     │ Need flyctl & credit card.
+    Railway  │ One-click GitHub integration.           │ 5$ credit → may sleep.
+    Heroku   │ Well-known; good docs.                  │ Free tier gone; needs CC.
+
+    Frontend │ Pros                                   │ Cons
+    GitHub Pages│ Zero cost; automatic deploy.         │ Must push to `gh-pages`.
+    Netlify  │ Drag-drop, preview deploys.            │ Need Netlify account.
+
+3.  Chosen Stack (confirmed)
+    ✔ Backend: **Render**  (Docker deploy; free always-on prototype)
+    ✔ Frontend: **GitHub Pages**  (zero-cost static hosting)
+
+    Rationale: user prefers the simplest free workflow; Render’s cold-start is acceptable for MVP, and GitHub Pages integrates directly with the repo.
+
+4.  Detailed Steps
+    4.1  Prepare Repository
+         ───────────────────
+         a. Split repo folders:
+            /api   ← Spring Boot source
+            /web   ← static/index.html + assets
+         b. Add Dockerfile in /api
+            ```Dockerfile
+            FROM eclipse-temurin:21-jdk
+            WORKDIR /app
+            COPY . .
+            RUN ./gradlew clean build -x test
+            CMD ["java","-jar","build/libs/officeduel.jar"]
+            ```
+         c. Commit & push.
+
+    4.2  Deploy Backend on Render
+         ─────────────────────────
+         a. Create Render account → New Web Service → connect repo.
+         b. Build command: `./gradlew clean build -x test`.
+         c. Start command: `java -jar build/libs/officeduel.jar`.
+         d. Set environment var `PORT` handled automatically; Spring listens on 8080 → add `server.port=${PORT}` in `application.properties` or pass `-Dserver.port=$PORT`.
+         e. Enable free plan (auto-sleep ok).
+         f. Note generated URL e.g. https://office-duel.onrender.com
+
+    4.3  Enable CORS on Backend
+         ───────────────────────
+         a. Add `@CrossOrigin(origins = "*")` on `MatchController` or global CORS config.
+         b. Optionally restrict to GitHub Pages origin later.
+
+    4.4  Deploy Frontend on GitHub Pages
+         ───────────────────────────────
+         a. In /web adjust `const api = 'https://office-duel.onrender.com';`
+         b. Push to branch `gh-pages` or enable Pages → build from `/web`.
+         c. Site becomes `https://<user>.github.io/office-duel/`.
+
+    4.5  Test End-to-End
+         ─────────────────
+         a. Open two browsers pointing at Pages URL.
+         b. Create match, copy ID, join from other browser.
+         c. Play through full game.
+         d. Inspect network requests – must hit Render domain.
+
+    4.6  DNS / HTTPS (optional)
+         ──────────────────────
+         • Use custom domain → point CNAME to GitHub Pages.
+         • Render provides free HTTPS automatically.
+
+5.  Future Improvements
+    • Add CI workflow: on push to `main` build Docker & deploy to Render, build `/web` & push to `gh-pages`.
+    • Add WebSocket support to avoid polling.
+    • Move to Fly.io for lower latency if needed.
+
+6.  Rough Timeline
+    Day 1  – repo split, Dockerfile, CORS.
+    Day 2  – Render backend live, Pages frontend live, smoke tests.
+    Day 3  – CI automation, docs, polish.
+
+=== End of Plan ===

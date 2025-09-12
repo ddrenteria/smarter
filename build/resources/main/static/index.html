@@ -694,13 +694,18 @@
     }
 
     function renderHands() {
-      if (!gameState) return;
+      if (!gameState || playerSeat === null) return;
       
-      // Render Player A hand
-      const handA = document.getElementById('handA');
-      handA.innerHTML = '';
-      if (gameState.activePlayer === 0) {
-        // Group cards by ID and add index for duplicates
+      // Determine which hand divs belong to me vs opponent
+      const myHandDiv = playerSeat === 0 ? document.getElementById('handA') : document.getElementById('handB');
+      const oppHandDiv = playerSeat === 0 ? document.getElementById('handB') : document.getElementById('handA');
+      
+      // Clear both hands
+      myHandDiv.innerHTML = '';
+      oppHandDiv.innerHTML = '';
+      
+      // Render my hand with real cards
+      if (gameState.activeHandCardIds && gameState.activeHandCardIds.length > 0) {
         const cardCounts = {};
         gameState.activeHandCardIds.forEach(id => {
           cardCounts[id] = (cardCounts[id] || 0) + 1;
@@ -711,29 +716,28 @@
           const cardDef = gameState.cardDefinitions[id];
           for (let i = 0; i < count; i++) {
             const uniqueId = count > 1 ? `${id}_${i}` : id;
-            handA.appendChild(renderCard(uniqueId, cardDef, true, id));
+            myHandDiv.appendChild(renderCard(uniqueId, cardDef, true, id));
           }
         });
       }
       
-      // Render Player B hand
-      const handB = document.getElementById('handB');
-      handB.innerHTML = '';
-      if (gameState.activePlayer === 1) {
-        // Group cards by ID and add index for duplicates
-        const cardCounts = {};
-        gameState.activeHandCardIds.forEach(id => {
-          cardCounts[id] = (cardCounts[id] || 0) + 1;
-        });
-        
-        Object.keys(cardCounts).forEach(id => {
-          const count = cardCounts[id];
-          const cardDef = gameState.cardDefinitions[id];
-          for (let i = 0; i < count; i++) {
-            const uniqueId = count > 1 ? `${id}_${i}` : id;
-            handB.appendChild(renderCard(uniqueId, cardDef, true, id));
-          }
-        });
+      // Render opponent hand with card backs (dots)
+      const oppHandSize = playerSeat === 0 ? gameState.handSizeB : gameState.handSizeA;
+      for (let i = 0; i < oppHandSize; i++) {
+        const cardBack = document.createElement('div');
+        cardBack.className = 'card-tooltip';
+        cardBack.style.width = '140px';
+        cardBack.style.height = '200px';
+        cardBack.style.border = '2px solid #666';
+        cardBack.style.borderRadius = '8px';
+        cardBack.style.backgroundColor = '#333';
+        cardBack.style.display = 'flex';
+        cardBack.style.alignItems = 'center';
+        cardBack.style.justifyContent = 'center';
+        cardBack.style.fontSize = '24px';
+        cardBack.style.color = '#fff';
+        cardBack.textContent = '?';
+        oppHandDiv.appendChild(cardBack);
       }
     }
 
@@ -964,6 +968,10 @@
       renderHands();
       renderTableaus();
       
+      // Ensure interaction is properly toggled
+      const isMyTurn = playerSeat !== null && playerSeat === gameState.activePlayer;
+      toggleInteraction(isMyTurn);
+      
       // Auto-play bot turns
       if (gameState.started) {
         const isPlayerABot = gameState.playerAIsBot;
@@ -1008,9 +1016,39 @@
       }
     }
 
+    function toggleInteraction(isMyTurn) {
+      const phase = gameState.phase || 'PLAY_TWO_CARDS';
+      const canInteract = isMyTurn && phase === 'PLAY_TWO_CARDS';
+      
+      // Enable/disable hand cards
+      const handCards = document.querySelectorAll('.hand .card');
+      handCards.forEach(card => {
+        if (canInteract) {
+          card.style.pointerEvents = 'auto';
+          card.style.opacity = '1';
+        } else {
+          card.style.pointerEvents = 'none';
+          card.style.opacity = '0.5';
+        }
+      });
+      
+      // Show/hide play button and selection status
+      const playBtn = document.getElementById('playBtn');
+      const selectionStatus = document.getElementById('selectionStatus');
+      
+      if (canInteract) {
+        playBtn.style.display = 'block';
+        selectionStatus.style.display = 'block';
+      } else {
+        playBtn.style.display = 'none';
+        selectionStatus.style.display = 'none';
+      }
+    }
+
     function updateUIForPhase() {
       const isWaitingForChoice = gameState.waitingForOpponentChoice;
       const phase = gameState.phase || 'PLAY_TWO_CARDS';
+      const isMyTurn = playerSeat !== null && playerSeat === gameState.activePlayer;
       
       // Show/hide selection status
       document.getElementById('selectionStatus').style.display = isWaitingForChoice ? 'none' : 'block';
@@ -1026,17 +1064,8 @@
         startTurnTimer();
       }
       
-      // Disable/enable hand cards based on phase
-      const handCards = document.querySelectorAll('.hand .card');
-      handCards.forEach(card => {
-        if (isWaitingForChoice) {
-          card.style.pointerEvents = 'none';
-          card.style.opacity = '0.5';
-        } else {
-          card.style.pointerEvents = 'auto';
-          card.style.opacity = '1';
-        }
-      });
+      // Toggle interaction based on turn
+      toggleInteraction(isMyTurn);
       
       if (isWaitingForChoice) {
         // Show the cards that need to be chosen between
