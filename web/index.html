@@ -170,7 +170,58 @@
       flex-direction: column;
       justify-content: center; /* Centra verticalmente el contenido */
       align-items: center; /* Centra horizontalmente el contenido */
-      padding: 220px 0 0 0; /* Solo padding-top para evitar colisión con efectos recientes */
+      padding: 20px 0; /* Padding vertical para espaciado */
+      gap: 15px; /* Espacio entre elementos */
+    }
+    
+    /* Player Info Section - Left Side */
+    .player-info-section {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 0; /* Sin margen porque usamos gap en el contenedor */
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 90%;
+    }
+    
+    .player-info-section h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.1em;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .player-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: rgba(248, 249, 250, 0.8);
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+    
+    .stat-label {
+      font-weight: 500;
+      color: #666;
+    }
+    
+    .stat-value {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    /* Hide any remaining old player info elements */
+    .player-info-horizontal {
+      display: none !important;
     }
     .player-section { border: 2px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     
@@ -668,6 +719,39 @@
       font-size: 11px;
       overflow: hidden;
     }
+    
+    /* Recently added card indicator */
+    .card.newly-added {
+      animation: glow 2s ease-in-out;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      border: 2px solid #ffd700;
+      transform: scale(1.05);
+      position: relative;
+    }
+    
+    .card.newly-added::before {
+      content: "✨";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #ffd700;
+      color: #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+    }
+    
     .card:hover { 
       background: #f0f8ff; 
       border-color: #2196f3; 
@@ -775,6 +859,33 @@
     .tableau-card:hover .card-effects li {
       margin: 2px 0;
       line-height: 1.2;
+    }
+    
+    /* Recently added tableau card indicator */
+    .tableau-card.newly-added {
+      animation: glow 2s ease-in-out;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      border: 2px solid #ffd700;
+      transform: scale(1.05);
+      position: relative;
+    }
+    
+    .tableau-card.newly-added::before {
+      content: "✨";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #ffd700;
+      color: #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
     }
     .stacked-card { position: relative; }
     .card-count-badge { 
@@ -1088,59 +1199,78 @@
     /* Recent Effects Full Width Section */
     .recent-effects-full-width {
       grid-column: 1 / -1; /* Span full width */
-      margin: 0;
+      margin: 0 0 15px 0; /* Margen inferior para separar del contenido */
       padding: 15px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      height: 140px; /* Altura ajustada para el panel */
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 16px;
+      border: 2px solid #dee2e6;
+      height: 150px; /* Altura reducida para evitar solapamiento */
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
     .recent-effects-header {
       margin-bottom: 15px;
+      border-bottom: 2px solid #dee2e6;
+      padding-bottom: 10px;
     }
     
     .recent-effects-header h3 {
       margin: 0;
-      color: #fff;
-      font-size: 1.1em;
+      color: #495057;
+      font-size: 1.2em;
       text-align: center;
+      font-weight: 600;
+      text-shadow: none;
     }
     
     .effect-feedback-list-horizontal {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
+      height: 90px; /* Altura reducida para coincidir con el panel más pequeño */
       overflow-y: auto;
-      max-height: 100px; /* Más espacio dentro del panel más alto */
+      padding-right: 8px;
       padding: 5px 0;
     }
     
     .effect-feedback-list-horizontal::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
     
     .effect-feedback-list-horizontal::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      background: #e9ecef;
+      border-radius: 4px;
     }
     
     .effect-feedback-list-horizontal::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
+      background: #6c757d;
+      border-radius: 4px;
+    }
+    
+    .effect-feedback-list-horizontal::-webkit-scrollbar-thumb:hover {
+      background: #495057;
     }
     
     .effect-item {
-      padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.3);
-      color: #ffffff;
+      padding: 10px 15px;
+      background: white;
+      color: #333;
       border-radius: 8px;
-      border-left: 4px solid #2196f3;
-      font-size: 0.8em;
-      animation: slideIn 0.3s ease-out;
+      border-left: 4px solid #007bff;
+      font-size: 0.85em;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       word-wrap: break-word;
       flex-shrink: 0;
+      margin-bottom: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .effect-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
     
     /* Player Status Effects Display */
@@ -1259,15 +1389,18 @@
     }
     
     .effect-item.heal {
-      border-left-color: #4caf50;
+      border-left-color: #28a745;
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
     }
     
     .effect-item.damage {
-      border-left-color: #f44336;
+      border-left-color: #dc3545;
+      background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
     }
     
     .effect-item.dot-change {
-      border-left-color: #ff9800;
+      border-left-color: #ffc107;
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
     }
     
     /* Push number styling */
@@ -1565,6 +1698,21 @@
     
     <!-- Left Sidebar - Shared Counter -->
     <div class="game-sidebar">
+      <!-- Opponent Info Section (Top) -->
+      <div class="player-info-section" id="opponentInfoSection">
+        <h4 id="opponentName">Opponent</h4>
+        <div class="player-stats">
+          <div class="stat-item">
+            <span class="stat-label">Hand:</span>
+            <span class="stat-value" id="opponentHandCount">0 cards</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Tableau:</span>
+            <span class="stat-value" id="opponentTableauCount">0 cards</span>
+          </div>
+        </div>
+      </div>
+      
       <div class="shared-counter">
         <h3>Battle Stones</h3>
         <div class="dot-display">
@@ -1586,6 +1734,21 @@
           <div style="margin-top: 15px;">
             <button id="rematchBtn" class="btn btn-primary" style="margin-right: 10px;">🔄 Rematch</button>
             <button id="gameBackToHomeBtn" class="btn btn-secondary">🏠 Back to Home</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Player Info Section (Bottom) -->
+      <div class="player-info-section" id="playerInfoSection">
+        <h4 id="playerName">You</h4>
+        <div class="player-stats">
+          <div class="stat-item">
+            <span class="stat-label">Hand:</span>
+            <span class="stat-value" id="playerHandCount">0 cards</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Tableau:</span>
+            <span class="stat-value" id="playerTableauCount">0 cards</span>
           </div>
         </div>
       </div>
@@ -1612,13 +1775,6 @@
       <!-- Enemy Area (Top) -->
       <div class="player-section enemy-area" id="playerA">
         <div class="player-area-label opponent">Opponent Area</div>
-        <div class="player-info-horizontal">
-          <h3 id="playerATitle">Player A</h3>
-          <div class="player-stats">
-            <div class="status">Hand: <span id="handSizeA">-</span> cards</div>
-            <div class="status">Tableau: <span id="tableauSizeA">-</span> cards</div>
-          </div>
-        </div>
         <h4>Hand:</h4>
         <div class="hand" id="handA"></div>
         <h4>Tableau:</h4>
@@ -1634,13 +1790,6 @@
       <!-- Your Area (Bottom) -->
       <div class="player-section player-area" id="playerB">
         <div class="player-area-label">Your Area</div>
-        <div class="player-info-horizontal">
-          <h3 id="playerBTitle">Player B</h3>
-          <div class="player-stats">
-            <div class="status">Hand: <span id="handSizeB">-</span> cards</div>
-            <div class="status">Tableau: <span id="tableauSizeB">-</span> cards</div>
-          </div>
-        </div>
         <h4>Hand:</h4>
         <div class="hand" id="handB"></div>
         <h4>Tableau:</h4>
@@ -1992,12 +2141,15 @@
 
     async function refresh() {
       if (!matchId) return;
+      console.log('DEBUG refresh: Starting refresh for matchId =', matchId);
       
       const url = playerSeat !== null ? 
         api + '/api/match/' + matchId + '?seat=' + playerSeat :
         api + '/api/match/' + matchId;
       
       gameState = await req(url);
+      console.log('DEBUG refresh: gameState.recentlyAddedCardsA =', gameState.recentlyAddedCardsA);
+      console.log('DEBUG refresh: gameState.recentlyAddedCardsB =', gameState.recentlyAddedCardsB);
       
       // Handle lobby state
       if (!gameState.started) {
@@ -2008,40 +2160,34 @@
       // Game started - show game UI
       showGame();
       
-      // Update player info based on perspective
-      if (playerSeat === 0) {
-        // Player A perspective - A sees themselves at bottom, opponent at top
-        // After DOM reordering: playerA will be at bottom, playerB at top
-        document.getElementById('handSizeA').textContent = gameState.handSizeA; // A's hand (will be at bottom)
-        document.getElementById('handSizeB').textContent = gameState.handSizeB; // B's hand (will be at top)
-        document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA; // A's tableau (will be at bottom)
-        document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB; // B's tableau (will be at top)
-      } else if (playerSeat === 1) {
-        // Player B perspective - B sees themselves at bottom, opponent at top
-        // Original order: playerA at top, playerB at bottom
-        document.getElementById('handSizeA').textContent = gameState.handSizeA; // A's hand (at top)
-        document.getElementById('handSizeB').textContent = gameState.handSizeB; // B's hand (at bottom)
-        document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA; // A's tableau (at top)
-        document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB; // B's tableau (at bottom)
-      }
       // Update player names and area labels based on current player
       const playerAName = gameState.playerA || 'Player A';
       const playerBName = gameState.playerB || 'Player B';
       
+      // Update player info in sidebar based on perspective
+      if (playerSeat === 0) {
+        // Player A perspective - A sees themselves at bottom, opponent at top
+        document.getElementById('opponentName').textContent = playerBName; // Opponent (at top)
+        document.getElementById('opponentHandCount').textContent = gameState.handSizeB + ' cards'; // B's hand
+        document.getElementById('opponentTableauCount').textContent = gameState.tableauSizeB + ' cards'; // B's tableau
+        
+        document.getElementById('playerName').textContent = playerAName; // Player (at bottom)
+        document.getElementById('playerHandCount').textContent = gameState.handSizeA + ' cards'; // A's hand
+        document.getElementById('playerTableauCount').textContent = gameState.tableauSizeA + ' cards'; // A's tableau
+      } else if (playerSeat === 1) {
+        // Player B perspective - B sees themselves at bottom, opponent at top
+        document.getElementById('opponentName').textContent = playerAName; // Opponent (at top)
+        document.getElementById('opponentHandCount').textContent = gameState.handSizeA + ' cards'; // A's hand
+        document.getElementById('opponentTableauCount').textContent = gameState.tableauSizeA + ' cards'; // A's tableau
+        
+        document.getElementById('playerName').textContent = playerBName; // Player (at bottom)
+        document.getElementById('playerHandCount').textContent = gameState.handSizeB + ' cards'; // B's hand
+        document.getElementById('playerTableauCount').textContent = gameState.tableauSizeB + ' cards'; // B's tableau
+      }
+      
       document.getElementById('active').textContent = gameState.activePlayer === 0 ? playerAName : playerBName;
       document.getElementById('phase').textContent = gameState.phase || 'PLAY_TWO_CARDS';
       
-      if (playerSeat === 0) {
-        // Player A perspective - A sees themselves at bottom, opponent at top
-        // After DOM reordering: playerA will be at bottom, playerB at top
-        document.getElementById('playerATitle').textContent = playerAName; // A's name (will be at bottom)
-        document.getElementById('playerBTitle').textContent = playerBName; // B's name (will be at top)
-      } else if (playerSeat === 1) {
-        // Player B perspective - B sees themselves at bottom, opponent at top
-        // Original order: playerA at top, playerB at bottom
-        document.getElementById('playerATitle').textContent = playerAName; // A's name (at top)
-        document.getElementById('playerBTitle').textContent = playerBName; // B's name (at bottom)
-      }
       
       // Make board symmetric - both players see themselves at bottom
       const gameMain = document.querySelector('.game-main');
@@ -2111,17 +2257,6 @@
       playerAElement.classList.toggle('active', gameState.activePlayer === 0);
       playerBElement.classList.toggle('active', gameState.activePlayer === 1);
       
-      // Add active turn indicator to player titles
-      const playerATitle = document.getElementById('playerATitle');
-      const playerBTitle = document.getElementById('playerBTitle');
-      
-      if (gameState.activePlayer === 0) {
-        playerATitle.innerHTML = playerAName + ' <span style="color: #4caf50; font-size: 0.8em;">🟢 Your Turn</span>';
-        playerBTitle.textContent = playerBName;
-      } else {
-        playerATitle.textContent = playerAName;
-        playerBTitle.innerHTML = playerBName + ' <span style="color: #4caf50; font-size: 0.8em;">🟢 Your Turn</span>';
-      }
       
       // Update UI based on phase
       updateUIForPhase();
@@ -2846,9 +2981,16 @@
     function renderHands() {
       if (!gameState || playerSeat === null) return;
       
+      console.log('DEBUG renderHands: gameState =', gameState);
+      console.log('DEBUG renderHands: playerSeat =', playerSeat);
+      console.log('DEBUG renderHands: activeHandCardIds =', gameState.activeHandCardIds);
+      
       // Determine which hand divs belong to me vs opponent
       const myHandDiv = playerSeat === 0 ? document.getElementById('handA') : document.getElementById('handB');
       const oppHandDiv = playerSeat === 0 ? document.getElementById('handB') : document.getElementById('handA');
+      
+      console.log('DEBUG renderHands: myHandDiv =', myHandDiv);
+      console.log('DEBUG renderHands: oppHandDiv =', oppHandDiv);
       
       // Clear both hands
       myHandDiv.innerHTML = '';
@@ -3006,19 +3148,46 @@
       });
     }
     
+    // Global variable to store all effects for persistent log
+    let allEffects = [];
+    let lastEffectCount = 0;
+
     function renderEffectFeedback() {
-      if (!gameState || !gameState.recentEffects) return;
+      console.log('DEBUG renderEffectFeedback: gameState =', gameState);
+      console.log('DEBUG renderEffectFeedback: recentEffects =', gameState?.recentEffects);
+      
+      if (!gameState || !gameState.recentEffects) {
+        console.log('DEBUG renderEffectFeedback: No gameState or recentEffects, returning');
+        return;
+      }
       
       const effectContainer = document.getElementById('effectFeedback');
-      if (!effectContainer) return;
+      if (!effectContainer) {
+        console.log('DEBUG renderEffectFeedback: No effectContainer found');
+        return;
+      }
       
-      // Clear previous effects
+      // Add new effects to the persistent log
+      if (gameState.recentEffects.length > lastEffectCount) {
+        const newEffects = gameState.recentEffects.slice(lastEffectCount);
+        allEffects = allEffects.concat(newEffects);
+        lastEffectCount = gameState.recentEffects.length;
+        
+        // Limit to last 50 effects to prevent memory issues
+        if (allEffects.length > 50) {
+          allEffects = allEffects.slice(-50);
+        }
+      }
+      
+      console.log('DEBUG renderEffectFeedback: All effects =', allEffects);
+      
+      // Clear container and render all effects
       effectContainer.innerHTML = '';
       
-      // Show only the last 5 effects
-      const recentEffects = gameState.recentEffects.slice(-5);
+      // Show all effects (most recent at bottom)
+      const effectsToShow = allEffects.slice(-20); // Show last 20 effects
       
-      recentEffects.forEach(effect => {
+      effectsToShow.forEach(effect => {
         const effectDiv = document.createElement('div');
         effectDiv.className = 'effect-item';
         
@@ -3031,21 +3200,33 @@
           effectDiv.classList.add('dot-change');
         }
         
-        // Create effect text
-        let effectText = `<strong>${effect.playerName}</strong>: ${effect.effectDescription}`;
+        // Create timestamp
+        const timestamp = new Date(effect.timestamp);
+        const timeStr = timestamp.toLocaleTimeString();
         
-        // Add change indicators
+        // Create effect text with clean formatting
+        let effectText = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #6c757d; font-size: 0.75em; font-weight: 500; min-width: 60px;">${timeStr}</span>
+            <span style="font-weight: 600; color: #495057;">${effect.playerName}</span>
+            <span style="color: #333;">${effect.effectDescription}</span>
+        `;
+        
+        // Add change indicators with nice badges
         if (effect.dotChange !== 0) {
           const changeText = effect.dotChange > 0 ? `+${effect.dotChange}` : `${effect.dotChange}`;
-          effectText += ` <span style="color: #ff9800;">[${changeText} puntos]</span>`;
+          const badgeColor = effect.dotChange > 0 ? '#28a745' : '#dc3545';
+          effectText += `<span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: 600; margin-left: 8px;">${changeText} puntos</span>`;
         }
         
         if (effect.lpChangeA !== 0 || effect.lpChangeB !== 0) {
           const lpChanges = [];
           if (effect.lpChangeA !== 0) lpChanges.push(`A: ${effect.lpChangeA > 0 ? '+' : ''}${effect.lpChangeA}`);
           if (effect.lpChangeB !== 0) lpChanges.push(`B: ${effect.lpChangeB > 0 ? '+' : ''}${effect.lpChangeB}`);
-          effectText += ` <span style="color: #666;">[${lpChanges.join(', ')} LP]</span>`;
+          effectText += `<span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: 600; margin-left: 8px;">${lpChanges.join(', ')} LP</span>`;
         }
+        
+        effectText += '</div>';
         
         effectDiv.innerHTML = effectText;
         effectContainer.appendChild(effectDiv);
@@ -3242,6 +3423,20 @@
       btn.style.width = '140px';
       btn.style.minHeight = '160px';
       btn.style.position='relative';
+      
+      // Check if this card was recently added
+      console.log('DEBUG renderStackedCard:', cardId, 'gameState.recentlyAddedCardsA:', gameState.recentlyAddedCardsA, 'gameState.recentlyAddedCardsB:', gameState.recentlyAddedCardsB);
+      const isRecentlyAdded = gameState.recentlyAddedCardsA?.includes(cardId) || 
+                             gameState.recentlyAddedCardsB?.includes(cardId);
+      console.log('DEBUG isRecentlyAdded:', isRecentlyAdded, 'for card:', cardId);
+      if (isRecentlyAdded) {
+        btn.classList.add('newly-added');
+        console.log('DEBUG Added newly-added class to card:', cardId);
+        // Remove the class after animation completes
+        setTimeout(() => {
+          btn.classList.remove('newly-added');
+        }, 2000);
+      }
       
       if(cardDef){
           const title=document.createElement('div');
@@ -3541,6 +3736,7 @@
 
     function checkWinConditions() {
       const dots = gameState.sharedDotCounter;
+      console.log('DEBUG checkWinConditions: dots =', dots, 'gameState =', gameState);
       const winnerDisplay = document.getElementById('winnerDisplay');
       const winnerText = document.getElementById('winnerText');
       

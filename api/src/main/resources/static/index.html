@@ -153,28 +153,88 @@
     /* Game Styles */
     .game-container { 
       display: grid; 
-      grid-template-columns: auto 1fr; 
-      grid-template-rows: auto 1fr auto; 
+      grid-template-columns: 280px 1fr; 
+      grid-template-rows: auto 160px 1fr auto; 
       gap: 20px; 
       min-height: 80vh;
       width: 100%;
     }
     .game-header { grid-column: 2; grid-row: 1; }
-    .game-main { grid-column: 2; grid-row: 2; }
-    .game-footer { grid-column: 2; grid-row: 3; }
-    .game-sidebar { grid-column: 1; grid-row: 1 / 4; }
+    .recent-effects-full-width { grid-column: 1 / -1; grid-row: 2; }
+    .game-main { grid-column: 2; grid-row: 3; }
+    .game-footer { grid-column: 2; grid-row: 4; }
+    .game-sidebar { 
+      grid-column: 1; 
+      grid-row: 1 / 5; 
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centra verticalmente el contenido */
+      align-items: center; /* Centra horizontalmente el contenido */
+      padding: 20px 0; /* Padding vertical para espaciado */
+      gap: 15px; /* Espacio entre elementos */
+    }
+    
+    /* Player Info Section - Left Side */
+    .player-info-section {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 0; /* Sin margen porque usamos gap en el contenedor */
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 90%;
+    }
+    
+    .player-info-section h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.1em;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .player-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: rgba(248, 249, 250, 0.8);
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+    
+    .stat-label {
+      font-weight: 500;
+      color: #666;
+    }
+    
+    .stat-value {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    /* Hide any remaining old player info elements */
+    .player-info-horizontal {
+      display: none !important;
+    }
     .player-section { border: 2px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     
     .card-selection-panel {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       border: 2px solid #dee2e6;
-      border-radius: 15px;
-      padding: 20px;
-      margin: 10px 0;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 8px 0;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       position: relative;
       z-index: 10;
-      min-height: 300px;
+      min-height: 200px;
     }
     
     .panel-header {
@@ -234,33 +294,33 @@
     
     .card-choice-container {
       display: flex;
-      gap: 20px;
+      gap: 15px;
       justify-content: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     
     .card-choice {
       background: white;
       border: 2px solid #28a745;
-      border-radius: 10px;
-      padding: 20px;
+      border-radius: 8px;
+      padding: 15px;
       text-align: center;
-      min-width: 250px;
+      min-width: 200px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .card-choice h4 {
-      margin: 0 0 15px 0;
+      margin: 0 0 10px 0;
       color: #333;
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
     
     .card-preview {
-      min-height: 200px;
+      min-height: 120px;
       border: 2px dashed #dee2e6;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
       background: #f8f9fa;
       display: flex;
       align-items: center;
@@ -281,11 +341,12 @@
       background: #28a745;
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.2s ease;
+      font-size: 0.9em;
     }
     
     .choose-btn:hover:not(:disabled) {
@@ -299,8 +360,8 @@
     
     .play-controls {
       background: white;
-      border-radius: 10px;
-      padding: 15px;
+      border-radius: 8px;
+      padding: 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       text-align: center;
     }
@@ -530,19 +591,19 @@
     .card-preview-name {
       font-weight: bold;
       color: #333;
-      margin-bottom: 10px;
-      font-size: 1.1em;
+      margin-bottom: 6px;
+      font-size: 1em;
     }
     
     .card-preview-tiers {
-      font-size: 0.9em;
+      font-size: 0.8em;
     }
     
     .tier-preview {
-      margin-bottom: 8px;
-      padding: 5px;
+      margin-bottom: 4px;
+      padding: 3px;
       background: #f8f9fa;
-      border-radius: 4px;
+      border-radius: 3px;
       border-left: 3px solid #007bff;
     }
     
@@ -591,6 +652,7 @@
     }
     .player-section.active { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-color: #2196f3; box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3); }
     .player-section h3 { margin: 0 0 15px 0; font-size: 1.2em; color: #333; }
+    .player-section h4 { margin: 0 0 10px 0; font-size: 1em; color: #333; font-weight: 600; }
     .player-area-label { 
       display: inline-block; 
       background: #2196f3; 
@@ -601,28 +663,119 @@
       margin-bottom: 10px; 
     }
     .player-area-label.opponent { background: #ff5722; }
+    
+    /* Horizontal player info layout */
+    .player-info-horizontal {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .player-info-horizontal h3 {
+      margin: 0;
+      font-size: 1.1em;
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .player-stats {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .player-stats .status {
+      margin: 0;
+      font-size: 0.9em;
+      color: #555;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
     .hand { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
     .card {
       width: 140px;
-      min-height: 200px;
-      padding: 10px;
+      min-height: 160px;
+      padding: 8px;
       border: 2px solid #888;
       border-radius: 8px;
       cursor: pointer;
-      background: white;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
       display: flex;
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
       text-align: center;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+      font-size: 11px;
+      overflow: hidden;
     }
+    
+    /* Recently added card indicator */
+    .card.newly-added {
+      animation: glow 2s ease-in-out;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      border: 2px solid #ffd700;
+      transform: scale(1.05);
+      position: relative;
+    }
+    
+    .card.newly-added::before {
+      content: "✨";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #ffd700;
+      color: #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+    }
+    
     .card:hover { 
       background: #f0f8ff; 
       border-color: #2196f3; 
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-2px) scale(1.15);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      z-index: 100;
+      font-size: 13px;
+      width: 180px;
+      padding: 12px;
+      overflow: hidden;
+    }
+    
+    .card:hover .card-title {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    
+    .card:hover .card-effects {
+      font-size: 11px;
+    }
+    
+    .card:hover .card-effects li {
+      margin: 2px 0;
+      line-height: 1.2;
     }
     .card.selected { 
       background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
@@ -630,8 +783,8 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
     }
-    .card-title { font-weight: bold; margin-bottom: 6px; }
-    .card-effects { list-style: none; padding: 0; margin: 0; font-size: 12px; text-align: left; }
+    .card-title { font-weight: bold; margin-bottom: 4px; font-size: 12px; }
+    .card-effects { list-style: none; padding: 0; margin: 0; font-size: 10px; text-align: left; }
     .card-effects li { color: #000; }
     .card-effects li.active { color: #28a745; font-weight: bold; }
     
@@ -667,16 +820,72 @@
     .tableau { display: flex; gap: 4px; margin: 10px 0; flex-wrap: wrap; }
     .tableau-card {
       width: 140px;
-      min-height: 200px;
+      min-height: 160px;
       padding: 8px;
       border: 2px solid #ccc;
-      border-radius: 6px;
-      background: #f9f9f9;
-      font-size: 12px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+      font-size: 11px;
       position: relative;
       display: flex;
       flex-direction: column;
       text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    .tableau-card:hover {
+      transform: translateY(-2px) scale(1.15);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      z-index: 100;
+      font-size: 13px;
+      width: 180px;
+      padding: 12px;
+      border-color: #4caf50;
+      background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
+      overflow: hidden;
+    }
+    
+    .tableau-card:hover .card-title {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    
+    .tableau-card:hover .card-effects {
+      font-size: 11px;
+    }
+    
+    .tableau-card:hover .card-effects li {
+      margin: 2px 0;
+      line-height: 1.2;
+    }
+    
+    /* Recently added tableau card indicator */
+    .tableau-card.newly-added {
+      animation: glow 2s ease-in-out;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      border: 2px solid #ffd700;
+      transform: scale(1.05);
+      position: relative;
+    }
+    
+    .tableau-card.newly-added::before {
+      content: "✨";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #ffd700;
+      color: #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
     }
     .stacked-card { position: relative; }
     .card-count-badge { 
@@ -695,8 +904,26 @@
       font-weight: bold; 
       border: 2px solid white;
     }
-    .card-tooltip { position: relative; }
-    .card-tooltip:hover .tooltip-content { display: block; }
+    .card-tooltip { 
+      position: relative; 
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .card-tooltip:hover .tooltip-content { display: none; }
+    .card-tooltip:hover {
+      transform: translateY(-2px) scale(1.15);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      z-index: 100;
+    }
+    .revealed-card:hover {
+      transform: translateY(-2px) scale(1.15);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      z-index: 100;
+      width: 180px !important;
+      font-size: 13px;
+      padding: 12px;
+      overflow: hidden;
+    }
     .tooltip-content { 
       display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); 
       background: #333; color: white; padding: 8px; border-radius: 4px; white-space: nowrap; 
@@ -731,12 +958,12 @@
     }
     .shared-counter {
       text-align: center;
-      margin: 20px 0;
-      padding: 20px;
+      margin: 15px 0;
+      padding: 15px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 12px;
       color: white;
-      min-width: 200px;
+      min-width: 180px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     .dot-display {
@@ -769,6 +996,7 @@
     
     .stones-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 4px;
       font-size: 20px;
@@ -956,8 +1184,8 @@
     }
     
     .timer-display-container {
-      margin-top: 20px;
-      padding: 15px;
+      margin-top: 15px;
+      padding: 12px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       text-align: center;
@@ -968,47 +1196,211 @@
       font-weight: bold;
     }
     
-    .effect-feedback-container {
-      margin-top: 20px;
+    /* Recent Effects Full Width Section */
+    .recent-effects-full-width {
+      grid-column: 1 / -1; /* Span full width */
+      margin: 0 0 15px 0; /* Margen inferior para separar del contenido */
       padding: 15px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      max-height: 200px;
-      overflow-y: auto;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 16px;
+      border: 2px solid #dee2e6;
+      height: 150px; /* Altura reducida para evitar solapamiento */
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
-    .effect-feedback-container h4 {
-      margin: 0 0 10px 0;
-      color: #333;
-      font-size: 0.9em;
+    .recent-effects-header {
+      margin-bottom: 15px;
+      border-bottom: 2px solid #dee2e6;
+      padding-bottom: 10px;
     }
     
-    .effect-feedback-list {
+    .recent-effects-header h3 {
+      margin: 0;
+      color: #495057;
+      font-size: 1.2em;
+      text-align: center;
+      font-weight: 600;
+      text-shadow: none;
+    }
+    
+    .effect-feedback-list-horizontal {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
+      height: 90px; /* Altura reducida para coincidir con el panel más pequeño */
+      overflow-y: auto;
+      padding-right: 8px;
+      padding: 5px 0;
+    }
+    
+    .effect-feedback-list-horizontal::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .effect-feedback-list-horizontal::-webkit-scrollbar-track {
+      background: #e9ecef;
+      border-radius: 4px;
+    }
+    
+    .effect-feedback-list-horizontal::-webkit-scrollbar-thumb {
+      background: #6c757d;
+      border-radius: 4px;
+    }
+    
+    .effect-feedback-list-horizontal::-webkit-scrollbar-thumb:hover {
+      background: #495057;
     }
     
     .effect-item {
-      padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.3);
-      color: #ffffff;
+      padding: 10px 15px;
+      background: white;
+      color: #333;
       border-radius: 8px;
-      border-left: 4px solid #2196f3;
+      border-left: 4px solid #007bff;
+      font-size: 0.85em;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      word-wrap: break-word;
+      flex-shrink: 0;
+      margin-bottom: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .effect-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Player Status Effects Display */
+    .status-effects {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .status-effects h4 {
+      margin: 0 0 8px 0;
+      color: #fff;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
+    
+    .status-effects-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    
+    .status-effect {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      font-size: 0.75em;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .status-effect.shield {
+      background: rgba(76, 175, 80, 0.8);
+      border-color: #4caf50;
+    }
+    
+    .status-effect.thorns {
+      background: rgba(255, 152, 0, 0.8);
+      border-color: #ff9800;
+    }
+    
+    .status-effect.reflect {
+      background: rgba(156, 39, 176, 0.8);
+      border-color: #9c27b0;
+    }
+    
+    .status-effect.random {
+      background: rgba(255, 193, 7, 0.8);
+      border-color: #ffc107;
+      color: #000;
+    }
+    
+    .status-effect.global {
+      background: rgba(244, 67, 54, 0.8);
+      border-color: #f44336;
+    }
+    
+    .status-effect-icon {
       font-size: 0.8em;
-      animation: slideIn 0.3s ease-out;
+    }
+    
+    .status-effect-duration {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 1px 4px;
+      font-size: 0.7em;
+      font-weight: bold;
+    }
+    
+    /* Status Effect Tooltips */
+    .status-effect {
+      position: relative;
+      cursor: help;
+    }
+    
+    .status-effect-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.75em;
+      white-space: nowrap;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+      margin-bottom: 5px;
+      max-width: 250px;
+      white-space: normal;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .status-effect-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.9);
+    }
+    
+    .status-effect:hover .status-effect-tooltip {
+      opacity: 1;
+      visibility: visible;
     }
     
     .effect-item.heal {
-      border-left-color: #4caf50;
+      border-left-color: #28a745;
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
     }
     
     .effect-item.damage {
-      border-left-color: #f44336;
+      border-left-color: #dc3545;
+      background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
     }
     
     .effect-item.dot-change {
-      border-left-color: #ff9800;
+      border-left-color: #ffc107;
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
     }
     
     /* Push number styling */
@@ -1037,9 +1429,9 @@
       background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 8px;
-      font-size: 0.9em;
+      font-size: 0.85em;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -1254,7 +1646,7 @@
       <h2>Create New Match</h2>
       <p>Enter your name to create a match:</p>
       <div class="input-group">
-        <input id="createPlayerName" type="text" placeholder="Your name" />
+        <input id="createPlayerName" type="text" placeholder="Your name (max 15 chars)" maxlength="15" />
         <button id="confirmCreateBtn" class="action-btn">Create Match</button>
       </div>
       <button id="backToHomeBtn" class="secondary-btn">← Back to Home</button>
@@ -1268,7 +1660,7 @@
       <p>Enter the match ID and your name:</p>
       <div class="input-group">
         <input id="joinMatchId" type="text" placeholder="Match ID" />
-        <input id="joinPlayerName" type="text" placeholder="Your name" />
+        <input id="joinPlayerName" type="text" placeholder="Your name (max 15 chars)" maxlength="15" />
         <button id="confirmJoinBtn" class="action-btn">Join Match</button>
       </div>
       <button id="backToHomeBtn2" class="secondary-btn">← Back to Home</button>
@@ -1306,6 +1698,21 @@
     
     <!-- Left Sidebar - Shared Counter -->
     <div class="game-sidebar">
+      <!-- Opponent Info Section (Top) -->
+      <div class="player-info-section" id="opponentInfoSection">
+        <h4 id="opponentName">Opponent</h4>
+        <div class="player-stats">
+          <div class="stat-item">
+            <span class="stat-label">Hand:</span>
+            <span class="stat-value" id="opponentHandCount">0 cards</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Tableau:</span>
+            <span class="stat-value" id="opponentTableauCount">0 cards</span>
+          </div>
+        </div>
+      </div>
+      
       <div class="shared-counter">
         <h3>Battle Stones</h3>
         <div class="dot-display">
@@ -1321,19 +1728,27 @@
           <div class="status">Timer: <span id="timer" class="timer-display">-</span></div>
           <button id="autoBtn" class="auto-turn-btn">Auto Turn</button>
         </div>
-        <!-- Effect Feedback Display -->
-        <div class="effect-feedback-container">
-          <h4>Efectos Recientes</h4>
-          <div id="effectFeedback" class="effect-feedback-list">
-            <!-- Effects will be displayed here -->
-          </div>
-        </div>
         
         <div id="winnerDisplay" class="winner-display" style="display: none;">
           <h2 id="winnerText">Game Over!</h2>
           <div style="margin-top: 15px;">
             <button id="rematchBtn" class="btn btn-primary" style="margin-right: 10px;">🔄 Rematch</button>
             <button id="gameBackToHomeBtn" class="btn btn-secondary">🏠 Back to Home</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Player Info Section (Bottom) -->
+      <div class="player-info-section" id="playerInfoSection">
+        <h4 id="playerName">You</h4>
+        <div class="player-stats">
+          <div class="stat-item">
+            <span class="stat-label">Hand:</span>
+            <span class="stat-value" id="playerHandCount">0 cards</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Tableau:</span>
+            <span class="stat-value" id="playerTableauCount">0 cards</span>
           </div>
         </div>
       </div>
@@ -1345,30 +1760,46 @@
       <div class="status">Phase: <span id="phase">-</span></div>
     </div>
     
+    <!-- Recent Effects Section - Full Width -->
+    <div class="recent-effects-full-width">
+      <div class="recent-effects-header">
+        <h3>Efectos Recientes</h3>
+      </div>
+      <div id="effectFeedback" class="effect-feedback-list-horizontal">
+        <!-- Effects will be displayed here -->
+      </div>
+    </div>
+    
     <!-- Main Game Area -->
     <div class="game-main">
       <!-- Enemy Area (Top) -->
       <div class="player-section enemy-area" id="playerA">
         <div class="player-area-label opponent">Opponent Area</div>
-        <h3 id="playerATitle">Player A</h3>
-        <div class="status">Hand: <span id="handSizeA">-</span> cards</div>
-        <div class="status">Tableau: <span id="tableauSizeA">-</span> cards</div>
         <h4>Hand:</h4>
         <div class="hand" id="handA"></div>
         <h4>Tableau:</h4>
         <div class="tableau" id="tableauA"></div>
+        <div class="status-effects" id="statusEffectsA">
+          <h4>Estados Activos</h4>
+          <div class="status-effects-list" id="statusEffectsListA">
+            <!-- Status effects will be displayed here -->
+          </div>
+        </div>
       </div>
 
       <!-- Your Area (Bottom) -->
       <div class="player-section player-area" id="playerB">
         <div class="player-area-label">Your Area</div>
-        <h3 id="playerBTitle">Player B</h3>
-        <div class="status">Hand: <span id="handSizeB">-</span> cards</div>
-        <div class="status">Tableau: <span id="tableauSizeB">-</span> cards</div>
         <h4>Hand:</h4>
         <div class="hand" id="handB"></div>
         <h4>Tableau:</h4>
         <div class="tableau" id="tableauB"></div>
+        <div class="status-effects" id="statusEffectsB">
+          <h4>Estados Activos</h4>
+          <div class="status-effects-list" id="statusEffectsListB">
+            <!-- Status effects will be displayed here -->
+          </div>
+        </div>
       </div>
     </div>
     
@@ -1675,9 +2106,9 @@
       // Generate stones array: 5 for player A, 1 neutral (center), 5 for player B
       const stones = [];
       
-      // Player A stones (left side) - negative values (-1 to -5)
+      // Player A stones (top) - positive values (+1 to +5) - INVERTED
       for (let i = 1; i <= 5; i++) {
-        if (clampedCounter === -i) {
+        if (clampedCounter === i) {
           stones.push('<span class="stone active">●</span>'); // Active stone for exact position
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
@@ -1691,16 +2122,16 @@
         stones.push('<span class="stone center">○</span>'); // Inactive center stone
       }
       
-      // Player B stones (right side) - positive values (+1 to +5)
+      // Player B stones (bottom) - negative values (-1 to -5) - INVERTED
       for (let i = 1; i <= 5; i++) {
-        if (clampedCounter === i) {
+        if (clampedCounter === -i) {
           stones.push('<span class="stone active">●</span>'); // Active stone for exact position
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
         }
       }
       
-      // Combine everything
+      // Combine everything with vertical layout
       return `<div class="visual-counter-display">
         <div class="player-name">${nameA}</div>
         <div class="stones-container">${stones.join('')}</div>
@@ -1710,12 +2141,15 @@
 
     async function refresh() {
       if (!matchId) return;
+      console.log('DEBUG refresh: Starting refresh for matchId =', matchId);
       
       const url = playerSeat !== null ? 
         api + '/api/match/' + matchId + '?seat=' + playerSeat :
         api + '/api/match/' + matchId;
       
       gameState = await req(url);
+      console.log('DEBUG refresh: gameState.recentlyAddedCardsA =', gameState.recentlyAddedCardsA);
+      console.log('DEBUG refresh: gameState.recentlyAddedCardsB =', gameState.recentlyAddedCardsB);
       
       // Handle lobby state
       if (!gameState.started) {
@@ -1726,40 +2160,34 @@
       // Game started - show game UI
       showGame();
       
-      // Update player info based on perspective
-      if (playerSeat === 0) {
-        // Player A perspective - A sees themselves at bottom, opponent at top
-        // After DOM reordering: playerA will be at bottom, playerB at top
-        document.getElementById('handSizeA').textContent = gameState.handSizeA; // A's hand (will be at bottom)
-        document.getElementById('handSizeB').textContent = gameState.handSizeB; // B's hand (will be at top)
-        document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA; // A's tableau (will be at bottom)
-        document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB; // B's tableau (will be at top)
-      } else if (playerSeat === 1) {
-        // Player B perspective - B sees themselves at bottom, opponent at top
-        // Original order: playerA at top, playerB at bottom
-        document.getElementById('handSizeA').textContent = gameState.handSizeA; // A's hand (at top)
-        document.getElementById('handSizeB').textContent = gameState.handSizeB; // B's hand (at bottom)
-        document.getElementById('tableauSizeA').textContent = gameState.tableauSizeA; // A's tableau (at top)
-        document.getElementById('tableauSizeB').textContent = gameState.tableauSizeB; // B's tableau (at bottom)
-      }
-      document.getElementById('active').textContent = gameState.activePlayer === 0 ? 'A' : 'B';
-      document.getElementById('phase').textContent = gameState.phase || 'PLAY_TWO_CARDS';
-      
       // Update player names and area labels based on current player
       const playerAName = gameState.playerA || 'Player A';
       const playerBName = gameState.playerB || 'Player B';
       
+      // Update player info in sidebar based on perspective
       if (playerSeat === 0) {
         // Player A perspective - A sees themselves at bottom, opponent at top
-        // After DOM reordering: playerA will be at bottom, playerB at top
-        document.getElementById('playerATitle').textContent = playerAName; // A's name (will be at bottom)
-        document.getElementById('playerBTitle').textContent = playerBName; // B's name (will be at top)
+        document.getElementById('opponentName').textContent = playerBName; // Opponent (at top)
+        document.getElementById('opponentHandCount').textContent = gameState.handSizeB + ' cards'; // B's hand
+        document.getElementById('opponentTableauCount').textContent = gameState.tableauSizeB + ' cards'; // B's tableau
+        
+        document.getElementById('playerName').textContent = playerAName; // Player (at bottom)
+        document.getElementById('playerHandCount').textContent = gameState.handSizeA + ' cards'; // A's hand
+        document.getElementById('playerTableauCount').textContent = gameState.tableauSizeA + ' cards'; // A's tableau
       } else if (playerSeat === 1) {
         // Player B perspective - B sees themselves at bottom, opponent at top
-        // Original order: playerA at top, playerB at bottom
-        document.getElementById('playerATitle').textContent = playerAName; // A's name (at top)
-        document.getElementById('playerBTitle').textContent = playerBName; // B's name (at bottom)
+        document.getElementById('opponentName').textContent = playerAName; // Opponent (at top)
+        document.getElementById('opponentHandCount').textContent = gameState.handSizeA + ' cards'; // A's hand
+        document.getElementById('opponentTableauCount').textContent = gameState.tableauSizeA + ' cards'; // A's tableau
+        
+        document.getElementById('playerName').textContent = playerBName; // Player (at bottom)
+        document.getElementById('playerHandCount').textContent = gameState.handSizeB + ' cards'; // B's hand
+        document.getElementById('playerTableauCount').textContent = gameState.tableauSizeB + ' cards'; // B's tableau
       }
+      
+      document.getElementById('active').textContent = gameState.activePlayer === 0 ? playerAName : playerBName;
+      document.getElementById('phase').textContent = gameState.phase || 'PLAY_TWO_CARDS';
+      
       
       // Make board symmetric - both players see themselves at bottom
       const gameMain = document.querySelector('.game-main');
@@ -1803,7 +2231,7 @@
       const dotCounterElement = document.getElementById('dotCounter');
       
       // Generate visual stone display
-      const visualCounter = generateVisualCounter(dotCounter, 'Player A', 'Player B');
+      const visualCounter = generateVisualCounter(dotCounter, playerAName, playerBName);
       dotCounterElement.innerHTML = visualCounter;
       
       // Update counter styling based on value
@@ -1829,17 +2257,6 @@
       playerAElement.classList.toggle('active', gameState.activePlayer === 0);
       playerBElement.classList.toggle('active', gameState.activePlayer === 1);
       
-      // Add active turn indicator to player titles
-      const playerATitle = document.getElementById('playerATitle');
-      const playerBTitle = document.getElementById('playerBTitle');
-      
-      if (gameState.activePlayer === 0) {
-        playerATitle.innerHTML = (gameState.playerA || 'Player A') + ' <span style="color: #4caf50; font-size: 0.8em;">🟢 Your Turn</span>';
-        playerBTitle.textContent = gameState.playerB || 'Player B';
-      } else {
-        playerATitle.textContent = gameState.playerA || 'Player A';
-        playerBTitle.innerHTML = (gameState.playerB || 'Player B') + ' <span style="color: #4caf50; font-size: 0.8em;">🟢 Your Turn</span>';
-      }
       
       // Update UI based on phase
       updateUIForPhase();
@@ -1850,6 +2267,9 @@
       
       // Render effect feedback
       renderEffectFeedback();
+      
+      // Render status effects
+      renderStatusEffects();
       
       // Render cards in central panel
       renderCentralCardPanel();
@@ -2051,7 +2471,7 @@
           ul.className = 'card-effects';
           cardDef.tiers.forEach((tier, idx)=>{
              const li=document.createElement('li');
-             li.textContent = (idx+1)+'. '+ (tier.actions[0]?.description || '');
+             li.innerHTML = (idx+1)+'. '+ (tier.actions[0]?.description || '');
              ul.appendChild(li);
           });
           btn.appendChild(ul);
@@ -2561,9 +2981,16 @@
     function renderHands() {
       if (!gameState || playerSeat === null) return;
       
+      console.log('DEBUG renderHands: gameState =', gameState);
+      console.log('DEBUG renderHands: playerSeat =', playerSeat);
+      console.log('DEBUG renderHands: activeHandCardIds =', gameState.activeHandCardIds);
+      
       // Determine which hand divs belong to me vs opponent
       const myHandDiv = playerSeat === 0 ? document.getElementById('handA') : document.getElementById('handB');
       const oppHandDiv = playerSeat === 0 ? document.getElementById('handB') : document.getElementById('handA');
+      
+      console.log('DEBUG renderHands: myHandDiv =', myHandDiv);
+      console.log('DEBUG renderHands: oppHandDiv =', oppHandDiv);
       
       // Clear both hands
       myHandDiv.innerHTML = '';
@@ -2586,15 +3013,89 @@
         });
       }
       
-      // Render opponent hand with card backs
+      // Render opponent hand - show revealed cards if any, otherwise show card backs
       const oppHandSize = playerSeat === 0 ? gameState.handSizeB : gameState.handSizeA;
+      const revealedCards = playerSeat === 0 ? gameState.revealedCardsB : gameState.revealedCardsA;
+      
+      let revealedCardIndex = 0;
       for (let i = 0; i < oppHandSize; i++) {
+        // Check if we have revealed cards to show
+        if (revealedCards && revealedCardIndex < revealedCards.length) {
+          const cardId = revealedCards[revealedCardIndex];
+          const cardDef = gameState.cardDefinitions[cardId];
+          
+          if (cardDef) {
+            // Create revealed card
+            const revealedCard = document.createElement('div');
+            revealedCard.className = 'card-tooltip revealed-card';
+            revealedCard.style.width = '140px';
+            revealedCard.style.height = '160px';
+            revealedCard.style.border = '2px solid #4caf50';
+            revealedCard.style.borderRadius = '12px';
+            revealedCard.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+            revealedCard.style.position = 'relative';
+            revealedCard.setAttribute('data-real-id', cardId);
+            
+            const title = document.createElement('div');
+            title.className = 'card-title';
+            title.style.fontWeight = 'bold';
+            title.style.marginBottom = '6px';
+            title.style.fontSize = '12px';
+            title.textContent = cardDef.name;
+            revealedCard.appendChild(title);
+            
+            const ul = document.createElement('ul');
+            ul.className = 'card-effects';
+            ul.style.listStyle = 'none';
+            ul.style.padding = '0';
+            ul.style.margin = '0';
+            ul.style.fontSize = '10px';
+            cardDef.tiers.forEach((tier, idx) => {
+              const li = document.createElement('li');
+              li.style.marginBottom = '2px';
+              li.innerHTML = (idx + 1) + '. ' + (tier.actions[0]?.description || '');
+              ul.appendChild(li);
+            });
+            revealedCard.appendChild(ul);
+            
+            // Add a "revealed" indicator
+            const revealedIndicator = document.createElement('div');
+            revealedIndicator.style.position = 'absolute';
+            revealedIndicator.style.top = '5px';
+            revealedIndicator.style.right = '5px';
+            revealedIndicator.style.background = '#4caf50';
+            revealedIndicator.style.color = 'white';
+            revealedIndicator.style.borderRadius = '50%';
+            revealedIndicator.style.width = '20px';
+            revealedIndicator.style.height = '20px';
+            revealedIndicator.style.display = 'flex';
+            revealedIndicator.style.alignItems = 'center';
+            revealedIndicator.style.justifyContent = 'center';
+            revealedIndicator.style.fontSize = '12px';
+            revealedIndicator.textContent = '👁';
+            revealedCard.appendChild(revealedIndicator);
+            
+            oppHandDiv.appendChild(revealedCard);
+            revealedCardIndex++;
+          } else {
+            // Fallback to card back if card definition not found
+            const cardBack = createCardBack();
+            oppHandDiv.appendChild(cardBack);
+          }
+        } else {
+          // Show regular card back
+          const cardBack = createCardBack();
+          oppHandDiv.appendChild(cardBack);
+        }
+      }
+      
+      function createCardBack() {
         const cardBack = document.createElement('div');
         cardBack.className = 'card-tooltip';
         cardBack.style.width = '140px';
-        cardBack.style.height = '200px';
+        cardBack.style.height = '160px';
         cardBack.style.border = '2px solid #666';
-        cardBack.style.borderRadius = '8px';
+        cardBack.style.borderRadius = '12px';
         cardBack.style.backgroundColor = '#333';
         cardBack.style.display = 'flex';
         cardBack.style.alignItems = 'center';
@@ -2602,7 +3103,7 @@
         cardBack.style.fontSize = '24px';
         cardBack.style.color = '#fff';
         cardBack.textContent = '?';
-        oppHandDiv.appendChild(cardBack);
+        return cardBack;
       }
     }
     function renderTableaus() {
@@ -2647,19 +3148,46 @@
       });
     }
     
+    // Global variable to store all effects for persistent log
+    let allEffects = [];
+    let lastEffectCount = 0;
+
     function renderEffectFeedback() {
-      if (!gameState || !gameState.recentEffects) return;
+      console.log('DEBUG renderEffectFeedback: gameState =', gameState);
+      console.log('DEBUG renderEffectFeedback: recentEffects =', gameState?.recentEffects);
+      
+      if (!gameState || !gameState.recentEffects) {
+        console.log('DEBUG renderEffectFeedback: No gameState or recentEffects, returning');
+        return;
+      }
       
       const effectContainer = document.getElementById('effectFeedback');
-      if (!effectContainer) return;
+      if (!effectContainer) {
+        console.log('DEBUG renderEffectFeedback: No effectContainer found');
+        return;
+      }
       
-      // Clear previous effects
+      // Add new effects to the persistent log
+      if (gameState.recentEffects.length > lastEffectCount) {
+        const newEffects = gameState.recentEffects.slice(lastEffectCount);
+        allEffects = allEffects.concat(newEffects);
+        lastEffectCount = gameState.recentEffects.length;
+        
+        // Limit to last 50 effects to prevent memory issues
+        if (allEffects.length > 50) {
+          allEffects = allEffects.slice(-50);
+        }
+      }
+      
+      console.log('DEBUG renderEffectFeedback: All effects =', allEffects);
+      
+      // Clear container and render all effects
       effectContainer.innerHTML = '';
       
-      // Show only the last 5 effects
-      const recentEffects = gameState.recentEffects.slice(-5);
+      // Show all effects (most recent at bottom)
+      const effectsToShow = allEffects.slice(-20); // Show last 20 effects
       
-      recentEffects.forEach(effect => {
+      effectsToShow.forEach(effect => {
         const effectDiv = document.createElement('div');
         effectDiv.className = 'effect-item';
         
@@ -2672,21 +3200,33 @@
           effectDiv.classList.add('dot-change');
         }
         
-        // Create effect text
-        let effectText = `<strong>${effect.playerName}</strong>: ${effect.effectDescription}`;
+        // Create timestamp
+        const timestamp = new Date(effect.timestamp);
+        const timeStr = timestamp.toLocaleTimeString();
         
-        // Add change indicators
+        // Create effect text with clean formatting
+        let effectText = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #6c757d; font-size: 0.75em; font-weight: 500; min-width: 60px;">${timeStr}</span>
+            <span style="font-weight: 600; color: #495057;">${effect.playerName}</span>
+            <span style="color: #333;">${effect.effectDescription}</span>
+        `;
+        
+        // Add change indicators with nice badges
         if (effect.dotChange !== 0) {
           const changeText = effect.dotChange > 0 ? `+${effect.dotChange}` : `${effect.dotChange}`;
-          effectText += ` <span style="color: #ff9800;">[${changeText} puntos]</span>`;
+          const badgeColor = effect.dotChange > 0 ? '#28a745' : '#dc3545';
+          effectText += `<span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: 600; margin-left: 8px;">${changeText} puntos</span>`;
         }
         
         if (effect.lpChangeA !== 0 || effect.lpChangeB !== 0) {
           const lpChanges = [];
           if (effect.lpChangeA !== 0) lpChanges.push(`A: ${effect.lpChangeA > 0 ? '+' : ''}${effect.lpChangeA}`);
           if (effect.lpChangeB !== 0) lpChanges.push(`B: ${effect.lpChangeB > 0 ? '+' : ''}${effect.lpChangeB}`);
-          effectText += ` <span style="color: #666;">[${lpChanges.join(', ')} LP]</span>`;
+          effectText += `<span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: 600; margin-left: 8px;">${lpChanges.join(', ')} LP</span>`;
         }
+        
+        effectText += '</div>';
         
         effectDiv.innerHTML = effectText;
         effectContainer.appendChild(effectDiv);
@@ -2694,6 +3234,102 @@
       
       // Scroll to bottom to show latest effects
       effectContainer.scrollTop = effectContainer.scrollHeight;
+    }
+    
+    function renderStatusEffects() {
+      if (!gameState) return;
+      
+      // Get status effects for both players
+      const statusEffectsA = gameState.activeStatusesA || {};
+      const statusEffectsB = gameState.activeStatusesB || {};
+      
+      // Render Player A status effects
+      renderPlayerStatusEffects('statusEffectsListA', statusEffectsA);
+      
+      // Render Player B status effects
+      renderPlayerStatusEffects('statusEffectsListB', statusEffectsB);
+    }
+    
+    function renderPlayerStatusEffects(containerId, statusEffects) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      // Clear previous status effects
+      container.innerHTML = '';
+      
+      // If no status effects, hide the container
+      if (Object.keys(statusEffects).length === 0) {
+        container.parentElement.style.display = 'none';
+        return;
+      }
+      
+      // Show the container
+      container.parentElement.style.display = 'block';
+      
+      // Render each status effect
+      Object.entries(statusEffects).forEach(([statusType, duration]) => {
+        const statusElement = document.createElement('div');
+        statusElement.className = 'status-effect';
+        
+        // Add specific class based on status type
+        let tooltipText = '';
+        switch (statusType) {
+          case 'SHIELD':
+            statusElement.classList.add('shield');
+            statusElement.innerHTML = '<span class="status-effect-icon">🛡️</span> Escudo';
+            tooltipText = 'Protege contra el próximo daño o efecto negativo';
+            break;
+          case 'THORNS':
+            statusElement.classList.add('thorns');
+            statusElement.innerHTML = '<span class="status-effect-icon">🌵</span> Espinas';
+            tooltipText = 'Daña al oponente cuando te ataca';
+            break;
+          case 'REFLECT_ALL_DAMAGE':
+            statusElement.classList.add('reflect');
+            statusElement.innerHTML = '<span class="status-effect-icon">↩️</span> Reflejo';
+            tooltipText = 'Refleja todo el daño de vuelta al atacante';
+            break;
+          case 'SHIELD_NEXT_PUSH_AGAINST_YOU':
+            statusElement.classList.add('shield');
+            statusElement.innerHTML = '<span class="status-effect-icon">🛡️</span> Escudo Push';
+            tooltipText = 'Protege contra el próximo push negativo';
+            break;
+          case 'REFLECT_NEXT_PUSH':
+            statusElement.classList.add('reflect');
+            statusElement.innerHTML = '<span class="status-effect-icon">↩️</span> Reflejo Push';
+            tooltipText = 'Refleja el próximo push de vuelta al oponente';
+            break;
+          case 'RANDOMIZE_NEXT_CARD_EFFECT':
+            statusElement.classList.add('random');
+            statusElement.innerHTML = '<span class="status-effect-icon">🎲</span> Aleatorio';
+            tooltipText = 'La próxima carta tendrá un efecto aleatorio';
+            break;
+          case 'GLOBAL_RANDOM_EFFECTS':
+            statusElement.classList.add('global');
+            statusElement.innerHTML = '<span class="status-effect-icon">🌪️</span> Caos Global';
+            tooltipText = 'Todos los efectos de cartas serán aleatorios';
+            break;
+          default:
+            statusElement.innerHTML = `<span class="status-effect-icon">❓</span> ${statusType}`;
+            tooltipText = `Efecto de estado: ${statusType}`;
+        }
+        
+        // Add tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'status-effect-tooltip';
+        tooltip.textContent = tooltipText;
+        statusElement.appendChild(tooltip);
+        
+        // Add duration if not permanent (-1)
+        if (duration !== -1) {
+          const durationElement = document.createElement('span');
+          durationElement.className = 'status-effect-duration';
+          durationElement.textContent = duration;
+          statusElement.appendChild(durationElement);
+        }
+        
+        container.appendChild(statusElement);
+      });
     }
     
     function renderCentralCardPanel() {
@@ -2785,8 +3421,22 @@
       const btn = document.createElement('button');
       btn.className = 'tableau-card';
       btn.style.width = '140px';
-      btn.style.minHeight = '200px';
+      btn.style.minHeight = '160px';
       btn.style.position='relative';
+      
+      // Check if this card was recently added
+      console.log('DEBUG renderStackedCard:', cardId, 'gameState.recentlyAddedCardsA:', gameState.recentlyAddedCardsA, 'gameState.recentlyAddedCardsB:', gameState.recentlyAddedCardsB);
+      const isRecentlyAdded = gameState.recentlyAddedCardsA?.includes(cardId) || 
+                             gameState.recentlyAddedCardsB?.includes(cardId);
+      console.log('DEBUG isRecentlyAdded:', isRecentlyAdded, 'for card:', cardId);
+      if (isRecentlyAdded) {
+        btn.classList.add('newly-added');
+        console.log('DEBUG Added newly-added class to card:', cardId);
+        // Remove the class after animation completes
+        setTimeout(() => {
+          btn.classList.remove('newly-added');
+        }, 2000);
+      }
       
       if(cardDef){
           const title=document.createElement('div');
@@ -2797,7 +3447,7 @@
           ul.className='card-effects';
           cardDef.tiers.forEach((tier,idx)=>{
               const li=document.createElement('li');
-              li.textContent=(idx+1)+'. '+(tier.actions[0]?.description||'');
+              li.innerHTML=(idx+1)+'. '+(tier.actions[0]?.description||'');
               if(idx===Math.min(count-1,2)) li.classList.add('active');
               ul.appendChild(li);
           });
@@ -3086,23 +3736,50 @@
 
     function checkWinConditions() {
       const dots = gameState.sharedDotCounter;
+      console.log('DEBUG checkWinConditions: dots =', dots, 'gameState =', gameState);
       const winnerDisplay = document.getElementById('winnerDisplay');
       const winnerText = document.getElementById('winnerText');
       
       if (winnerDisplay && winnerText) {
-      if (dots >= 5) {
-        // Player A wins
+      if (dots <= -5) {
+        // Player A wins (dots <= -5) - INVERTED LOGIC
+        const playerAName = gameState.playerA || 'Player A';
         winnerDisplay.style.display = 'block';
-        winnerText.textContent = '🎉 Player A Wins! (+5 dots)';
-        winnerText.style.color = '#4CAF50';
-        log('🎉 Player A wins with ' + dots + ' dots!');
+        
+        // Show clearer message based on who actually won
+        if (gameState.playerAIsBot && !gameState.playerBBot) {
+          // Bot vs Human: Bot won
+          winnerText.textContent = '🤖 ' + playerAName + ' Wins! (-5 dots)';
+          winnerText.style.color = '#ff6b6b'; // Red for bot victory
+        } else {
+          // Human vs Human or other cases
+          winnerText.textContent = '🎉 ' + playerAName + ' Wins! (-5 dots)';
+          winnerText.style.color = '#4CAF50'; // Green for human victory
+        }
+        
+        log('🎉 ' + playerAName + ' wins with ' + dots + ' dots!');
+        log('Debug: playerSeat=' + playerSeat + ', playerA=' + playerAName + ', playerB=' + (gameState.playerB || 'Player B') + ', isPlayerABot=' + gameState.playerAIsBot + ', isPlayerBBot=' + gameState.playerBIsBot);
+        log('Debug: dots=' + dots + ', condition=<=-5, winner=PlayerA');
         disableGameControls();
-      } else if (dots <= -5) {
-        // Player B wins
+      } else if (dots >= 5) {
+        // Player B wins (dots >= 5) - INVERTED LOGIC
+        const playerBName = gameState.playerB || 'Player B';
         winnerDisplay.style.display = 'block';
-        winnerText.textContent = '🎉 Player B Wins! (-5 dots)';
-        winnerText.style.color = '#4CAF50';
-        log('🎉 Player B wins with ' + dots + ' dots!');
+        
+        // Show clearer message based on who actually won
+        if (gameState.playerAIsBot && !gameState.playerBBot) {
+          // Bot vs Human: Human won
+          winnerText.textContent = '🎉 You Win! (' + playerBName + ' +5 dots)';
+          winnerText.style.color = '#4CAF50'; // Green for human victory
+        } else {
+          // Human vs Human or other cases
+          winnerText.textContent = '🎉 ' + playerBName + ' Wins! (+5 dots)';
+          winnerText.style.color = '#4CAF50'; // Green for human victory
+        }
+        
+        log('🎉 ' + playerBName + ' wins with ' + dots + ' dots!');
+        log('Debug: playerSeat=' + playerSeat + ', playerA=' + (gameState.playerA || 'Player A') + ', playerB=' + playerBName + ', isPlayerABot=' + gameState.playerAIsBot + ', isPlayerBBot=' + gameState.playerBIsBot);
+        log('Debug: dots=' + dots + ', condition=>=5, winner=PlayerB');
         disableGameControls();
       } else {
         // No winner yet

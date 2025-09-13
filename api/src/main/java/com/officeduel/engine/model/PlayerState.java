@@ -11,7 +11,7 @@ public final class PlayerState {
     private final List<Cards> hand = new ArrayList<>();
     private final List<Cards> tableau = new ArrayList<>();
     private final List<Cards> discard = new ArrayList<>();
-    private int maxHandSize = 5;
+    private int maxHandSize = 4;
     private boolean skipNextTurn = false;
     private int blockNextDrawCount = 0;
     private final PlayerBuffs buffs = new PlayerBuffs();

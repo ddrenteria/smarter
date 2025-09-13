@@ -38,7 +38,7 @@ public class MatchController {
                 List.of(), List.of(), List.of(), 
                 getCardDefinitions(), "LOBBY", null, null, false, 0,
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), false, e.playerAIsBot(), e.playerBIsBot(),
-                List.of(), List.of(), List.of(), Map.of(), Map.of()
+                List.of(), List.of(), List.of(), List.of(), List.of(), Map.of(), Map.of()
         ));
         }
         
@@ -81,6 +81,8 @@ public class MatchController {
                 convertEffectFeedback(gs.getRecentEffects()),
                 gs.getRevealedCardsA(),
                 gs.getRevealedCardsB(),
+                gs.getRecentlyAddedCardsA(),
+                gs.getRecentlyAddedCardsB(),
                 convertStatusMap(gs.getActiveStatusesA()),
                 convertStatusMap(gs.getActiveStatusesB())
         ));
@@ -131,6 +133,8 @@ public class MatchController {
                 convertEffectFeedback(gs.getRecentEffects()),
                 gs.getRevealedCardsA(),
                 gs.getRevealedCardsB(),
+                gs.getRecentlyAddedCardsA(),
+                gs.getRecentlyAddedCardsB(),
                 convertStatusMap(gs.getActiveStatusesA()),
                 convertStatusMap(gs.getActiveStatusesB())
         ));
@@ -195,6 +199,8 @@ public class MatchController {
                 convertEffectFeedback(gs.getRecentEffects()),
                 gs.getRevealedCardsA(),
                 gs.getRevealedCardsB(),
+                gs.getRecentlyAddedCardsA(),
+                gs.getRecentlyAddedCardsB(),
                 convertStatusMap(gs.getActiveStatusesA()),
                 convertStatusMap(gs.getActiveStatusesB())
         ));
@@ -273,6 +279,8 @@ public class MatchController {
                 convertEffectFeedback(gs.getRecentEffects()),
                 gs.getRevealedCardsA(),
                 gs.getRevealedCardsB(),
+                gs.getRecentlyAddedCardsA(),
+                gs.getRecentlyAddedCardsB(),
                 convertStatusMap(gs.getActiveStatusesA()),
                 convertStatusMap(gs.getActiveStatusesB())
         ));

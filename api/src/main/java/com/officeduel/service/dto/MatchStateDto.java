@@ -34,6 +34,9 @@ public record MatchStateDto(
         // Revealed cards
         List<String> revealedCardsA,
         List<String> revealedCardsB,
+        // Recently added cards
+        List<String> recentlyAddedCardsA,
+        List<String> recentlyAddedCardsB,
         // Active status effects
         Map<String, Integer> activeStatusesA,
         Map<String, Integer> activeStatusesB

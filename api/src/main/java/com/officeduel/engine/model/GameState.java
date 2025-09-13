@@ -30,6 +30,10 @@ public final class GameState {
     private int previousLpB = 0;
     private int previousDotCounter = 0;
     
+    // Recently added cards tracking
+    private final List<String> recentlyAddedCardsA = new ArrayList<>();
+    private final List<String> recentlyAddedCardsB = new ArrayList<>();
+    
     // Revealed cards tracking
     private final List<String> revealedCardsA = new ArrayList<>();
     private final List<String> revealedCardsB = new ArrayList<>();
@@ -90,6 +94,14 @@ public final class GameState {
     // Effect feedback methods
     public List<EffectFeedback> getRecentEffects() { return new ArrayList<>(recentEffects); }
     public void clearRecentEffects() { recentEffects.clear(); }
+    
+    // Recently added cards methods
+    public List<String> getRecentlyAddedCardsA() { return new ArrayList<>(recentlyAddedCardsA); }
+    public List<String> getRecentlyAddedCardsB() { return new ArrayList<>(recentlyAddedCardsB); }
+    public void addRecentlyAddedCardA(String cardId) { recentlyAddedCardsA.add(cardId); }
+    public void addRecentlyAddedCardB(String cardId) { recentlyAddedCardsB.add(cardId); }
+    public void clearRecentlyAddedCardsA() { recentlyAddedCardsA.clear(); }
+    public void clearRecentlyAddedCardsB() { recentlyAddedCardsB.clear(); }
     
     public void addEffectFeedback(String playerName, String cardName, String effectDescription) {
         int lpChangeA = playerA.getLifePoints() - previousLpA;

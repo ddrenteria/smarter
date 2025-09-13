@@ -82,6 +82,12 @@ public final class EffectResolver {
         
         state.addToDotCounter(adjustedAmount);
         state.getHistory().add("Push " + amount + " by " + (source.state() == state.getPlayerA() ? "Player A" : "Player B") + " -> adjusted: " + adjustedAmount);
+        
+        // Add effect feedback
+        String playerName = source.state() == state.getPlayerA() ? "Player A" : "Player B";
+        String effectDescription = "Push " + amount + " (adjusted: " + adjustedAmount + ")";
+        System.out.println("DEBUG addEffectFeedback: Adding push effect for " + playerName + ": " + effectDescription);
+        state.addEffectFeedback(playerName, "Push Effect", effectDescription);
     }
 
     private void applyDamage(MatchPlayer target, int amount) {
@@ -120,6 +126,11 @@ public final class EffectResolver {
             state.addToDotCounter(amount); // B takes damage = dots go up (favor A)
         }
         state.getHistory().add("Damage:" + amount + " (dots: " + state.getSharedDotCounter() + ")");
+        
+        // Add effect feedback
+        String playerName = target.state() == state.getPlayerA() ? "Player A" : "Player B";
+        System.out.println("DEBUG addEffectFeedback: Adding damage effect for " + playerName + ": Damage " + amount);
+        state.addEffectFeedback(playerName, "Damage Effect", "Damage " + amount);
     }
 
     private void applyHeal(MatchPlayer target, int amount) {

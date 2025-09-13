@@ -48,6 +48,11 @@ public final class TurnEngine {
     public void playTurnAuto() {
         requirePhase(com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS);
         
+        // Clear recently added cards from previous turn at the start of new turn
+        // Keep effects recent for persistent log view
+        state.clearRecentlyAddedCardsA();
+        state.clearRecentlyAddedCardsB();
+        
         MatchPlayer active = new MatchPlayer(state.getActivePlayer());
         MatchPlayer opponent = new MatchPlayer(state.getInactivePlayer());
 
@@ -72,8 +77,8 @@ public final class TurnEngine {
         String picked = pickFaceUp ? faceUpId : faceDownId;
         String remaining = pickFaceUp ? faceDownId : faceUpId;
 
-        resolveRecruit(picked, opponent, active); // opponent gets picked effect
-        resolveRecruit(remaining, active, opponent); // active gets remaining effect
+        resolveRecruit(picked, opponent, active, opponent); // opponent gets picked effect and plays it
+        resolveRecruit(remaining, active, opponent, active); // active gets remaining effect and plays it
 
         // Move cards to tableau: opponent gets picked, active gets remaining
         opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(picked));
@@ -92,6 +97,11 @@ public final class TurnEngine {
     public void playTurnManual(String faceUpId, String faceDownId) {
         requirePhase(com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS);
         
+        // Clear recently added cards from previous turn at the start of new turn
+        // Keep effects recent for persistent log view
+        state.clearRecentlyAddedCardsA();
+        state.clearRecentlyAddedCardsB();
+        
         MatchPlayer active = new MatchPlayer(state.getActivePlayer());
         MatchPlayer opponent = new MatchPlayer(state.getInactivePlayer());
 
@@ -108,8 +118,8 @@ public final class TurnEngine {
         String picked = pickFaceUp ? faceUpId : faceDownId;
         String remaining = pickFaceUp ? faceDownId : faceUpId;
 
-        resolveRecruit(picked, opponent, active);
-        resolveRecruit(remaining, active, opponent);
+        resolveRecruit(picked, opponent, active, opponent); // opponent gets picked effect and plays it
+        resolveRecruit(remaining, active, opponent, active); // active gets remaining effect and plays it
 
         // Distribute cards correctly: opponent gets picked, active gets remaining
         opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(picked));
@@ -125,6 +135,12 @@ public final class TurnEngine {
 
     public void playTurnWithChoice(String pickedCardId, String remainingCardId) {
         requirePhase(com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK);
+        
+        // Clear recently added cards from previous turn at the start of new turn
+        // Keep effects recent for persistent log view
+        System.out.println("DEBUG playTurnWithChoice: Clearing recently added cards (keeping effects for log)");
+        state.clearRecentlyAddedCardsA();
+        state.clearRecentlyAddedCardsB();
         
         MatchPlayer active = new MatchPlayer(state.getActivePlayer());
         MatchPlayer opponent = new MatchPlayer(state.getInactivePlayer());
@@ -143,14 +159,28 @@ public final class TurnEngine {
 
         // Resolve effects: remaining card first (submitter), then picked card (opponent)
         System.out.println("  Resolving remaining card effects...");
-        resolveRecruit(remainingCardId, active, opponent);
+        resolveRecruit(remainingCardId, active, opponent, active); // active plays remaining card
         System.out.println("  Resolving picked card effects...");
-        resolveRecruit(pickedCardId, opponent, active);
+        resolveRecruit(pickedCardId, opponent, active, opponent); // opponent plays picked card
 
         // Move cards to tableau: active gets remaining card, opponent gets picked card
         System.out.println("  Adding cards to tableau...");
         active.state().getTableau().add(new com.officeduel.engine.model.Cards(remainingCardId));
         opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(pickedCardId));
+        
+        // Track recently added cards
+        System.out.println("DEBUG: Tracking recently added cards - remaining: " + remainingCardId + ", picked: " + pickedCardId);
+        if (active.state() == state.getPlayerA()) {
+            state.addRecentlyAddedCardA(remainingCardId);
+            state.addRecentlyAddedCardB(pickedCardId);
+            System.out.println("DEBUG: Added to A: " + remainingCardId + ", Added to B: " + pickedCardId);
+        } else {
+            state.addRecentlyAddedCardB(remainingCardId);
+            state.addRecentlyAddedCardA(pickedCardId);
+            System.out.println("DEBUG: Added to B: " + remainingCardId + ", Added to A: " + pickedCardId);
+        }
+        System.out.println("DEBUG: Recently added cards A: " + state.getRecentlyAddedCardsA());
+        System.out.println("DEBUG: Recently added cards B: " + state.getRecentlyAddedCardsB());
         
         System.out.println("  Active player tableau after: " + active.state().getTableau().stream().map(c -> c.cardId()).toList());
         System.out.println("  Opponent tableau after: " + opponent.state().getTableau().stream().map(c -> c.cardId()).toList());
@@ -173,7 +203,7 @@ public final class TurnEngine {
         System.out.println("DEBUG playTurnWithChoice: endStep() completed");
     }
 
-    private void resolveRecruit(String cardId, MatchPlayer recipient, MatchPlayer other) {
+    private void resolveRecruit(String cardId, MatchPlayer recipient, MatchPlayer other, MatchPlayer player) {
         CardDefinitionSet.CardDef def = index.get(cardId);
         
         // Debug logging
@@ -197,7 +227,7 @@ public final class TurnEngine {
         // Generate effect description before applying
         String effectDescription = generateEffectDescription(def.name(), actions, recipient, other);
         
-        effects.applyActions(actions, recipient, other);
+        effects.applyActions(actions, player, other);
         
         // Add effect feedback after applying
         String playerName = recipient.state() == state.getPlayerA() ? playerAName : playerBName;
@@ -233,8 +263,8 @@ public final class TurnEngine {
         state.getPlayerA().getBuffs().getStatuses().tickEndOfTurn();
         state.getPlayerB().getBuffs().getStatuses().tickEndOfTurn();
         
-        // Clear recent effects at the end of each turn to avoid accumulation
-        state.clearRecentEffects();
+        // Keep recent effects and recently added cards until next turn so frontend can see them
+        System.out.println("DEBUG endStep: Keeping recent effects and recently added cards for frontend");
         
         // Next turn
         int previousActivePlayer = state.getActivePlayerIndex();
