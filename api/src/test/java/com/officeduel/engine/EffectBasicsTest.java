@@ -21,7 +21,7 @@ public class EffectBasicsTest {
         Path cardsPath = Path.of("gameplay cards definition.txt");
         CardDefinitionSet defs = CardDefinitionLoader.load(cardsPath);
         CardIndex index = new CardIndex(defs);
-        GameState gs = new GameState(new DeterministicRng(1L), defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(new DeterministicRng(1L));
         PlayerState ps = gs.getPlayerA();
         PlayerState opp = gs.getPlayerB();
         ps.setLifePoints(index.maxLp());
@@ -29,17 +29,17 @@ public class EffectBasicsTest {
         EffectResolver er = new EffectResolver(gs, index);
         
         // Test dot system: damage to A should decrease dot counter
-        var actDmg = new CardDefinitionSet.Action("damage", "self", 5, null, null, null, null, null, null, null, null);
+        var actDmg = new CardDefinitionSet.Action("push", "self", -5, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(actDmg), new MatchPlayer(ps), new MatchPlayer(opp));
         assertEquals(-5, gs.getSharedDotCounter()); // A takes damage = dots go down
         
         // Test heal: heal to A should increase dot counter
-        var actHeal = new CardDefinitionSet.Action("heal", "self", 3, null, null, null, null, null, null, null, null);
+        var actHeal = new CardDefinitionSet.Action("push", "self", 3, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(actHeal), new MatchPlayer(ps), new MatchPlayer(opp));
         assertEquals(-2, gs.getSharedDotCounter()); // A heals = dots go up
         
         // Test overflow clamp: dots should be clamped between -5 and 5
-        var actHealOverflow = new CardDefinitionSet.Action("heal", "self", 999, null, null, null, null, null, null, null, null);
+        var actHealOverflow = new CardDefinitionSet.Action("push", "self", 999, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(actHealOverflow), new MatchPlayer(ps), new MatchPlayer(opp));
         assertEquals(5, gs.getSharedDotCounter()); // Should be clamped to 5
     }
@@ -49,8 +49,8 @@ public class EffectBasicsTest {
         Path cardsPath = Path.of("gameplay cards definition.txt");
         CardDefinitionSet defs = CardDefinitionLoader.load(cardsPath);
         CardIndex index = new CardIndex(defs);
-        GameState g1 = new GameState(new DeterministicRng(42L), defs.rulesAssumptions().max_lp());
-        GameState g2 = new GameState(new DeterministicRng(42L), defs.rulesAssumptions().max_lp());
+        GameState g1 = new GameState(new DeterministicRng(42L));
+        GameState g2 = new GameState(new DeterministicRng(42L));
         assertEquals(g1.getRng().seed(), g2.getRng().seed());
     }
 }

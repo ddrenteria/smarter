@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Sistema Visual de Piedritas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .demo-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .visual-counter {
+            font-size: 24px !important;
+        }
+        
+        .visual-counter-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .player-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .stones-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 20px;
+        }
+        
+        .stone {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .stone.active {
+            color: #ffd700;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+            transform: scale(1.2);
+        }
+        
+        .stone.inactive {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .stone.center {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: bold;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .explanation {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: left;
+            max-width: 600px;
+        }
+        
+        .example {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏔️ Sistema Visual de Piedritas - Office Duel</h1>
+    
+    <div class="demo-container">
+        <h2>Contador Actual</h2>
+        <div id="counterDisplay" class="visual-counter"></div>
+        
+        <div class="controls">
+            <button onclick="changeCounter(-5)">Player B Gana (-5)</button>
+            <button onclick="changeCounter(-2)">Player B +2</button>
+            <button onclick="changeCounter(-1)">Player B +1</button>
+            <button onclick="changeCounter(0)">Neutral (0)</button>
+            <button onclick="changeCounter(1)">Player A +1</button>
+            <button onclick="changeCounter(2)">Player A +2</button>
+            <button onclick="changeCounter(5)">Player A Gana (+5)</button>
+        </div>
+    </div>
+    
+    <div class="explanation">
+        <h3>📖 Cómo Funciona el Sistema de Piedritas</h3>
+        
+        <p><strong>Estructura:</strong> 5 piedritas para cada jugador + 1 central</p>
+        
+        <p><strong>Símbolos:</strong></p>
+        <ul>
+            <li><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);">●</span> = Piedrita activa (prendida)</li>
+            <li><span style="color: rgba(255, 255, 255, 0.4);">○</span> = Piedrita inactiva (apagada)</li>
+            <li><span style="color: rgba(255, 255, 255, 0.6); font-weight: bold;">○</span> = Piedrita central (neutral)</li>
+        </ul>
+        
+        <p><strong>Ejemplos:</strong></p>
+        
+        <div class="example">
+            <strong>Player A gana por 4:</strong><br>
+            PlayerA  ●●●●○ ○○○○○ PlayerB<br>
+            (4 piedritas prendidas hacia Player A)
+        </div>
+        
+        <div class="example">
+            <strong>Player B gana por 2:</strong><br>
+            PlayerA  ○○○○○ ○●○○○ PlayerB<br>
+            (2 piedritas prendidas hacia Player B)
+        </div>
+        
+        <div class="example">
+            <strong>Empate (neutral):</strong><br>
+            PlayerA  ○○○○○ ○○○○○ PlayerB<br>
+            (solo la piedrita central está visible)
+        </div>
+        
+        <p><strong>Ventajas:</strong></p>
+        <ul>
+            <li>✅ Visual e intuitivo</li>
+            <li>✅ Fácil de entender quién va ganando</li>
+            <li>✅ Nombres de jugadores truncados a 10 caracteres</li>
+            <li>✅ Animaciones suaves al cambiar</li>
+            <li>✅ Efectos de brillo en piedritas activas</li>
+        </ul>
+    </div>
+
+    <script>
+        let currentCounter = 0;
+        
+        // Generate visual stone counter display (same function as in the game)
+        function generateVisualCounter(dotCounter, playerAName, playerBName) {
+            // Clamp counter between -5 and 5
+            const clampedCounter = Math.max(-5, Math.min(5, dotCounter));
+            
+            // Truncate player names to max 10 characters
+            const nameA = playerAName.length > 10 ? playerAName.substring(0, 10) + '...' : playerAName;
+            const nameB = playerBName.length > 10 ? playerBName.substring(0, 10) + '...' : playerBName;
+            
+            // Generate stones array: 5 for player A, 1 neutral (center), 5 for player B
+            const stones = [];
+            
+            // Player A stones (left side)
+            for (let i = 0; i < 5; i++) {
+                if (clampedCounter > i) {
+                    stones.push('<span class="stone active">●</span>'); // Active stone
+                } else {
+                    stones.push('<span class="stone inactive">○</span>'); // Inactive stone
+                }
+            }
+            
+            // Center neutral stone
+            stones.push('<span class="stone center">○</span>');
+            
+            // Player B stones (right side)
+            for (let i = 1; i <= 5; i++) {
+                if (clampedCounter < -i) {
+                    stones.push('<span class="stone active">●</span>'); // Active stone
+                } else {
+                    stones.push('<span class="stone inactive">○</span>'); // Inactive stone
+                }
+            }
+            
+            // Combine everything
+            return `<div class="visual-counter-display">
+                <div class="player-name">${nameA}</div>
+                <div class="stones-container">${stones.join('')}</div>
+                <div class="player-name">${nameB}</div>
+            </div>`;
+        }
+        
+        function changeCounter(value) {
+            currentCounter = value;
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            const display = document.getElementById('counterDisplay');
+            const visualCounter = generateVisualCounter(currentCounter, 'Player A', 'Player B');
+            display.innerHTML = visualCounter;
+            
+            // Add some visual feedback
+            display.style.color = currentCounter >= 5 ? '#4caf50' : 
+                                 currentCounter <= -5 ? '#f44336' : '#fff';
+        }
+        
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>

@@ -19,7 +19,14 @@
     .game-header { grid-column: 2; grid-row: 1; }
     .game-main { grid-column: 2; grid-row: 2; }
     .game-footer { grid-column: 2; grid-row: 3; }
-    .game-sidebar { grid-column: 1; grid-row: 1 / 4; }
+    .game-sidebar { 
+      grid-column: 1; 
+      grid-row: 1 / 4; 
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centra verticalmente el contenido */
+      align-items: center; /* Centra horizontalmente el contenido */
+    }
     .player-section { border: 2px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .player-section.active { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-color: #2196f3; box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3); }
     .player-section h3 { margin: 0 0 15px 0; font-size: 1.2em; color: #333; }
@@ -669,6 +676,17 @@
       font-style: italic;
       margin-top: 20px;
     }
+    
+    /* Push number styling */
+    .push-positive {
+      color: #4caf50;
+      font-weight: bold;
+    }
+    
+    .push-negative {
+      color: #f44336;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -980,7 +998,7 @@
           // Show first 3 tiers descriptions (first action per tier)
           cardDef.tiers.forEach((tier, idx)=>{
              const li=document.createElement('li');
-             li.textContent = (idx+1)+'. '+ (tier.actions[0]?.description || '');
+             li.innerHTML = (idx+1)+'. '+ (tier.actions[0]?.description || '');
              ul.appendChild(li);
           });
           btn.appendChild(ul);
@@ -1021,7 +1039,9 @@
       cardDef.tiers.forEach((tier, index) => {
         html += `<strong>Tier ${index + 1}:</strong><br>`;
         tier.actions.forEach(action => {
-          html += `• ${action.description}<br>`;
+          if (action.description && action.description.trim() !== '') {
+            html += `• ${action.description}<br>`;
+          }
         });
         html += '<br>';
       });
@@ -1033,7 +1053,9 @@
       let html = '<ul>';
       cardDef.tiers.forEach((tier, index) => {
         tier.actions.forEach(action => {
-          html += `<li><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
+          if (action.description && action.description.trim() !== '') {
+            html += `<li><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
+          }
         });
       });
       html += '</ul>';
@@ -1066,17 +1088,19 @@
       let html = '<ul>';
       cardDef.tiers.forEach((tier, index) => {
         tier.actions.forEach(action => {
-          const myLevel = getNextEffectLevel(cardDef.id || Object.keys(gameState.cardDefinitions).find(id => gameState.cardDefinitions[id] === cardDef), viewingPlayerSeat);
-          const opponentLevel = getNextEffectLevel(cardDef.id || Object.keys(gameState.cardDefinitions).find(id => gameState.cardDefinitions[id] === cardDef), otherPlayerSeat);
-          
-          let className = '';
-          if (index === myLevel) {
-            className = 'effect-mine';
-          } else if (index === opponentLevel) {
-            className = 'effect-opponent';
+          if (action.description && action.description.trim() !== '') {
+            const myLevel = getNextEffectLevel(cardDef.id || Object.keys(gameState.cardDefinitions).find(id => gameState.cardDefinitions[id] === cardDef), viewingPlayerSeat);
+            const opponentLevel = getNextEffectLevel(cardDef.id || Object.keys(gameState.cardDefinitions).find(id => gameState.cardDefinitions[id] === cardDef), otherPlayerSeat);
+            
+            let className = '';
+            if (index === myLevel) {
+              className = 'effect-mine';
+            } else if (index === opponentLevel) {
+              className = 'effect-opponent';
+            }
+            
+            html += `<li class="${className}"><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
           }
-          
-          html += `<li class="${className}"><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
         });
       });
       html += '</ul>';
@@ -1185,7 +1209,7 @@
           ul.className='card-effects';
           cardDef.tiers.forEach((tier,idx)=>{
               const li=document.createElement('li');
-              li.textContent=(idx+1)+'. '+(tier.actions[0]?.description||'');
+              li.innerHTML=(idx+1)+'. '+(tier.actions[0]?.description||'');
               if(idx===Math.min(count-1,2)) li.classList.add('active');
               ul.appendChild(li);
           });
@@ -1778,19 +1802,41 @@
       const winnerDisplay = document.getElementById('winnerDisplay');
       const winnerText = document.getElementById('winnerText');
       
-      if (dots >= 5) {
-        // Player A wins
+      if (dots <= -5) {
+        // Player A wins (dots <= -5) - INVERTED LOGIC
+        const playerAName = gameState.playerA || 'Player A';
         winnerDisplay.style.display = 'block';
-        winnerText.textContent = '🎉 Player A Wins! (+5 dots)';
-        winnerText.style.color = '#4CAF50';
-        log('🎉 Player A wins with ' + dots + ' dots!');
+        
+        // Show clearer message based on who actually won
+        if (gameState.playerAIsBot && !gameState.playerBBot) {
+          // Bot vs Human: Bot won
+          winnerText.textContent = '🤖 ' + playerAName + ' Wins! (-5 dots)';
+          winnerText.style.color = '#ff6b6b'; // Red for bot victory
+        } else {
+          // Human vs Human or other cases
+          winnerText.textContent = '🎉 ' + playerAName + ' Wins! (-5 dots)';
+          winnerText.style.color = '#4CAF50'; // Green for human victory
+        }
+        
+        log('🎉 ' + playerAName + ' wins with ' + dots + ' dots!');
         disableGameControls();
-      } else if (dots <= -5) {
-        // Player B wins
+      } else if (dots >= 5) {
+        // Player B wins (dots >= 5) - INVERTED LOGIC
+        const playerBName = gameState.playerB || 'Player B';
         winnerDisplay.style.display = 'block';
-        winnerText.textContent = '🎉 Player B Wins! (-5 dots)';
-        winnerText.style.color = '#4CAF50';
-        log('🎉 Player B wins with ' + dots + ' dots!');
+        
+        // Show clearer message based on who actually won
+        if (gameState.playerAIsBot && !gameState.playerBBot) {
+          // Bot vs Human: Human won
+          winnerText.textContent = '🎉 You Win! (' + playerBName + ' +5 dots)';
+          winnerText.style.color = '#4CAF50'; // Green for human victory
+        } else {
+          // Human vs Human or other cases
+          winnerText.textContent = '🎉 ' + playerBName + ' Wins! (+5 dots)';
+          winnerText.style.color = '#4CAF50'; // Green for human victory
+        }
+        
+        log('🎉 ' + playerBName + ' wins with ' + dots + ' dots!');
         disableGameControls();
       } else {
         // No winner yet

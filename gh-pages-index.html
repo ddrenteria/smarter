@@ -748,56 +748,6 @@
       margin: 10px 0;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
-    
-    .visual-counter {
-      font-size: 24px !important;
-    }
-    
-    .visual-counter-display {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .player-name {
-      font-size: 12px;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.9);
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-    
-    .stones-container {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 20px;
-    }
-    
-    .stone {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      line-height: 16px;
-      text-align: center;
-      border-radius: 50%;
-      transition: all 0.3s ease;
-    }
-    
-    .stone.active {
-      color: #ffd700;
-      text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
-      transform: scale(1.2);
-    }
-    
-    .stone.inactive {
-      color: rgba(255, 255, 255, 0.4);
-    }
-    
-    .stone.center {
-      color: rgba(255, 255, 255, 0.6);
-      font-weight: bold;
-    }
     .dot-labels {
       display: flex;
       justify-content: space-between;
@@ -991,8 +941,7 @@
     
     .effect-item {
       padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.3);
-      color: #ffffff;
+      background: rgba(255, 255, 255, 0.8);
       border-radius: 8px;
       border-left: 4px solid #2196f3;
       font-size: 0.8em;
@@ -1009,17 +958,6 @@
     
     .effect-item.dot-change {
       border-left-color: #ff9800;
-    }
-    
-    /* Push number styling */
-    .push-positive {
-      color: #4caf50;
-      font-weight: bold;
-    }
-    
-    .push-negative {
-      color: #f44336;
-      font-weight: bold;
     }
     
     @keyframes slideIn {
@@ -1307,7 +1245,7 @@
     <!-- Left Sidebar - Shared Counter -->
     <div class="game-sidebar">
       <div class="shared-counter">
-        <h3>Battle Stones</h3>
+        <h3>Shared Dot Counter</h3>
         <div class="dot-display">
           <div class="dot-value" id="dotCounter">0</div>
           <div class="dot-labels">
@@ -1663,51 +1601,6 @@
     // This includes refresh, render functions, game logic, etc.
     // For brevity, I'll add the essential functions
 
-    // Generate visual stone counter display
-    function generateVisualCounter(dotCounter, playerAName, playerBName) {
-      // Clamp counter between -5 and 5
-      const clampedCounter = Math.max(-5, Math.min(5, dotCounter));
-      
-      // Truncate player names to max 10 characters
-      const nameA = playerAName.length > 10 ? playerAName.substring(0, 10) + '...' : playerAName;
-      const nameB = playerBName.length > 10 ? playerBName.substring(0, 10) + '...' : playerBName;
-      
-      // Generate stones array: 5 for player A, 1 neutral (center), 5 for player B
-      const stones = [];
-      
-      // Player A stones (left side) - negative values (-1 to -5)
-      for (let i = 1; i <= 5; i++) {
-        if (clampedCounter === -i) {
-          stones.push('<span class="stone active">●</span>'); // Active stone for exact position
-        } else {
-          stones.push('<span class="stone inactive">○</span>'); // Inactive stone
-        }
-      }
-      
-      // Center neutral stone (0)
-      if (clampedCounter === 0) {
-        stones.push('<span class="stone active">●</span>'); // Active center stone
-      } else {
-        stones.push('<span class="stone center">○</span>'); // Inactive center stone
-      }
-      
-      // Player B stones (right side) - positive values (+1 to +5)
-      for (let i = 1; i <= 5; i++) {
-        if (clampedCounter === i) {
-          stones.push('<span class="stone active">●</span>'); // Active stone for exact position
-        } else {
-          stones.push('<span class="stone inactive">○</span>'); // Inactive stone
-        }
-      }
-      
-      // Combine everything
-      return `<div class="visual-counter-display">
-        <div class="player-name">${nameA}</div>
-        <div class="stones-container">${stones.join('')}</div>
-        <div class="player-name">${nameB}</div>
-      </div>`;
-    }
-
     async function refresh() {
       if (!matchId) return;
       
@@ -1798,16 +1691,13 @@
         gameMain.insertBefore(cardSelectionPanel, playerB);
       }
       
-      // Update dot counter with visual stone system
+      // Update dot counter with enhanced visual feedback
       const dotCounter = gameState.sharedDotCounter;
       const dotCounterElement = document.getElementById('dotCounter');
-      
-      // Generate visual stone display
-      const visualCounter = generateVisualCounter(dotCounter, 'Player A', 'Player B');
-      dotCounterElement.innerHTML = visualCounter;
+      dotCounterElement.textContent = dotCounter;
       
       // Update counter styling based on value
-      dotCounterElement.className = 'dot-value visual-counter';
+      dotCounterElement.className = 'dot-value';
       if (dotCounter >= 5) {
         dotCounterElement.style.color = '#4caf50'; // Green for Player A winning
         dotCounterElement.style.textShadow = '0 0 10px rgba(76, 175, 80, 0.5)';
@@ -2104,9 +1994,7 @@
       cardDef.tiers.forEach((tier, index) => {
         html += `<strong>Tier ${index + 1}:</strong><br>`;
         tier.actions.forEach(action => {
-          if (action.description && action.description.trim() !== '') {
-            html += `• ${action.description}<br>`;
-          }
+          html += `• ${action.description}<br>`;
         });
         html += '<br>';
       });
@@ -2131,19 +2019,17 @@
       let html = '<ul class="card-effects">';
       cardDef.tiers.forEach((tier, index) => {
         tier.actions.forEach(action => {
-          if (action.description && action.description.trim() !== '') {
-            const myNextLevel = getNextEffectLevel(cardId, myTableau);
-            const oppNextLevel = getNextEffectLevel(cardId, oppTableau);
-            
-            let className = '';
-            if (index === myNextLevel) {
-              className = 'effect-mine';
-            } else if (index === oppNextLevel) {
-              className = 'effect-opponent';
-            }
-            
-            html += `<li class="${className}"><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
+          const myNextLevel = getNextEffectLevel(cardId, myTableau);
+          const oppNextLevel = getNextEffectLevel(cardId, oppTableau);
+          
+          let className = '';
+          if (index === myNextLevel) {
+            className = 'effect-mine';
+          } else if (index === oppNextLevel) {
+            className = 'effect-opponent';
           }
+          
+          html += `<li class="${className}"><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
         });
       });
       html += '</ul>';
@@ -2183,9 +2069,7 @@
       let html = '<ul class="card-effects">';
       cardDef.tiers.forEach((tier, index) => {
         tier.actions.forEach(action => {
-          if (action.description && action.description.trim() !== '') {
-            html += `<li><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
-          }
+          html += `<li><strong>Tier ${index + 1}:</strong> ${action.description}</li>`;
         });
       });
       html += '</ul>';
@@ -2268,17 +2152,15 @@
         `;
         
         tier.actions.forEach(action => {
-          if (action.description && action.description.trim() !== '') {
-            // Determine if this is a self or opponent effect
-            const isSelfEffect = action.target === 'self' || action.target === 'both';
-            const tierClass = isSelfEffect ? 'self-effect' : 'opponent-effect';
-            
-            content += `
-              <div class="tier-preview-action ${tierClass}">
-                ${action.description}
-              </div>
-            `;
-          }
+          // Determine if this is a self or opponent effect
+          const isSelfEffect = action.target === 'self' || action.target === 'both';
+          const tierClass = isSelfEffect ? 'self-effect' : 'opponent-effect';
+          
+          content += `
+            <div class="tier-preview-action ${tierClass}">
+              ${action.description}
+            </div>
+          `;
         });
         
         content += `</div>`;

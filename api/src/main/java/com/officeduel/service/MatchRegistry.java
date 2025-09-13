@@ -31,7 +31,7 @@ public class MatchRegistry {
 
     public String createMatch(long seed) {
         DeterministicRng rng = new DeterministicRng(seed);
-        GameState gs = new GameState(rng, defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(rng);
         for (int i = 0; i < 50; i++) {
             int idxA = rng.nextInt(defs.cards().size());
             int idxB = rng.nextInt(defs.cards().size());
@@ -77,6 +77,7 @@ public class MatchRegistry {
         
         if (newReadyA && newReadyB && !entry.started()) {
             newEngine = new TurnEngine(entry.state(), index);
+            newEngine.setPlayerNames(entry.playerA(), entry.playerB());
             newEngine.startMatch();
             newStarted = true;
         }
@@ -87,7 +88,7 @@ public class MatchRegistry {
     
     public String createMatchWithBot(long seed) {
         DeterministicRng rng = new DeterministicRng(seed);
-        GameState gs = new GameState(rng, defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(rng);
         for (int i = 0; i < 50; i++) {
             int idxA = rng.nextInt(defs.cards().size());
             int idxB = rng.nextInt(defs.cards().size());
@@ -168,8 +169,21 @@ public class MatchRegistry {
         
         int idxUp = gs.getRng().nextInt(h);
         String faceUpId = active.getHand().get(idxUp).cardId();
-        int idxDown = h > 1 ? (idxUp + 1 + gs.getRng().nextInt(h - 1)) % h : idxUp;
-        String faceDownId = active.getHand().get(idxDown).cardId();
+        
+        // Ensure we select a different card for face down
+        String faceDownId;
+        if (h == 1) {
+            // Only one card in hand - this should not happen in normal gameplay
+            // but if it does, we'll use the same card (edge case)
+            faceDownId = faceUpId;
+        } else {
+            // Try to find a different card
+            int idxDown;
+            do {
+                idxDown = gs.getRng().nextInt(h);
+            } while (idxDown == idxUp && h > 1);
+            faceDownId = active.getHand().get(idxDown).cardId();
+        }
         
         // Set the cards and change phase to OPPONENT_PICK
         gs.setFaceUpCardId(faceUpId);

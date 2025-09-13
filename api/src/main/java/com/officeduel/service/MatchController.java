@@ -38,7 +38,7 @@ public class MatchController {
                 List.of(), List.of(), List.of(), 
                 getCardDefinitions(), "LOBBY", null, null, false, 0,
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), false, e.playerAIsBot(), e.playerBIsBot(),
-                List.of()
+                List.of(), List.of(), List.of(), Map.of(), Map.of()
         ));
         }
         
@@ -78,7 +78,11 @@ public class MatchController {
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
                 gs.getSharedDotCounter(),
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
-                convertEffectFeedback(gs.getRecentEffects())
+                convertEffectFeedback(gs.getRecentEffects()),
+                gs.getRevealedCardsA(),
+                gs.getRevealedCardsB(),
+                convertStatusMap(gs.getActiveStatusesA()),
+                convertStatusMap(gs.getActiveStatusesB())
         ));
     }
 
@@ -124,7 +128,11 @@ public class MatchController {
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
                 gs.getSharedDotCounter(),
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
-                convertEffectFeedback(gs.getRecentEffects())
+                convertEffectFeedback(gs.getRecentEffects()),
+                gs.getRevealedCardsA(),
+                gs.getRevealedCardsB(),
+                convertStatusMap(gs.getActiveStatusesA()),
+                convertStatusMap(gs.getActiveStatusesB())
         ));
     }
 
@@ -139,6 +147,11 @@ public class MatchController {
         if (e == null) return ResponseEntity.notFound().build();
         if (e.engine() == null) return ResponseEntity.status(409).body(null); // Match not started
         if (body == null || body.faceUpId() == null || body.faceDownId() == null) return ResponseEntity.badRequest().build();
+        
+        // Validate that both cards are different (no duplicate card selection)
+        if (body.faceUpId().equals(body.faceDownId())) {
+            return ResponseEntity.badRequest().build(); // Cannot select the same card twice
+        }
         
         try {
             // Set the cards for the turn but don't resolve yet
@@ -179,7 +192,11 @@ public class MatchController {
                 true,
                 gs.getSharedDotCounter(),
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
-                convertEffectFeedback(gs.getRecentEffects())
+                convertEffectFeedback(gs.getRecentEffects()),
+                gs.getRevealedCardsA(),
+                gs.getRevealedCardsB(),
+                convertStatusMap(gs.getActiveStatusesA()),
+                convertStatusMap(gs.getActiveStatusesB())
         ));
     }
 
@@ -253,7 +270,11 @@ public class MatchController {
                 gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
                 gs.getSharedDotCounter(),
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
-                convertEffectFeedback(gs.getRecentEffects())
+                convertEffectFeedback(gs.getRecentEffects()),
+                gs.getRevealedCardsA(),
+                gs.getRevealedCardsB(),
+                convertStatusMap(gs.getActiveStatusesA()),
+                convertStatusMap(gs.getActiveStatusesB())
         ));
     }
 
@@ -297,14 +318,32 @@ public class MatchController {
             case "discard_random" -> desc.append("Hace que ").append(target).append(" descarte ").append(action.count()).append(" carta(s) al azar");
             case "discard_hand" -> desc.append("Hace que ").append(target).append(" descarte toda la mano");
             case "set_lp_to_full" -> desc.append("Restaura los LP de ").append(target).append(" al máximo");
-            case "status" -> desc.append("Aplica estado ").append(action.status()).append(" a ").append(target);
+            case "status" -> {
+                String statusName = getStatusDescription(action.status());
+                desc.append("Aplica estado ").append(statusName).append(" a ").append(target);
+            }
             case "reveal_random_cards" -> desc.append("Revela ").append(action.count()).append(" carta(s) de ").append(target);
             case "steal_random_card_from_hand" -> desc.append("Roba ").append(action.count()).append(" carta(s) de la mano de ").append(target);
+            case "steal_card_from_tableau_and_play" -> desc.append("Roba una carta del tableau de ").append(target).append(" y la juega");
             case "destroy_random_cards_in_tableau" -> desc.append("Destruye ").append(action.count()).append(" carta(s) del tableau de ").append(target);
             case "modify_max_hand_size" -> desc.append("Modifica el tamaño de mano de ").append(target).append(" en ").append(action.delta());
             case "grant_extra_face_down_play" -> desc.append("Permite que ").append(target).append(" juegue ").append(action.count()).append(" carta(s) boca abajo extra");
             case "win_if_condition" -> desc.append("Gana si ").append(target).append(" cumple la condición");
             case "copy_last_card_effect" -> desc.append("Copia el último efecto ").append(action.times()).append(" vez(es) para ").append(target);
+            case "push" -> {
+                int amount = action.amount() != null ? action.amount() : 0;
+                if (amount > 0) {
+                    desc.append("Empuja <span class='push-positive'>+").append(amount).append("</span> puntos");
+                } else if (amount < 0) {
+                    desc.append("Empuja <span class='push-negative'>").append(amount).append("</span> puntos");
+                } else {
+                    desc.append("Empuja 0 puntos");
+                }
+            }
+            case "noop" -> {
+                // No operation - don't show anything or show a minimal description
+                return ""; // Return empty string so noop doesn't appear
+            }
             default -> desc.append(action.type()).append(" a ").append(target);
         }
         return desc.toString();
@@ -319,6 +358,19 @@ public class MatchController {
             case "opponent" -> "el oponente";
             case "both" -> "ambos jugadores";
             default -> target;
+        };
+    }
+    
+    private String getStatusDescription(String status) {
+        if (status == null) {
+            return "estado desconocido";
+        }
+        return switch (status.toLowerCase()) {
+            case "shield_next_push_against_you" -> "Escudo contra próximo empuje";
+            case "reflect_next_push" -> "Refleja próximo empuje";
+            case "randomize_next_card_effect" -> "Efecto aleatorio en próxima carta";
+            case "global_random_effects" -> "Efectos aleatorios globales";
+            default -> status;
         };
     }
     
@@ -339,13 +391,29 @@ public class MatchController {
             .toList();
     }
     
+    private Map<String, Integer> convertStatusMap(Map<com.officeduel.engine.model.StatusType, Integer> statusMap) {
+        if (statusMap == null) {
+            return Map.of();
+        }
+        return statusMap.entrySet().stream()
+            .collect(java.util.stream.Collectors.toMap(
+                entry -> entry.getKey().name(),
+                Map.Entry::getValue
+            ));
+    }
+    
     @PostMapping("/{id}/join")
     public ResponseEntity<JoinMatchResponse> join(@PathVariable String id, @RequestBody JoinMatchBody body) {
         if (body == null || body.name() == null || body.name().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
-        int seat = registry.joinMatch(id, body.name().trim());
+        String trimmedName = body.name().trim();
+        if (trimmedName.length() > 15) {
+            return ResponseEntity.badRequest().build(); // Name too long
+        }
+        
+        int seat = registry.joinMatch(id, trimmedName);
         if (seat == -1) return ResponseEntity.notFound().build();
         if (seat == -2) return ResponseEntity.status(409).body(new JoinMatchResponse(-1)); // Conflict - match full
         

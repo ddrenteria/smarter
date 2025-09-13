@@ -20,7 +20,7 @@ public final class SimulationRunner {
         for (int m = 0; m < matches; m++) {
             long s = seed + m;
             DeterministicRng rng = new DeterministicRng(s);
-            GameState g = new GameState(rng, defs.rulesAssumptions().max_lp());
+            GameState g = new GameState(rng);
             for (int i = 0; i < 20; i++) {
                 int idxA = rng.nextInt(defs.cards().size());
                 int idxB = rng.nextInt(defs.cards().size());

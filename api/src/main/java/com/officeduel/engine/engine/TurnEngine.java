@@ -13,6 +13,8 @@ public final class TurnEngine {
     private final CardIndex index;
     private final EffectResolver effects;
     private final Telemetry telemetry;
+    private String playerAName = "Jugador A";
+    private String playerBName = "Jugador B";
 
     public TurnEngine(GameState state, CardIndex index) {
         this.state = state;
@@ -26,6 +28,11 @@ public final class TurnEngine {
         this.index = index;
         this.effects = new EffectResolver(state, index);
         this.telemetry = telemetry;
+    }
+
+    public void setPlayerNames(String playerAName, String playerBName) {
+        this.playerAName = playerAName != null ? playerAName : "Jugador A";
+        this.playerBName = playerBName != null ? playerBName : "Jugador B";
     }
 
     public void startMatch() {
@@ -161,7 +168,9 @@ public final class TurnEngine {
         state.setFaceDownCardId(null);
 
         // End step (this will swap active player)
+        System.out.println("DEBUG playTurnWithChoice: About to call endStep()");
         endStep();
+        System.out.println("DEBUG playTurnWithChoice: endStep() completed");
     }
 
     private void resolveRecruit(String cardId, MatchPlayer recipient, MatchPlayer other) {
@@ -191,7 +200,7 @@ public final class TurnEngine {
         effects.applyActions(actions, recipient, other);
         
         // Add effect feedback after applying
-        String playerName = recipient.state() == state.getPlayerA() ? "Jugador A" : "Jugador B";
+        String playerName = recipient.state() == state.getPlayerA() ? playerAName : playerBName;
         state.addEffectFeedback(playerName, def.name(), effectDescription);
         
         // After applying the card effects, immediately check if the match has been decided
@@ -207,30 +216,18 @@ public final class TurnEngine {
     }
 
     private void endStep() {
+        System.out.println("DEBUG endStep: Starting endStep(), current activePlayerIndex = " + state.getActivePlayerIndex());
         // Check dot system win conditions first
         int winner = state.winnerIndexOrMinusOne();
         if (winner != -1) {
             // Someone won by dots (5 or -5)
+            System.out.println("DEBUG endStep: Winner found, exiting early");
             if (telemetry != null) telemetry.emit(new Telemetry.MatchEnd(winner, state.getPlayerA().getLifePoints(), state.getPlayerB().getLifePoints()));
             return;
         }
         
-        // Check legacy LP win conditions (for backward compatibility)
-        if (state.getPlayerA().getLifePoints() <= 0 && state.getPlayerB().getLifePoints() <= 0) {
-            // active player wins tie
-            if (state.getActivePlayerIndex() == 0) {
-                state.getPlayerB().setLifePoints(0);
-                state.getPlayerA().setLifePoints(1);
-            } else {
-                state.getPlayerA().setLifePoints(0);
-                state.getPlayerB().setLifePoints(1);
-            }
-            return;
-        }
-        if (state.getPlayerA().getLifePoints() <= 0 || state.getPlayerB().getLifePoints() <= 0) {
-            if (telemetry != null) telemetry.emit(new Telemetry.MatchEnd(state.winnerIndexOrMinusOne(), state.getPlayerA().getLifePoints(), state.getPlayerB().getLifePoints()));
-            return;
-        }
+        // LP system is deprecated - only use dot system for win conditions
+        System.out.println("DEBUG endStep: LP checks removed, using only dot system");
         
         // Tick statuses
         state.getPlayerA().getBuffs().getStatuses().tickEndOfTurn();
@@ -240,7 +237,10 @@ public final class TurnEngine {
         state.clearRecentEffects();
         
         // Next turn
+        int previousActivePlayer = state.getActivePlayerIndex();
         state.swapActive();
+        int newActivePlayer = state.getActivePlayerIndex();
+        System.out.println("DEBUG endStep: Turn swapped from Player " + (previousActivePlayer == 0 ? "A" : "B") + " to Player " + (newActivePlayer == 0 ? "A" : "B"));
     }
 
     private void removeFirstById(PlayerState ps, String cardId) {
@@ -287,6 +287,16 @@ public final class TurnEngine {
                 case "grant_extra_face_down_play" -> desc.append("permite que ").append(target).append(" juegue ").append(action.count()).append(" carta(s) boca abajo extra");
                 case "win_if_condition" -> desc.append("gana si ").append(target).append(" cumple la condición");
                 case "copy_last_card_effect" -> desc.append("copia el último efecto ").append(action.times()).append(" vez(es) para ").append(target);
+                case "push" -> {
+                    int amount = action.amount() != null ? action.amount() : 0;
+                    if (amount > 0) {
+                        desc.append("empuja <span class='push-positive'>+").append(amount).append("</span> puntos");
+                    } else if (amount < 0) {
+                        desc.append("empuja <span class='push-negative'>").append(amount).append("</span> puntos");
+                    } else {
+                        desc.append("empuja 0 puntos");
+                    }
+                }
                 default -> desc.append(action.type()).append(" a ").append(target);
             }
         }
@@ -313,28 +323,16 @@ public final class TurnEngine {
      * a player’s life points drop to zero) rather than waiting until the end of the turn.
      */
     private void checkWinnerMidTurn() {
+        // This method only checks for winners but doesn't end the turn
+        // The actual turn ending and swapping happens in endStep()
         int winner = state.winnerIndexOrMinusOne();
         if (winner != -1) {
             if (telemetry != null) telemetry.emit(new Telemetry.MatchEnd(winner, state.getPlayerA().getLifePoints(), state.getPlayerB().getLifePoints()));
-            return;
+            // Don't return here - let the turn continue to endStep() for proper cleanup
         }
 
-        // Legacy LP system checks (same as in endStep)
-        if (state.getPlayerA().getLifePoints() <= 0 && state.getPlayerB().getLifePoints() <= 0) {
-            // Active player wins the tie
-            if (state.getActivePlayerIndex() == 0) {
-                state.getPlayerB().setLifePoints(0);
-                state.getPlayerA().setLifePoints(1);
-            } else {
-                state.getPlayerA().setLifePoints(0);
-                state.getPlayerB().setLifePoints(1);
-            }
-            return;
-        }
-
-        if (state.getPlayerA().getLifePoints() <= 0 || state.getPlayerB().getLifePoints() <= 0) {
-            if (telemetry != null) telemetry.emit(new Telemetry.MatchEnd(state.winnerIndexOrMinusOne(), state.getPlayerA().getLifePoints(), state.getPlayerB().getLifePoints()));
-        }
+        // LP system is deprecated - only use dot system for win conditions
+        System.out.println("DEBUG checkWinnerMidTurn: LP checks removed, using only dot system");
     }
 }
 

@@ -1,237 +1,944 @@
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "rules_assumptions": {
-    "max_lp": 30,
-    "copies_above_three_treated_as_three": true,
-    "tier_calculation": "count_in_tableau_after_recruiting"
+    "win_counter_min": -5,
+    "win_counter_max": 5,
+    "win_at_plus": 5,
+    "lose_at_minus": -5,
+    "tier_calculation": "count_in_tableau_after_recruiting",
+    "copies_above_last_tier_clamp": true,
+    "randomness_seed_source": "server"
   },
   "cards": [
     {
       "id": "C001",
       "name": "Slap Attack",
-      "tags": ["attack"],
+      "tags": [
+        "attack",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 3 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 5 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 8 } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 5
+            },
+            {
+              "type": "discard_hand",
+              "target": "self"
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C002",
       "name": "Coffee Break",
-      "tags": ["heal","risk"],
+      "tags": [
+        "tempo",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "heal", "target": "self", "amount": 2 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 4 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 6 }, { "type": "skip_next_turn", "target": "self" } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            },
+            {
+              "type": "discard_random",
+              "target": "self",
+              "count": 2
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C003",
       "name": "Overtime Shift",
-      "tags": ["draw","risk"],
+      "tags": [
+        "draw",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "draw", "target": "self", "count": 1 } ] },
-        { "actions": [ { "type": "draw", "target": "self", "count": 2 } ] },
-        { "actions": [ { "type": "damage", "target": "self", "amount": 3 } ] }
+        {
+          "actions": [
+            {
+              "type": "draw",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "draw",
+              "target": "self",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": -2
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C004",
       "name": "Office Gossip",
-      "tags": ["hand_control"],
+      "tags": [
+        "hand_control"
+      ],
       "tiers": [
-        { "actions": [ { "type": "reveal_random_cards", "target": "opponent", "count": 1 } ] },
-        { "actions": [ { "type": "discard_random", "target": "opponent", "count": 1 } ] },
-        { "actions": [ { "type": "discard_random", "target": "opponent", "count": 1 }, { "type": "damage", "target": "opponent", "amount": 2 } ] }
+        {
+          "actions": [
+            {
+              "type": "reveal_random_cards",
+              "target": "opponent",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "discard_random",
+              "target": "opponent",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "discard_random",
+              "target": "opponent",
+              "count": 2
+            },
+            {
+              "type": "push",
+              "amount": -1
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C005",
       "name": "Sticky Note Barrage",
-      "tags": ["attack","tempo"],
+      "tags": [
+        "attack",
+        "tempo",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 2 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 4 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 6 }, { "type": "skip_next_turn", "target": "opponent" } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 4
+            },
+            {
+              "type": "draw",
+              "target": "opponent",
+              "count": 3
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C006",
       "name": "HR Complaint",
-      "tags": ["defense","reflection"],
+      "tags": [
+        "defense",
+        "reflect",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "status", "status": "shield", "target": "self", "amount": 1, "duration_turns": 1 } ] },
-        { "actions": [ { "type": "status", "status": "shield", "target": "self", "amount": 1, "duration_turns": 1 }, { "type": "status", "status": "thorns", "target": "self", "amount": 2, "duration_turns": 1 } ] },
-        { "actions": [ { "type": "status", "status": "reflect_all_damage", "target": "self", "duration_turns": 1 } ] }
+        {
+          "actions": [
+            {
+              "type": "status",
+              "status": "shield_next_push_against_you",
+              "target": "self",
+              "duration_turns": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "status",
+              "status": "shield_next_push_against_you",
+              "target": "self",
+              "duration_turns": 1
+            },
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "status",
+              "status": "reflect_next_push",
+              "target": "self",
+              "duration_turns": 1
+            },
+            {
+              "type": "fallback_push_if_no_trigger",
+              "amount": -2
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C007",
       "name": "Surprise Party",
-      "tags": ["heal","draw"],
+      "tags": [
+        "tempo",
+        "draw",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "heal", "target": "both", "amount": 3 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 6 }, { "type": "heal", "target": "opponent", "amount": 3 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 10 }, { "type": "draw", "target": "self", "count": 1 } ] }
+        {
+          "actions": [
+            {
+              "type": "noop"
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            },
+            {
+              "type": "draw",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 4
+            },
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C008",
       "name": "Printer Jam",
-      "tags": ["hand_control","tempo"],
+      "tags": [
+        "hand_control",
+        "tempo",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "discard_random", "target": "opponent", "count": 1 } ] },
-        { "actions": [ { "type": "block_next_draw", "target": "opponent", "count": 1 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 3 } ] }
+        {
+          "actions": [
+            {
+              "type": "discard_random",
+              "target": "opponent",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "block_next_draw",
+              "target": "opponent",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            },
+            {
+              "type": "discard_random",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C009",
       "name": "Budget Cut",
-      "tags": ["attack","hand_control"],
+      "tags": [
+        "attack"
+      ],
       "tiers": [
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 1 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 3 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 5 }, { "type": "discard_random", "target": "opponent", "count": 1 } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C010",
       "name": "Double Espresso",
-      "tags": ["action_economy","heal","risk"],
+      "tags": [
+        "action_economy",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "grant_extra_face_down_play", "target": "self", "count": 1 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 4 } ] },
-        { "actions": [ { "type": "damage", "target": "self", "amount": 2 } ] }
+        {
+          "actions": [
+            {
+              "type": "draw",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": -2
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C011",
-      "name": "Meeting That Could’ve Been an Email",
-      "tags": ["tempo","skip"],
+      "name": "Corporate Espionage",
+      "tags": [
+        "steal_play",
+        "removal",
+        "swing"
+      ],
       "tiers": [
-        { "actions": [ { "type": "skip_next_turn", "target": "opponent", "still_draws": true } ] },
-        { "actions": [ { "type": "skip_next_turn", "target": "opponent", "still_draws": true }, { "type": "damage", "target": "opponent", "amount": 2 } ] },
-        { "actions": [ { "type": "skip_next_turn", "target": "opponent", "still_draws": true }, { "type": "draw", "target": "self", "count": 1 } ] }
+        {
+          "actions": [
+            {
+              "type": "steal_card_from_tableau_and_play",
+              "source": "opponent",
+              "selection": "random",
+              "on_empty": "noop"
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "steal_card_from_tableau_and_play",
+              "source": "opponent",
+              "selection": "random",
+              "on_empty": "noop"
+            },
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "steal_card_from_tableau_and_play",
+              "source": "opponent",
+              "selection": "random",
+              "on_empty": "push_negative",
+              "fallback_amount": -1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "steal_card_from_tableau_and_play",
+              "source": "opponent",
+              "selection": "random",
+              "on_empty": "push_negative",
+              "fallback_amount": -2
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C012",
       "name": "Team Building Exercise",
-      "tags": ["heal"],
+      "tags": [
+        "attack",
+        "mirror"
+      ],
       "tiers": [
-        { "actions": [ { "type": "heal", "target": "self", "amount": 2 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 4 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 6 }, { "type": "heal", "target": "opponent", "amount": 3 } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            },
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C013",
       "name": "Chaotic Energy",
-      "tags": ["hand_size","alt_win"],
+      "tags": [
+        "hand_size",
+        "alt_win",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "modify_max_hand_size", "target": "self", "delta": 1, "duration_turns": -1 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 3 } ] },
-        { "actions": [ { "type": "win_if_condition", "condition": { "copies_of_this_card_equals": 3 } } ] }
+        {
+          "actions": [
+            {
+              "type": "modify_max_hand_size",
+              "target": "self",
+              "delta": 1,
+              "duration_turns": -1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "win_if_condition",
+              "condition": {
+                "copies_of_this_card_equals": 3
+              }
+            },
+            {
+              "type": "lose_if_condition_when_blocked",
+              "note": "si la victoria es bloqueada/reflectada segun estados defensivos"
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C014",
       "name": "Lunch Theft",
-      "tags": ["steal","attack"],
+      "tags": [
+        "steal",
+        "attack",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "steal_random_card_from_hand", "source": "opponent", "count": 1 } ] },
-        { "actions": [ { "type": "steal_random_card_from_hand", "source": "opponent", "count": 1 }, { "type": "damage", "target": "opponent", "amount": 2 } ] },
-        { "actions": [ { "type": "steal_random_card_from_hand", "source": "opponent", "count": 1 }, { "type": "damage", "target": "opponent", "amount": 4 } ] }
+        {
+          "actions": [
+            {
+              "type": "steal_random_card_from_hand",
+              "source": "opponent",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "steal_random_card_from_hand",
+              "source": "opponent",
+              "count": 1
+            },
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "steal_random_card_from_hand",
+              "source": "opponent",
+              "count": 1
+            },
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "steal_random_card_from_hand",
+              "source": "opponent",
+              "count": 1
+            },
+            {
+              "type": "push",
+              "amount": 4
+            },
+            {
+              "type": "conditional_push_if_opponent_hand_empty",
+              "amount": -2
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C015",
-      "name": "Janitor’s Revenge",
-      "tags": ["attack"],
+      "name": "Janitor's Revenge",
+      "tags": [
+        "attack",
+        "self_clean",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 1 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 4 } ] },
-        { "actions": [ { "type": "damage", "target": "opponent", "amount": 7 } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 5
+            },
+            {
+              "type": "destroy_random_cards_in_tableau",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C016",
       "name": "Copy Machine Party",
-      "tags": ["copy","combo"],
+      "tags": [
+        "copy",
+        "combo",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "copy_last_card_effect", "target": "self", "times": 1 } ] },
-        { "actions": [ { "type": "copy_last_card_effect", "target": "self", "times": 1 }, { "type": "heal", "target": "self", "amount": 2 } ] },
-        { "actions": [ { "type": "copy_last_card_effect", "target": "self", "times": 2 } ] }
+        {
+          "actions": [
+            {
+              "type": "copy_last_card_effect",
+              "times": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "copy_last_card_effect",
+              "times": 1
+            },
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "copy_last_card_effect",
+              "times": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "copy_last_card_effect",
+              "times": 3
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C017",
       "name": "Clown Shoes",
-      "tags": ["random","chaos"],
+      "tags": [
+        "random",
+        "chaos"
+      ],
       "tiers": [
-        { "actions": [ { "type": "status", "status": "randomize_next_card_effect", "target": "self", "duration_turns": 1 } ] },
-        { "actions": [ { "type": "status", "status": "randomize_next_card_effect", "target": "opponent", "duration_turns": 1 } ] },
-        { "actions": [ { "type": "status", "status": "global_random_effects", "target": "both", "duration_turns": -1 } ] }
+        {
+          "actions": [
+            {
+              "type": "status",
+              "status": "randomize_next_card_effect",
+              "target": "self",
+              "duration_turns": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "status",
+              "status": "randomize_next_card_effect",
+              "target": "opponent",
+              "duration_turns": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "status",
+              "status": "global_random_effects",
+              "target": "both",
+              "duration_turns": -1
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C018",
       "name": "Nap Under Desk",
-      "tags": ["heal","skip","risk"],
+      "tags": [
+        "tempo",
+        "risk",
+        "spike"
+      ],
       "tiers": [
-        { "actions": [ { "type": "skip_next_turn", "target": "self" }, { "type": "heal", "target": "self", "amount": 6 } ] },
-        { "actions": [ { "type": "heal", "target": "self", "amount": 8 }, { "type": "draw", "target": "self", "count": 1 } ] },
-        { "actions": [ { "type": "set_lp_to_full", "target": "self" }, { "type": "skip_next_turn", "target": "self" } ] }
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 2
+            },
+            {
+              "type": "discard_random",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 3
+            },
+            {
+              "type": "draw",
+              "target": "self",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "push",
+              "amount": 5
+            },
+            {
+              "type": "grant_extra_turns",
+              "target": "opponent",
+              "count": 1
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C019",
-      "name": "IT Guy’s Vengeance",
-      "tags": ["removal","attack"],
+      "name": "IT Guy's Vengeance",
+      "tags": [
+        "removal",
+        "attack",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "destroy_random_cards_in_tableau", "target": "opponent", "count": 1 } ] },
-        { "actions": [ { "type": "destroy_random_cards_in_tableau", "target": "opponent", "count": 2 } ] },
-        { "actions": [ { "type": "destroy_random_cards_in_tableau", "target": "opponent", "count": 3 }, { "type": "damage", "target": "opponent", "amount": 5 } ] }
+        {
+          "actions": [
+            {
+              "type": "destroy_random_cards_in_tableau",
+              "target": "opponent",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "destroy_random_cards_in_tableau",
+              "target": "opponent",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "destroy_random_cards_in_tableau",
+              "target": "opponent",
+              "count": 3
+            },
+            {
+              "type": "push",
+              "amount": 1
+            }
+          ]
+        }
       ]
     },
     {
       "id": "C020",
       "name": "Fire Drill",
-      "tags": ["discard","attack"],
+      "tags": [
+        "discard",
+        "attack",
+        "risk"
+      ],
       "tiers": [
-        { "actions": [ { "type": "discard_random", "target": "both", "count": 1 } ] },
-        { "actions": [ { "type": "discard_random", "target": "opponent", "count": 2 } ] },
-        { "actions": [ { "type": "discard_hand", "target": "opponent" }, { "type": "damage", "target": "opponent", "amount": 3 } ] }
+        {
+          "actions": [
+            {
+              "type": "discard_random",
+              "target": "both",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "discard_random",
+              "target": "opponent",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "discard_hand",
+              "target": "opponent"
+            },
+            {
+              "type": "push",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "actions": [
+            {
+              "type": "discard_hand",
+              "target": "opponent"
+            },
+            {
+              "type": "push",
+              "amount": 4
+            },
+            {
+              "type": "push",
+              "amount": -2
+            }
+          ]
+        }
       ]
     }
   ]
 }
 
+
 Notes for the implementing engineer/AI
 Statuses:
 
+"shield_next_push_against_you" reduces the next incoming push instance to 0 (consume on trigger).
 
-"shield" reduces the next incoming damage instance to 0 (consume on trigger).
+"reflect_next_push" mirrors the next received push during duration (before shield).
 
-
-"thorns" reflects a fixed damage amount back once within duration.
-
-
-"reflect_all_damage" mirrors all received damage during duration (before shield).
-
-
-"randomize_next_card_effect" mutates the next card’s tier actions to a random legal effect of similar magnitude.
-
+"randomize_next_card_effect" mutates the next card's tier actions to a random legal effect of similar magnitude.
 
 "global_random_effects" applies the above mutation to all card effects for both players (live-ops toggleable).
 
-
 Durations: -1 means until end of match.
-
 
 Determinism: All randoms must draw from the server seed for replays.
 
-
-Order of resolution: Opponent’s recruited effect resolves first, then the remaining one; evaluate end-step after both.
+Order of resolution: Opponent's recruited effect resolves first, then the remaining one; evaluate end-step after both.

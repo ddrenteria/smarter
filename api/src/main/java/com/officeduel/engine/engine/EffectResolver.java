@@ -32,6 +32,7 @@ public final class EffectResolver {
 
     private void apply(Action a, MatchPlayer self, MatchPlayer opp) {
         switch (a.type()) {
+            case "push" -> applyPush(self, a.amount() == null ? 0 : a.amount(), a.target());
             case "damage" -> applyDamage(targetOf(a.target(), self, opp), a.amount() == null ? 0 : a.amount());
             case "heal" -> applyHeal(targetOf(a.target(), self, opp), a.amount() == null ? 0 : a.amount());
             case "draw" -> applyDraw(targetOf(a.target(), self, opp), a.count() == null ? 0 : a.count());
@@ -48,6 +49,12 @@ public final class EffectResolver {
             case "grant_extra_face_down_play" -> targetOf(a.target(), self, opp).state().addExtraFaceDownPlays(a.count() == null ? 1 : a.count());
             case "win_if_condition" -> checkWinCondition(self, a);
             case "copy_last_card_effect" -> copyLast(self, opp, a.times() == null ? 1 : a.times());
+            case "steal_card_from_tableau_and_play" -> stealFromTableauAndPlay(self, opp, a);
+            case "conditional_push_if_opponent_hand_empty" -> conditionalPushIfHandEmpty(self, opp, a.amount() == null ? 0 : a.amount());
+            case "fallback_push_if_no_trigger" -> fallbackPush(self, a.amount() == null ? 0 : a.amount());
+            case "lose_if_condition_when_blocked" -> checkLoseConditionWhenBlocked(self, a);
+            case "grant_extra_turns" -> grantExtraTurns(targetOf(a.target(), self, opp), a.count() == null ? 1 : a.count());
+            case "noop" -> {} // No operation
             default -> state.getHistory().add("Unknown action: " + a.type());
         }
     }
@@ -57,6 +64,16 @@ public final class EffectResolver {
         if ("opponent".equals(target)) return opp;
         // both is handled by caller by splitting actions into two if needed; fallback to self
         return self;
+    }
+
+    private void applyPush(MatchPlayer source, int amount, String target) {
+        // New simplified push system: amount is always relative to the player who plays the card
+        // Positive amount = benefits the player (good for them)
+        // Negative amount = hurts the player (bad for them)
+        // Target parameter is ignored for push actions
+        
+        state.addToDotCounter(amount);
+        state.getHistory().add("Push " + amount + " (relative to card player)");
     }
 
     private void applyDamage(MatchPlayer target, int amount) {
@@ -140,6 +157,8 @@ public final class EffectResolver {
             case "shield" -> StatusType.SHIELD;
             case "thorns" -> StatusType.THORNS;
             case "reflect_all_damage" -> StatusType.REFLECT_ALL_DAMAGE;
+            case "shield_next_push_against_you" -> StatusType.SHIELD_NEXT_PUSH_AGAINST_YOU;
+            case "reflect_next_push" -> StatusType.REFLECT_NEXT_PUSH;
             case "randomize_next_card_effect" -> StatusType.RANDOMIZE_NEXT_CARD_EFFECT;
             case "global_random_effects" -> StatusType.GLOBAL_RANDOM_EFFECTS;
             default -> null;
@@ -152,6 +171,23 @@ public final class EffectResolver {
     private void revealRandom(MatchPlayer target, int count) {
         int n = Math.min(count, target.state().getHand().size());
         state.getHistory().add("Reveal " + n + " cards");
+        
+        // Actually reveal the cards by adding them to the revealed cards list
+        for (int i = 0; i < n; i++) {
+            if (!target.state().getHand().isEmpty()) {
+                int randomIndex = state.getRng().nextInt(target.state().getHand().size());
+                String cardId = target.state().getHand().get(randomIndex).cardId();
+                
+                // Add to revealed cards list based on which player is being targeted
+                if (target.state() == state.getPlayerA()) {
+                    state.addRevealedCardA(cardId);
+                } else {
+                    state.addRevealedCardB(cardId);
+                }
+                
+                state.getHistory().add("Revealed card: " + cardId);
+            }
+        }
     }
 
     private void stealRandom(MatchPlayer thief, MatchPlayer victim, int count) {
@@ -200,6 +236,57 @@ public final class EffectResolver {
         for (int i = 0; i < times; i++) {
             applyActions(filteredActions, self, opp);
         }
+    }
+
+    private void stealFromTableauAndPlay(MatchPlayer thief, MatchPlayer victim, Action a) {
+        if (victim.state().getTableau().isEmpty()) {
+            // Handle empty tableau based on on_empty parameter
+            if ("push_negative".equals(a.on_empty())) {
+                int fallbackAmount = a.fallback_amount() != null ? a.fallback_amount() : -1;
+                state.addToDotCounter(fallbackAmount);
+                state.getHistory().add("Steal failed, fallback push: " + fallbackAmount);
+            } else if ("noop".equals(a.on_empty())) {
+                state.getHistory().add("Steal failed, no effect");
+            }
+            return;
+        }
+        
+        // Steal a random card from opponent's tableau
+        int idx = state.getRng().nextInt(victim.state().getTableau().size());
+        var stolenCard = victim.state().getTableau().remove(idx);
+        
+        // Add to thief's tableau
+        thief.state().getTableau().add(stolenCard);
+        
+        // Play the stolen card's effects (simplified - just log for now)
+        state.getHistory().add("Stole and played: " + stolenCard.cardId());
+    }
+
+    private void conditionalPushIfHandEmpty(MatchPlayer source, MatchPlayer target, int amount) {
+        if (target.state().getHand().isEmpty()) {
+            state.addToDotCounter(amount);
+            state.getHistory().add("Conditional push " + amount + " (opponent hand empty)");
+        } else {
+            state.getHistory().add("Conditional push skipped (opponent hand not empty)");
+        }
+    }
+
+    private void fallbackPush(MatchPlayer source, int amount) {
+        // This is a fallback when a status effect doesn't trigger
+        state.addToDotCounter(amount);
+        state.getHistory().add("Fallback push " + amount);
+    }
+
+    private void checkLoseConditionWhenBlocked(MatchPlayer source, Action a) {
+        // This would check if a win condition was blocked and cause the player to lose
+        // For now, just log it
+        state.getHistory().add("Lose condition when blocked check");
+    }
+
+    private void grantExtraTurns(MatchPlayer target, int count) {
+        // This would add extra turns to the target player
+        // For now, just log it
+        state.getHistory().add("Grant " + count + " extra turns");
     }
 }
 

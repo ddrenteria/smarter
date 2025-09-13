@@ -14,7 +14,8 @@ public final class CardIndex {
         for (CardDefinitionSet.CardDef c : defs.cards()) {
             byId.put(c.id(), c);
         }
-        this.maxLp = defs.rulesAssumptions().max_lp();
+        // LP system no longer used in push-based game
+        this.maxLp = 0;
     }
 
     public CardDefinitionSet.CardDef get(String id) { return byId.get(id); }

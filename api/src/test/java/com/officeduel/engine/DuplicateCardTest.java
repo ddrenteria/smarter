@@ -19,7 +19,7 @@ public class DuplicateCardTest {
         Path cardsPath = Path.of("gameplay cards definition.txt");
         CardDefinitionSet defs = CardDefinitionLoader.load(cardsPath);
         CardIndex index = new CardIndex(defs);
-        GameState gs = new GameState(new DeterministicRng(1L), defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(new DeterministicRng(1L));
         TurnEngine engine = new TurnEngine(gs, index);
         
         PlayerState playerA = gs.getPlayerA();

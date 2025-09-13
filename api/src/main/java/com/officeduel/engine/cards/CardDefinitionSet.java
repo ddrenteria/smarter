@@ -9,9 +9,13 @@ public record CardDefinitionSet(
         List<CardDef> cards
 ) {
     public record RulesAssumptions(
-            @JsonProperty("max_lp") int max_lp, 
-            @JsonProperty("copies_above_three_treated_as_three") boolean copies_above_three_treated_as_three, 
-            @JsonProperty("tier_calculation") String tier_calculation
+            @JsonProperty("win_counter_min") int win_counter_min, 
+            @JsonProperty("win_counter_max") int win_counter_max, 
+            @JsonProperty("win_at_plus") int win_at_plus, 
+            @JsonProperty("lose_at_minus") int lose_at_minus, 
+            @JsonProperty("tier_calculation") String tier_calculation,
+            @JsonProperty("copies_above_last_tier_clamp") boolean copies_above_last_tier_clamp,
+            @JsonProperty("randomness_seed_source") String randomness_seed_source
     ) {}
 
     public record CardDef(
@@ -34,7 +38,12 @@ public record CardDefinitionSet(
             Integer delta,
             Integer times,
             Condition condition,
-            String source
+            String source,
+            String selection,
+            @JsonProperty("on_empty") String on_empty,
+            @JsonProperty("fallback_amount") Integer fallback_amount,
+            String note,
+            @JsonProperty("opponent_side") String opponent_side
     ) {}
 
     public record Condition(@JsonProperty("copies_of_this_card_equals") Integer copies_of_this_card_equals) {}

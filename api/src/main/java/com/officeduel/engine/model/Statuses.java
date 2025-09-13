@@ -1,6 +1,7 @@
 package com.officeduel.engine.model;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class Statuses {
@@ -37,6 +38,16 @@ public final class Statuses {
     public void remove(StatusType type) {
         durations.remove(type);
         amounts.remove(type);
+    }
+    
+    public Map<StatusType, Integer> getActiveStatuses() {
+        Map<StatusType, Integer> activeStatuses = new HashMap<>();
+        durations.keySet().forEach(status -> {
+            if (has(status)) {
+                activeStatuses.put(status, durations.get(status));
+            }
+        });
+        return activeStatuses;
     }
 }
 

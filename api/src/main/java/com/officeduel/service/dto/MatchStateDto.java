@@ -30,7 +30,13 @@ public record MatchStateDto(
         boolean playerAIsBot,
         boolean playerBIsBot,
         // Effect feedback
-        List<EffectFeedback> recentEffects
+        List<EffectFeedback> recentEffects,
+        // Revealed cards
+        List<String> revealedCardsA,
+        List<String> revealedCardsB,
+        // Active status effects
+        Map<String, Integer> activeStatusesA,
+        Map<String, Integer> activeStatusesB
 ) {
     public record CardInfo(
             String name,

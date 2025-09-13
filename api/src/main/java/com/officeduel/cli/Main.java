@@ -24,7 +24,7 @@ public class Main {
 
             long seed = args.length > 0 ? Long.parseLong(args[0]) : 123456789L;
             DeterministicRng rng = new DeterministicRng(seed);
-            GameState gs = new GameState(rng, defs.rulesAssumptions().max_lp());
+            GameState gs = new GameState(rng);
 
             // Naive deck: 50 random cards for each player from definition list
             for (int i = 0; i < 50; i++) {
@@ -44,7 +44,7 @@ public class Main {
                 for (int m = 0; m < matches; m++) {
                     long s = seed + m;
                     DeterministicRng rr = new DeterministicRng(s);
-                    GameState g = new GameState(rr, defs.rulesAssumptions().max_lp());
+                    GameState g = new GameState(rr);
                     // decks
                     for (int i = 0; i < 20; i++) {
                         int idxA = rr.nextInt(defs.cards().size());

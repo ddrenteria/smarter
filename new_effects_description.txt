@@ -1,0 +1,35 @@
+🧩 Definiciones de Efectos / Habilidades
+
+Cada carta tiene entre 1 y 4 “tiers” que dependen de cuántas copias de esa carta tengas en tu mesa después de jugarla.
+El motor debe calcular el tier y aplicar en orden las acciones listadas en ese tier.
+
+🎛 Acciones Fundamentales
+Acción	Efecto	Notas de Implementación
+push	Mueve el contador global amount pasos hacia el lado del jugador que juega la carta.	Si amount es negativo, empuja hacia el lado del rival. Clampear entre -5 y +5.
+draw	Roba count cartas del mazo del target.	Respetar maxHand y bloqueos (block_next_draw).
+discard_random	Descarta count cartas aleatorias de la mano del target.	Elegir índices con PRNG determinista.
+discard_hand	Manda toda la mano del target al descarte.	No roba cartas nuevas.
+reveal_random_cards	Muestra count cartas aleatorias de la mano del target al jugador activo.	Solo genera un evento de log, no cambia estado.
+steal_random_card_from_hand	Toma count cartas aleatorias de la mano del rival y las agrega a tu mano.	Si tu mano está llena, se cancela el robo de esa carta (no se descarta).
+destroy_random_cards_in_tableau	Elimina count cartas aleatorias de la mesa del target.	Útil para “limpiar” combos.
+block_next_draw	Evita que el target robe su próxima carta.	Decrementar contador al aplicarse.
+grant_extra_face_down_play	Permite colocar una carta adicional face-down en este turno.	Solo válido en la fase de selección.
+grant_extra_turns	Agrega turnos extra para el target después del turno actual.	Scheduler debe insertar el turno en la cola.
+modify_max_hand_size	Ajusta el tamaño máximo de la mano de target (delta).	Si duration_turns = -1, es permanente.
+copy_last_card_effect	Reejecuta las acciones de la última carta jugada por el mismo jugador.	Guardar “snapshot” de acciones y parámetros (incluyendo elecciones random).
+status	Aplica un estado temporal (ver tabla de Status).	Expira según duration_turns.
+conditional_push_if_opponent_hand_empty	Aplica un push (puede ser negativo) solo si la mano del oponente está vacía.	Chequear al momento de la resolución.
+win_if_condition	Si la condición (por ejemplo, copies_of_this_card_equals = 3) se cumple, victoria inmediata.	Marcar pendingWin = actor. Resolver en fin de turno.
+lose_if_condition_when_blocked	Si la condición de victoria fue bloqueada o reflejada, pierde el jugador que la activó.	Marcar pendingLose = actor.
+steal_card_from_tableau_and_play	Roba 1 carta de la mesa del rival y la juega en tu mesa, aplicando sus efectos.	Calcular tier en TU lado y ejecutar efectos inmediatamente.
+🛡 Estados (Status)
+Status	Efecto
+shield_next_push_against_you	Bloquea el siguiente push en tu contra.
+reflect_next_push	El siguiente push en tu contra se invierte (te favorece).
+randomize_next_card_effect	La próxima carta que juegues (o que juegue el rival, si target es opponent) tendrá efectos sustituidos al azar del mismo “peso”.
+global_random_effects	Todas las cartas jugadas por ambos jugadores se randomizan hasta el final de la partida.
+🔀 Aleatoriedad
+
+Determinista: siempre usar PRNG con seed guardado en el estado del match.
+
+Randomize buckets: definir grupos de acciones por “peso” para que el reemplazo sea coherente (ej. push pequeño ↔ push pequeño, push masivo ↔ acción muy fuerte).

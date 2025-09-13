@@ -3,7 +3,9 @@ package com.officeduel.engine.model;
 import com.officeduel.engine.core.DeterministicRng;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class GameState {
@@ -27,14 +29,18 @@ public final class GameState {
     private int previousLpA = 0;
     private int previousLpB = 0;
     private int previousDotCounter = 0;
+    
+    // Revealed cards tracking
+    private final List<String> revealedCardsA = new ArrayList<>();
+    private final List<String> revealedCardsB = new ArrayList<>();
 
-    public GameState(DeterministicRng rng, int initialLp) {
+    public GameState(DeterministicRng rng) {
         this.rng = rng;
-        this.playerA = new PlayerState(initialLp);
-        this.playerB = new PlayerState(initialLp);
+        this.playerA = new PlayerState(0); // LP not used in push system, but keeping for compatibility
+        this.playerB = new PlayerState(0);
         this.sharedDotCounter = 0; // Start at neutral
-        this.previousLpA = initialLp;
-        this.previousLpB = initialLp;
+        this.previousLpA = 0;
+        this.previousLpB = 0;
         this.previousDotCounter = 0;
     }
 
@@ -105,6 +111,25 @@ public final class GameState {
         previousLpA = playerA.getLifePoints();
         previousLpB = playerB.getLifePoints();
         previousDotCounter = sharedDotCounter;
+    }
+    
+    // Revealed cards management
+    public List<String> getRevealedCardsA() { return new ArrayList<>(revealedCardsA); }
+    public List<String> getRevealedCardsB() { return new ArrayList<>(revealedCardsB); }
+    
+    public void addRevealedCardA(String cardId) { revealedCardsA.add(cardId); }
+    public void addRevealedCardB(String cardId) { revealedCardsB.add(cardId); }
+    
+    public void clearRevealedCardsA() { revealedCardsA.clear(); }
+    public void clearRevealedCardsB() { revealedCardsB.clear(); }
+    
+    // Status effects management
+    public Map<StatusType, Integer> getActiveStatusesA() {
+        return playerA.getBuffs().getStatuses().getActiveStatuses();
+    }
+    
+    public Map<StatusType, Integer> getActiveStatusesB() {
+        return playerB.getBuffs().getStatuses().getActiveStatuses();
     }
     
     public record EffectFeedback(

@@ -21,7 +21,7 @@ public class DotCounterTest {
         Path cardsPath = Path.of("gameplay cards definition.txt");
         CardDefinitionSet defs = CardDefinitionLoader.load(cardsPath);
         CardIndex index = new CardIndex(defs);
-        GameState gs = new GameState(new DeterministicRng(1L), defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(new DeterministicRng(1L));
         EffectResolver er = new EffectResolver(gs, index);
         
         PlayerState playerA = gs.getPlayerA();
@@ -31,22 +31,22 @@ public class DotCounterTest {
         assertEquals(0, gs.getSharedDotCounter());
         
         // Test damage to A decreases dots
-        var damageToA = new CardDefinitionSet.Action("damage", "self", 3, null, null, null, null, null, null, null, null);
+        var damageToA = new CardDefinitionSet.Action("push", "self", -3, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(damageToA), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(-3, gs.getSharedDotCounter());
         
         // Test damage to B increases dots (favor A)
-        var damageToB = new CardDefinitionSet.Action("damage", "opponent", 2, null, null, null, null, null, null, null, null);
+        var damageToB = new CardDefinitionSet.Action("push", "opponent", 2, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(damageToB), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(-1, gs.getSharedDotCounter()); // -3 + 2 = -1
         
         // Test heal to A increases dots
-        var healToA = new CardDefinitionSet.Action("heal", "self", 4, null, null, null, null, null, null, null, null);
+        var healToA = new CardDefinitionSet.Action("push", "self", 4, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(healToA), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(3, gs.getSharedDotCounter()); // -1 + 4 = 3
         
         // Test heal to B decreases dots (favor B)
-        var healToB = new CardDefinitionSet.Action("heal", "opponent", 1, null, null, null, null, null, null, null, null);
+        var healToB = new CardDefinitionSet.Action("push", "opponent", -1, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(healToB), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(2, gs.getSharedDotCounter()); // 3 - 1 = 2
     }
@@ -56,7 +56,7 @@ public class DotCounterTest {
         Path cardsPath = Path.of("gameplay cards definition.txt");
         CardDefinitionSet defs = CardDefinitionLoader.load(cardsPath);
         CardIndex index = new CardIndex(defs);
-        GameState gs = new GameState(new DeterministicRng(1L), defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(new DeterministicRng(1L));
         EffectResolver er = new EffectResolver(gs, index);
         
         PlayerState playerA = gs.getPlayerA();
@@ -64,13 +64,13 @@ public class DotCounterTest {
         
         // Test positive clamping at 5
         gs.setSharedDotCounter(4);
-        var damageToB = new CardDefinitionSet.Action("damage", "opponent", 3, null, null, null, null, null, null, null, null);
+        var damageToB = new CardDefinitionSet.Action("push", "opponent", 3, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(damageToB), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(5, gs.getSharedDotCounter()); // 4 + 3 = 7, but clamped to 5
         
         // Test negative clamping at -5
         gs.setSharedDotCounter(-4);
-        var damageToA = new CardDefinitionSet.Action("damage", "self", 3, null, null, null, null, null, null, null, null);
+        var damageToA = new CardDefinitionSet.Action("push", "self", -3, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(damageToA), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(-5, gs.getSharedDotCounter()); // -4 - 3 = -7, but clamped to -5
     }

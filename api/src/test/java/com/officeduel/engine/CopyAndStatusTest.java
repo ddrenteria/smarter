@@ -21,7 +21,7 @@ public class CopyAndStatusTest {
         Path cardsPath = Path.of("gameplay cards definition.txt");
         CardDefinitionSet defs = CardDefinitionLoader.load(cardsPath);
         CardIndex index = new CardIndex(defs);
-        GameState gs = new GameState(new DeterministicRng(7L), defs.rulesAssumptions().max_lp());
+        GameState gs = new GameState(new DeterministicRng(7L));
         PlayerState ps = gs.getPlayerA();
         PlayerState opp = gs.getPlayerB();
         ps.setLifePoints(index.maxLp());
@@ -29,12 +29,12 @@ public class CopyAndStatusTest {
         EffectResolver er = new EffectResolver(gs, index);
         
         // Test dot system: damage to opponent (B) should increase dot counter
-        var dmg = new CardDefinitionSet.Action("damage", "opponent", 2, null, null, null, null, null, null, null, null);
+        var dmg = new CardDefinitionSet.Action("push", "opponent", 2, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(dmg), new MatchPlayer(ps), new MatchPlayer(opp));
         assertEquals(2, gs.getSharedDotCounter()); // B takes damage = dots go up (favor A)
         
         // Test copy: should apply damage twice more (total 3 times), but clamped to 5
-        var copy = new CardDefinitionSet.Action("copy_last_card_effect", "self", null, null, null, null, null, null, 2, null, null);
+        var copy = new CardDefinitionSet.Action("copy_last_card_effect", "self", null, null, null, null, null, null, 2, null, null, null, null, null, null, null);
         er.applyActions(List.of(copy), new MatchPlayer(ps), new MatchPlayer(opp));
         assertEquals(5, gs.getSharedDotCounter()); // 2 + 2 + 2 = 6, but clamped to 5
     }
