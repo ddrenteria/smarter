@@ -2934,7 +2934,7 @@
       
       // Prevent multiple simultaneous submissions
       if (isSubmittingChoice) {
-        console.log('Choice already being submitted, ignoring duplicate');
+        // console.log('Choice already being submitted, ignoring duplicate');
         return;
       }
       
@@ -3425,13 +3425,13 @@
       btn.style.position='relative';
       
       // Check if this card was recently added
-      console.log('DEBUG renderStackedCard:', cardId, 'gameState.recentlyAddedCardsA:', gameState.recentlyAddedCardsA, 'gameState.recentlyAddedCardsB:', gameState.recentlyAddedCardsB);
+      // console.log('DEBUG renderStackedCard:', cardId, 'gameState.recentlyAddedCardsA:', gameState.recentlyAddedCardsA, 'gameState.recentlyAddedCardsB:', gameState.recentlyAddedCardsB);
       const isRecentlyAdded = gameState.recentlyAddedCardsA?.includes(cardId) || 
                              gameState.recentlyAddedCardsB?.includes(cardId);
-      console.log('DEBUG isRecentlyAdded:', isRecentlyAdded, 'for card:', cardId);
+      // console.log('DEBUG isRecentlyAdded:', isRecentlyAdded, 'for card:', cardId);
       if (isRecentlyAdded) {
         btn.classList.add('newly-added');
-        console.log('DEBUG Added newly-added class to card:', cardId);
+        // console.log('DEBUG Added newly-added class to card:', cardId);
         // Remove the class after animation completes
         setTimeout(() => {
           btn.classList.remove('newly-added');

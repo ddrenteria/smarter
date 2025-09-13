@@ -33,6 +33,8 @@ public final class TurnEngine {
     public void setPlayerNames(String playerAName, String playerBName) {
         this.playerAName = playerAName != null ? playerAName : "Jugador A";
         this.playerBName = playerBName != null ? playerBName : "Jugador B";
+        // Also set the names in the EffectResolver
+        this.effects.setPlayerNames(this.playerAName, this.playerBName);
     }
 
     public void startMatch() {
@@ -77,8 +79,15 @@ public final class TurnEngine {
         String picked = pickFaceUp ? faceUpId : faceDownId;
         String remaining = pickFaceUp ? faceDownId : faceUpId;
 
-        resolveRecruit(picked, opponent, active, opponent); // opponent gets picked effect and plays it
-        resolveRecruit(remaining, active, opponent, active); // active gets remaining effect and plays it
+        resolveRecruit(remaining, active, opponent, active); // active gets remaining effect and plays it first
+        
+        // Check for winner after active player's effects (but before opponent's effects)
+        checkWinnerMidTurn();
+        
+        resolveRecruit(picked, opponent, active, opponent); // opponent gets picked effect and plays it second
+        
+        // Final check for winner after both players have resolved their effects
+        checkWinnerMidTurn();
 
         // Move cards to tableau: opponent gets picked, active gets remaining
         opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(picked));
@@ -157,11 +166,20 @@ public final class TurnEngine {
             return;
         }
 
-        // Resolve effects: remaining card first (submitter), then picked card (opponent)
+        // Resolve effects: remaining card first (active player gets priority), then picked card (opponent)
         System.out.println("  Resolving remaining card effects...");
-        resolveRecruit(remainingCardId, active, opponent, active); // active plays remaining card
+        resolveRecruit(remainingCardId, active, opponent, active); // active plays remaining card first
+        
+        // Check for winner after active player's effects (but before opponent's effects)
+        System.out.println("  Checking for winner after active player's effects...");
+        checkWinnerMidTurn();
+        
         System.out.println("  Resolving picked card effects...");
-        resolveRecruit(pickedCardId, opponent, active, opponent); // opponent plays picked card
+        resolveRecruit(pickedCardId, opponent, active, opponent); // opponent plays picked card second
+        
+        // Final check for winner after both players have resolved their effects
+        System.out.println("  Final winner check after both players' effects...");
+        checkWinnerMidTurn();
 
         // Move cards to tableau: active gets remaining card, opponent gets picked card
         System.out.println("  Adding cards to tableau...");

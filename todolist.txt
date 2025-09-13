@@ -1,0 +1,5 @@
+actualizar las piedritas se volvieron a invertir los mensajes de ganador y el orden de las piedritas
+mejorar a veces en el front de repente la piedra salta a un extremo y despues se vuelve a acomador
+rematch
+go to home
+seguir revisando interacciones entre efectos de carttas parece que esta bastante roto todavia

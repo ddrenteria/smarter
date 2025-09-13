@@ -12,10 +12,17 @@ import java.util.List;
 public final class EffectResolver {
     private final GameState state;
     private final CardIndex index;
+    private String playerAName = "Jugador A";
+    private String playerBName = "Jugador B";
 
     public EffectResolver(GameState state, CardIndex index) {
         this.state = state;
         this.index = index;
+    }
+
+    public void setPlayerNames(String playerAName, String playerBName) {
+        this.playerAName = playerAName != null ? playerAName : "Jugador A";
+        this.playerBName = playerBName != null ? playerBName : "Jugador B";
     }
 
     public void applyActions(List<Action> actions, MatchPlayer source, MatchPlayer opponent) {
@@ -46,7 +53,7 @@ public final class EffectResolver {
             case "steal_random_card_from_hand" -> stealRandom(self, targetOf(a.source(), self, opp), a.count() == null ? 1 : a.count());
             case "destroy_random_cards_in_tableau" -> destroyRandomTableau(targetOf(a.target(), self, opp), a.count() == null ? 1 : a.count());
             case "modify_max_hand_size" -> modifyMaxHandSize(targetOf(a.target(), self, opp), a.delta() == null ? 0 : a.delta());
-            case "grant_extra_face_down_play" -> targetOf(a.target(), self, opp).state().addExtraFaceDownPlays(a.count() == null ? 1 : a.count());
+            case "grant_extra_face_down_play" -> grantExtraFaceDownPlay(targetOf(a.target(), self, opp), a.count() == null ? 1 : a.count());
             case "win_if_condition" -> checkWinCondition(self, a);
             case "copy_last_card_effect" -> copyLast(self, opp, a.times() == null ? 1 : a.times());
             case "steal_card_from_tableau_and_play" -> stealFromTableauAndPlay(self, opp, a);
@@ -67,27 +74,65 @@ public final class EffectResolver {
     }
 
     private void applyPush(MatchPlayer source, int amount, String target) {
-        // Push system: amount is relative to the player who plays the card
-        // Positive amount = benefits the player (moves counter toward them)
-        // Negative amount = hurts the player (moves counter away from them)
-        // Target parameter is ignored for push actions
+        // Push system: amount affects the specified target player
+        // Positive amount = benefits the target player (moves counter toward them)
+        // Negative amount = hurts the target player (moves counter away from them)
         
-        // Determine direction based on which player is the source
+        // Determine which player is actually affected
+        MatchPlayer affectedPlayer = targetOf(target, source, 
+            source.state() == state.getPlayerA() ? new MatchPlayer(state.getPlayerB()) : new MatchPlayer(state.getPlayerA()));
+        
+        // Check for push-specific status effects
+        if (affectedPlayer.state().getBuffs().getStatuses().has(StatusType.SHIELD_NEXT_PUSH_AGAINST_YOU)) {
+            affectedPlayer.state().getBuffs().getStatuses().remove(StatusType.SHIELD_NEXT_PUSH_AGAINST_YOU);
+            // Add effect feedback for push shield activation
+            String playerName = affectedPlayer.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Escudo Anti-Push de %s bloquea empuje de %d", playerName, amount);
+            System.out.println("DEBUG addEffectFeedback: Adding push shield activation for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Escudo Push Activado", effectDescription);
+            return;
+        }
+        
+        if (affectedPlayer.state().getBuffs().getStatuses().has(StatusType.REFLECT_NEXT_PUSH)) {
+            affectedPlayer.state().getBuffs().getStatuses().remove(StatusType.REFLECT_NEXT_PUSH);
+            // Add effect feedback for push reflect activation
+            String playerName = affectedPlayer.state() == state.getPlayerA() ? playerAName : playerBName;
+            String sourcePlayerName = source.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Reflejo Push de %s devuelve empuje de %d a %s", playerName, amount, sourcePlayerName);
+            System.out.println("DEBUG addEffectFeedback: Adding push reflect activation for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Reflejo Push Activado", effectDescription);
+            // Apply the push to the source instead
+            source = affectedPlayer;
+            affectedPlayer = targetOf(target, source, 
+                source.state() == state.getPlayerA() ? new MatchPlayer(state.getPlayerB()) : new MatchPlayer(state.getPlayerA()));
+        }
+        
+        // Calculate direction based on which player is affected
         int adjustedAmount = amount;
-        if (source.state() == state.getPlayerB()) {
-            // Player B playing: positive amount moves counter toward Player B (negative direction)
+        if (affectedPlayer.state() == state.getPlayerB()) {
+            // Player B affected: positive amount moves counter toward Player B (negative direction)
             adjustedAmount = -amount;
         }
-        // Player A playing: positive amount moves counter toward Player A (positive direction)
+        // Player A affected: positive amount moves counter toward Player A (positive direction)
         
         state.addToDotCounter(adjustedAmount);
-        state.getHistory().add("Push " + amount + " by " + (source.state() == state.getPlayerA() ? "Player A" : "Player B") + " -> adjusted: " + adjustedAmount);
+        state.getHistory().add("Push " + amount + " by " + (source.state() == state.getPlayerA() ? "Player A" : "Player B") + 
+            " affects " + (affectedPlayer.state() == state.getPlayerA() ? "Player A" : "Player B") + " -> adjusted: " + adjustedAmount);
         
-        // Add effect feedback
-        String playerName = source.state() == state.getPlayerA() ? "Player A" : "Player B";
-        String effectDescription = "Push " + amount + " (adjusted: " + adjustedAmount + ")";
+        // Add effect feedback with clear description
+        String playerName = affectedPlayer.state() == state.getPlayerA() ? playerAName : playerBName;
+        String targetPlayerName = targetOf(target, source, 
+            source.state() == state.getPlayerA() ? new MatchPlayer(state.getPlayerB()) : new MatchPlayer(state.getPlayerA())).state() == state.getPlayerA() ? playerAName : playerBName;
+        
+        String effectDescription;
+        if (amount > 0) {
+            effectDescription = String.format("Empuja +%d hacia %s", amount, targetPlayerName);
+        } else {
+            effectDescription = String.format("Empuja %d hacia %s", amount, targetPlayerName);
+        }
+        
         System.out.println("DEBUG addEffectFeedback: Adding push effect for " + playerName + ": " + effectDescription);
-        state.addEffectFeedback(playerName, "Push Effect", effectDescription);
+        state.addEffectFeedback(playerName, "Efecto Push", effectDescription);
     }
 
     private void applyDamage(MatchPlayer target, int amount) {
@@ -97,12 +142,26 @@ public final class EffectResolver {
             MatchPlayer other = target == new MatchPlayer(state.getPlayerA()) ? new MatchPlayer(state.getPlayerB()) : new MatchPlayer(state.getPlayerA());
             // Remove the reflect status to prevent infinite loops
             target.state().getBuffs().getStatuses().remove(StatusType.REFLECT_ALL_DAMAGE);
+            
+            // Add effect feedback for reflect activation
+            String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+            String otherPlayerName = other.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Reflejo Total de %s devuelve %d de daño a %s", playerName, amount, otherPlayerName);
+            System.out.println("DEBUG addEffectFeedback: Adding reflect activation for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Reflejo Activado", effectDescription);
+            
             applyDamage(other, amount);
             return;
         }
         if (target.state().getBuffs().getStatuses().has(StatusType.SHIELD)) {
             target.state().getBuffs().getStatuses().consumeShieldIfAny();
             state.getHistory().add("Shield absorbed damage");
+            
+            // Add effect feedback for shield activation
+            String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Escudo de %s absorbe %d de daño", playerName, amount);
+            System.out.println("DEBUG addEffectFeedback: Adding shield activation for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Escudo Activado", effectDescription);
             return;
         }
         // thorns reflects fixed damage once
@@ -117,6 +176,12 @@ public final class EffectResolver {
             }
             target.state().getBuffs().getStatuses().remove(StatusType.THORNS);
             state.getHistory().add("Thorns reflected:" + thorns);
+            
+            // Add effect feedback for thorns activation
+            String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Espinas de %s reflejan %d de daño", playerName, thorns);
+            System.out.println("DEBUG addEffectFeedback: Adding thorns activation for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Espinas Activadas", effectDescription);
         }
         // Apply damage to dot counter: damage to target = dots move away from target
         boolean toA = target.state() == state.getPlayerA();
@@ -127,10 +192,11 @@ public final class EffectResolver {
         }
         state.getHistory().add("Damage:" + amount + " (dots: " + state.getSharedDotCounter() + ")");
         
-        // Add effect feedback
-        String playerName = target.state() == state.getPlayerA() ? "Player A" : "Player B";
-        System.out.println("DEBUG addEffectFeedback: Adding damage effect for " + playerName + ": Damage " + amount);
-        state.addEffectFeedback(playerName, "Damage Effect", "Damage " + amount);
+        // Add effect feedback with clear description
+        String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+        String effectDescription = String.format("Daña %d puntos a %s", amount, playerName);
+        System.out.println("DEBUG addEffectFeedback: Adding damage effect for " + playerName + ": " + effectDescription);
+        state.addEffectFeedback(playerName, "Efecto Daño", effectDescription);
     }
 
     private void applyHeal(MatchPlayer target, int amount) {
@@ -142,6 +208,12 @@ public final class EffectResolver {
             state.addToDotCounter(-amount); // B heals = dots go down (favor B)
         }
         state.getHistory().add("Heal:" + amount + " (dots: " + state.getSharedDotCounter() + ")");
+        
+        // Add effect feedback with clear description
+        String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+        String effectDescription = String.format("Cura %d puntos a %s", amount, playerName);
+        System.out.println("DEBUG addEffectFeedback: Adding heal effect for " + playerName + ": " + effectDescription);
+        state.addEffectFeedback(playerName, "Efecto Cura", effectDescription);
     }
 
     private void applyDraw(MatchPlayer target, int count) {
@@ -184,7 +256,33 @@ public final class EffectResolver {
         };
         if (type == null) return;
         MatchPlayer target = targetOf(a.target(), self, opp);
-        target.state().getBuffs().getStatuses().apply(type, a.amount() == null ? 0 : a.amount(), a.duration_turns() == null ? 1 : a.duration_turns());
+        int amount = a.amount() == null ? 0 : a.amount();
+        int duration = a.duration_turns() == null ? 1 : a.duration_turns();
+        
+        target.state().getBuffs().getStatuses().apply(type, amount, duration);
+        
+        // Add effect feedback for status being applied
+        String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+        String statusName = getStatusDisplayName(type);
+        String effectDescription = String.format("Aplica %s a %s por %d turno%s", statusName, playerName, duration, duration == 1 ? "" : "s");
+        if (amount > 0) {
+            effectDescription += String.format(" (fuerza: %d)", amount);
+        }
+        
+        System.out.println("DEBUG addEffectFeedback: Adding status effect for " + playerName + ": " + effectDescription);
+        state.addEffectFeedback(playerName, "Efecto Status", effectDescription);
+    }
+    
+    private String getStatusDisplayName(StatusType type) {
+        return switch (type) {
+            case SHIELD -> "Escudo";
+            case THORNS -> "Espinas";
+            case REFLECT_ALL_DAMAGE -> "Reflejo Total";
+            case SHIELD_NEXT_PUSH_AGAINST_YOU -> "Escudo Anti-Push";
+            case REFLECT_NEXT_PUSH -> "Reflejo Push";
+            case RANDOMIZE_NEXT_CARD_EFFECT -> "Efecto Aleatorio";
+            case GLOBAL_RANDOM_EFFECTS -> "Efectos Globales Aleatorios";
+        };
     }
 
     private void revealRandom(MatchPlayer target, int count) {
@@ -207,25 +305,79 @@ public final class EffectResolver {
                 state.getHistory().add("Revealed card: " + cardId);
             }
         }
+        
+        // Add effect feedback with clear description
+        if (n > 0) {
+            String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Revela %d carta%s de %s", n, n == 1 ? "" : "s", playerName);
+            System.out.println("DEBUG addEffectFeedback: Adding reveal effect for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Efecto Revelar", effectDescription);
+        }
     }
 
     private void stealRandom(MatchPlayer thief, MatchPlayer victim, int count) {
+        int stolenCount = 0;
         for (int i = 0; i < count && !victim.state().getHand().isEmpty(); i++) {
             int idx = state.getRng().nextInt(victim.state().getHand().size());
             var card = victim.state().getHand().remove(idx);
             thief.state().getHand().add(card);
+            stolenCount++;
+        }
+        
+        // Add effect feedback with clear description
+        if (stolenCount > 0) {
+            String thiefName = thief.state() == state.getPlayerA() ? playerAName : playerBName;
+            String victimName = victim.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Roba %d carta%s de %s", stolenCount, stolenCount == 1 ? "" : "s", victimName);
+            System.out.println("DEBUG addEffectFeedback: Adding steal effect for " + thiefName + ": " + effectDescription);
+            state.addEffectFeedback(thiefName, "Efecto Robar", effectDescription);
         }
     }
 
     private void destroyRandomTableau(MatchPlayer target, int count) {
+        int destroyedCount = 0;
         for (int i = 0; i < count && !target.state().getTableau().isEmpty(); i++) {
             int idx = state.getRng().nextInt(target.state().getTableau().size());
             target.state().getDiscard().add(target.state().getTableau().remove(idx));
+            destroyedCount++;
+        }
+        
+        // Add effect feedback with clear description
+        if (destroyedCount > 0) {
+            String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = String.format("Destruye %d carta%s del tableau de %s", destroyedCount, destroyedCount == 1 ? "" : "s", playerName);
+            System.out.println("DEBUG addEffectFeedback: Adding destroy effect for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Efecto Destruir", effectDescription);
         }
     }
 
     private void modifyMaxHandSize(MatchPlayer target, int delta) {
+        int oldSize = target.state().getMaxHandSize();
         target.state().setMaxHandSize(Math.max(0, target.state().getMaxHandSize() + delta));
+        int newSize = target.state().getMaxHandSize();
+        
+        // Add effect feedback with clear description
+        if (delta != 0) {
+            String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription;
+            if (delta > 0) {
+                effectDescription = String.format("Aumenta tamaño de mano de %s a %d", playerName, newSize);
+            } else {
+                effectDescription = String.format("Reduce tamaño de mano de %s a %d", playerName, newSize);
+            }
+            System.out.println("DEBUG addEffectFeedback: Adding hand size effect for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Efecto Tamaño Mano", effectDescription);
+        }
+    }
+
+    private void grantExtraFaceDownPlay(MatchPlayer target, int count) {
+        target.state().addExtraFaceDownPlays(count);
+        
+        // Add effect feedback with clear description
+        String playerName = target.state() == state.getPlayerA() ? playerAName : playerBName;
+        String effectDescription = String.format("Otorga %d jugada%s extra face-down a %s", count, count == 1 ? "" : "s", playerName);
+        System.out.println("DEBUG addEffectFeedback: Adding extra face-down play effect for " + playerName + ": " + effectDescription);
+        state.addEffectFeedback(playerName, "Efecto Jugada Extra", effectDescription);
     }
 
     private void checkWinCondition(MatchPlayer self, Action a) {
@@ -243,18 +395,84 @@ public final class EffectResolver {
 
     private void copyLast(MatchPlayer self, MatchPlayer opp, int times) {
         var actions = state.getLastActionsAppliedFor(self.state());
-        if (actions == null || actions.isEmpty()) return;
+        if (actions == null || actions.isEmpty()) {
+            // Add feedback for no effects to copy
+            String playerName = self.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = "No hay efectos para copiar";
+            System.out.println("DEBUG addEffectFeedback: Adding copy effect for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Efecto Copia", effectDescription);
+            return;
+        }
         
         // Prevent infinite loops by filtering out copy_last_card_effect actions
         var filteredActions = actions.stream()
             .filter(action -> !"copy_last_card_effect".equals(action.type()))
             .toList();
         
-        if (filteredActions.isEmpty()) return;
+        if (filteredActions.isEmpty()) {
+            // Add feedback for no valid effects to copy
+            String playerName = self.state() == state.getPlayerA() ? playerAName : playerBName;
+            String effectDescription = "No hay efectos válidos para copiar";
+            System.out.println("DEBUG addEffectFeedback: Adding copy effect for " + playerName + ": " + effectDescription);
+            state.addEffectFeedback(playerName, "Efecto Copia", effectDescription);
+            return;
+        }
+        
+        // Create description of what effects are being copied
+        String playerName = self.state() == state.getPlayerA() ? playerAName : playerBName;
+        StringBuilder effectDescription = new StringBuilder();
+        effectDescription.append("Copia ");
+        
+        // Group similar effects for cleaner description
+        var effectCounts = filteredActions.stream()
+            .collect(java.util.stream.Collectors.groupingBy(
+                action -> getEffectDisplayName(action.type()),
+                java.util.stream.Collectors.counting()
+            ));
+        
+        boolean first = true;
+        for (var entry : effectCounts.entrySet()) {
+            if (!first) effectDescription.append(", ");
+            first = false;
+            
+            String effectName = entry.getKey();
+            long count = entry.getValue();
+            effectDescription.append(effectName);
+            if (count > 1) {
+                effectDescription.append(" (x").append(count).append(")");
+            }
+        }
+        
+        effectDescription.append(" del último turno");
+        if (times > 1) {
+            effectDescription.append(" ").append(times).append(" veces");
+        }
+        
+        System.out.println("DEBUG addEffectFeedback: Adding copy effect for " + playerName + ": " + effectDescription);
+        state.addEffectFeedback(playerName, "Efecto Copia", effectDescription.toString());
         
         for (int i = 0; i < times; i++) {
             applyActions(filteredActions, self, opp);
         }
+    }
+    
+    private String getEffectDisplayName(String actionType) {
+        return switch (actionType) {
+            case "push" -> "Empuje";
+            case "damage" -> "Daño";
+            case "heal" -> "Curación";
+            case "draw" -> "Robo de carta";
+            case "status" -> "Estado";
+            case "reveal_random_cards" -> "Revelar cartas";
+            case "steal_random_card_from_hand" -> "Robar carta";
+            case "destroy_random_cards_in_tableau" -> "Destruir cartas";
+            case "modify_max_hand_size" -> "Modificar tamaño de mano";
+            case "grant_extra_face_down_play" -> "Jugada extra";
+            case "steal_card_from_tableau_and_play" -> "Robar y jugar carta";
+            case "conditional_push_if_opponent_hand_empty" -> "Empuje condicional";
+            case "fallback_push_if_no_trigger" -> "Empuje de respaldo";
+            default -> actionType;
+        };
     }
 
     private void stealFromTableauAndPlay(MatchPlayer thief, MatchPlayer victim, Action a) {

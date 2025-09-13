@@ -35,20 +35,20 @@ public class DotCounterTest {
         er.applyActions(List.of(damageToA), new MatchPlayer(playerA), new MatchPlayer(playerB));
         assertEquals(-3, gs.getSharedDotCounter());
         
-        // Test damage to B increases dots (favor A)
+        // Test damage to B decreases dots (favor B)
         var damageToB = new CardDefinitionSet.Action("push", "opponent", 2, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(damageToB), new MatchPlayer(playerA), new MatchPlayer(playerB));
-        assertEquals(-1, gs.getSharedDotCounter()); // -3 + 2 = -1
+        assertEquals(-5, gs.getSharedDotCounter()); // -3 + (-2) = -5, clamped to -5
         
         // Test heal to A increases dots
         var healToA = new CardDefinitionSet.Action("push", "self", 4, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(healToA), new MatchPlayer(playerA), new MatchPlayer(playerB));
-        assertEquals(3, gs.getSharedDotCounter()); // -1 + 4 = 3
+        assertEquals(-1, gs.getSharedDotCounter()); // -5 + 4 = -1
         
-        // Test heal to B decreases dots (favor B)
+        // Test heal to B increases dots (favor A)
         var healToB = new CardDefinitionSet.Action("push", "opponent", -1, null, null, null, null, null, null, null, null, null, null, null, null, null);
         er.applyActions(List.of(healToB), new MatchPlayer(playerA), new MatchPlayer(playerB));
-        assertEquals(2, gs.getSharedDotCounter()); // 3 - 1 = 2
+        assertEquals(0, gs.getSharedDotCounter()); // -1 + 1 = 0
     }
     
     @Test
