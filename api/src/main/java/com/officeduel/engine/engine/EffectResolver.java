@@ -67,13 +67,21 @@ public final class EffectResolver {
     }
 
     private void applyPush(MatchPlayer source, int amount, String target) {
-        // New simplified push system: amount is always relative to the player who plays the card
-        // Positive amount = benefits the player (good for them)
-        // Negative amount = hurts the player (bad for them)
+        // Push system: amount is relative to the player who plays the card
+        // Positive amount = benefits the player (moves counter toward them)
+        // Negative amount = hurts the player (moves counter away from them)
         // Target parameter is ignored for push actions
         
-        state.addToDotCounter(amount);
-        state.getHistory().add("Push " + amount + " (relative to card player)");
+        // Determine direction based on which player is the source
+        int adjustedAmount = amount;
+        if (source.state() == state.getPlayerB()) {
+            // Player B playing: positive amount moves counter toward Player B (negative direction)
+            adjustedAmount = -amount;
+        }
+        // Player A playing: positive amount moves counter toward Player A (positive direction)
+        
+        state.addToDotCounter(adjustedAmount);
+        state.getHistory().add("Push " + amount + " by " + (source.state() == state.getPlayerA() ? "Player A" : "Player B") + " -> adjusted: " + adjustedAmount);
     }
 
     private void applyDamage(MatchPlayer target, int amount) {
