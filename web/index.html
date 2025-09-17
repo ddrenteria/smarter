@@ -150,6 +150,106 @@
       border-color: #bbb;
     }
 
+    /* Responsive Design for Initial Screens */
+    @media (min-width: 1200px) {
+      .screen-content {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .screen {
+        min-height: 100vh;
+        padding: 10px;
+      }
+      
+      .screen-content {
+        padding: 20px;
+        margin: 10px;
+        max-width: none;
+        width: calc(100% - 20px);
+      }
+      
+      .screen-content h2 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+      }
+      
+      .screen-content p {
+        font-size: 1em;
+        margin-bottom: 20px;
+      }
+      
+      .home-btn {
+        padding: 15px 20px;
+        font-size: 1.1em;
+      }
+      
+      .input-group input {
+        padding: 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+      
+      .action-btn {
+        padding: 12px 25px;
+        font-size: 1em;
+      }
+      
+      .secondary-btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+      }
+      
+      .match-info {
+        padding: 15px;
+        margin: 15px 0;
+      }
+      
+      .match-info h3 {
+        font-size: 1.2em;
+      }
+      
+      .match-info p {
+        font-size: 0.9em;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .screen-content {
+        padding: 15px;
+        margin: 5px;
+        width: calc(100% - 10px);
+      }
+      
+      .screen-content h2 {
+        font-size: 1.3em;
+      }
+      
+      .home-btn {
+        padding: 12px 15px;
+        font-size: 1em;
+      }
+      
+      .input-group {
+        gap: 10px;
+      }
+      
+      .input-group input {
+        padding: 10px;
+      }
+      
+      .action-btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+      }
+      
+      .secondary-btn {
+        padding: 8px 15px;
+        font-size: 0.8em;
+      }
+    }
+
     /* Game Styles */
     .game-container { 
       display: grid; 
@@ -1790,10 +1890,10 @@
       <!-- Your Area (Bottom) -->
       <div class="player-section player-area" id="playerB">
         <div class="player-area-label">Your Area</div>
-        <h4>Hand:</h4>
-        <div class="hand" id="handB"></div>
         <h4>Tableau:</h4>
         <div class="tableau" id="tableauB"></div>
+        <h4>Hand:</h4>
+        <div class="hand" id="handB"></div>
         <div class="status-effects" id="statusEffectsB">
           <h4>Estados Activos</h4>
           <div class="status-effects-list" id="statusEffectsListB">
@@ -2099,6 +2199,8 @@
       // Clamp counter between -5 and 5
       const clampedCounter = Math.max(-5, Math.min(5, dotCounter));
       
+      console.log('DEBUG generateVisualCounter: dotCounter =', dotCounter, 'clampedCounter =', clampedCounter);
+      
       // Truncate player names to max 10 characters
       const nameA = playerAName.length > 10 ? playerAName.substring(0, 10) + '...' : playerAName;
       const nameB = playerBName.length > 10 ? playerBName.substring(0, 10) + '...' : playerBName;
@@ -2107,8 +2209,10 @@
       const stones = [];
       
       // Player A stones (top) - positive values (+1 to +5) - INVERTED
-      for (let i = 1; i <= 5; i++) {
+      console.log('DEBUG generateVisualCounter: Generating Player A stones (top to bottom: 5,4,3,2,1)');
+      for (let i = 5; i >= 1; i--) {
         if (clampedCounter === i) {
+          console.log('DEBUG generateVisualCounter: Activating Player A stone', i, 'for counter', clampedCounter, '- Position in array:', stones.length);
           stones.push('<span class="stone active">●</span>'); // Active stone for exact position
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
@@ -2123,8 +2227,10 @@
       }
       
       // Player B stones (bottom) - negative values (-1 to -5) - INVERTED
-      for (let i = 1; i <= 5; i++) {
+      console.log('DEBUG generateVisualCounter: Generating Player B stones (top to bottom: -1,-2,-3,-4,-5)');
+      for (let i = 5; i >= 1; i--) {
         if (clampedCounter === -i) {
+          console.log('DEBUG generateVisualCounter: Activating Player B stone', i, 'for counter', clampedCounter, '- Position in array:', stones.length);
           stones.push('<span class="stone active">●</span>'); // Active stone for exact position
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
@@ -2132,6 +2238,11 @@
       }
       
       // Combine everything with vertical layout
+      console.log('DEBUG generateVisualCounter: Final stones array:', stones.map((stone, index) => {
+        const isActive = stone.includes('active');
+        return `Stone ${index}: ${isActive ? 'ACTIVE' : 'inactive'}`;
+      }));
+      
       return `<div class="visual-counter-display">
         <div class="player-name">${nameA}</div>
         <div class="stones-container">${stones.join('')}</div>

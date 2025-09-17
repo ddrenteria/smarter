@@ -34,7 +34,7 @@ public class MatchController {
         // If match not started yet, return lobby state
         if (!e.started()) {
         return ResponseEntity.ok(new MatchStateDto(
-                id, 0, 0, 0, 0, 0, 0, 0, 
+                id, 0, 0, 0, 0, 0, 
                 List.of(), List.of(), List.of(), 
                 getCardDefinitions(), "LOBBY", null, null, false, 0,
                 e.playerA(), e.playerB(), e.readyA(), e.readyB(), false, e.playerAIsBot(), e.playerBIsBot(),
@@ -61,8 +61,6 @@ public class MatchController {
         
         return ResponseEntity.ok(new MatchStateDto(
                 id,
-                gs.getPlayerA().getLifePoints(),
-                gs.getPlayerB().getLifePoints(),
                 gs.getPlayerA().getHand().size(),
                 gs.getPlayerB().getHand().size(),
                 gs.getPlayerA().getTableau().size(),
@@ -113,8 +111,6 @@ public class MatchController {
         
         return ResponseEntity.ok(new MatchStateDto(
                 id,
-                gs.getPlayerA().getLifePoints(),
-                gs.getPlayerB().getLifePoints(),
                 gs.getPlayerA().getHand().size(),
                 gs.getPlayerB().getHand().size(),
                 gs.getPlayerA().getTableau().size(),
@@ -179,8 +175,6 @@ public class MatchController {
         
         return ResponseEntity.ok(new MatchStateDto(
                 id,
-                gs.getPlayerA().getLifePoints(),
-                gs.getPlayerB().getLifePoints(),
                 gs.getPlayerA().getHand().size(),
                 gs.getPlayerB().getHand().size(),
                 gs.getPlayerA().getTableau().size(),
@@ -259,8 +253,6 @@ public class MatchController {
         
         return ResponseEntity.ok(new MatchStateDto(
                 id,
-                gs.getPlayerA().getLifePoints(),
-                gs.getPlayerB().getLifePoints(),
                 gs.getPlayerA().getHand().size(),
                 gs.getPlayerB().getHand().size(),
                 gs.getPlayerA().getTableau().size(),
@@ -392,8 +384,6 @@ public class MatchController {
                 effect.cardName(),
                 effect.effectDescription(),
                 effect.dotChange(),
-                effect.lpChangeA(),
-                effect.lpChangeB(),
                 effect.timestamp()
             ))
             .toList();

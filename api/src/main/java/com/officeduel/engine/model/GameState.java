@@ -104,14 +104,11 @@ public final class GameState {
     public void clearRecentlyAddedCardsB() { recentlyAddedCardsB.clear(); }
     
     public void addEffectFeedback(String playerName, String cardName, String effectDescription) {
-        int lpChangeA = playerA.getLifePoints() - previousLpA;
-        int lpChangeB = playerB.getLifePoints() - previousLpB;
         int dotChange = sharedDotCounter - previousDotCounter;
         
         recentEffects.add(new EffectFeedback(
             playerName, cardName, effectDescription, 
-            dotChange, lpChangeA, lpChangeB, 
-            System.currentTimeMillis()
+            dotChange, System.currentTimeMillis()
         ));
         
         // Keep only last 10 effects to avoid memory issues
@@ -120,8 +117,6 @@ public final class GameState {
         }
         
         // Update previous values for next effect
-        previousLpA = playerA.getLifePoints();
-        previousLpB = playerB.getLifePoints();
         previousDotCounter = sharedDotCounter;
     }
     
@@ -149,8 +144,6 @@ public final class GameState {
             String cardName,
             String effectDescription,
             int dotChange,
-            int lpChangeA,
-            int lpChangeB,
             long timestamp
     ) {}
 }

@@ -408,6 +408,11 @@
               "type": "draw",
               "target": "self",
               "count": 1
+            },
+            {
+              "type": "push",
+              "amount": 1,
+              "target": "opponent"
             }
           ]
         },
@@ -415,7 +420,8 @@
           "actions": [
             {
               "type": "push",
-              "amount": 1
+              "amount": 1,
+              "target": "opponent"
             }
           ]
         },
@@ -423,7 +429,8 @@
           "actions": [
             {
               "type": "push",
-              "amount": -2
+              "amount": -2,
+              "target": "self"
             }
           ]
         }

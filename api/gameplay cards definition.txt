@@ -331,7 +331,7 @@
             {
               "type": "push",
               "amount": 3,
-              "target": "opponent_side"
+              "target": "self"
             }
           ]
         }
@@ -427,9 +427,14 @@
         {
           "actions": [
             {
-              "type": "grant_extra_face_down_play",
+              "type": "draw",
               "target": "self",
               "count": 1
+            },
+            {
+              "type": "push",
+              "amount": 1,
+              "target": "opponent"
             }
           ]
         },
@@ -547,7 +552,7 @@
             {
               "type": "push",
               "amount": 3,
-              "target": "opponent_side"
+              "target": "self"
             }
           ]
         }

@@ -7,6 +7,10 @@ import com.officeduel.engine.model.PlayerState;
 import com.officeduel.engine.telemetry.Telemetry;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
+import com.officeduel.engine.model.Cards;
 
 public final class TurnEngine {
     private final GameState state;
@@ -41,7 +45,10 @@ public final class TurnEngine {
         // Initialize LP
         state.getPlayerA().setLifePoints(index.maxLp());
         state.getPlayerB().setLifePoints(index.maxLp());
-        // TODO: init decks from default pool; for now keep empty
+        
+        // Initialize decks with all available cards
+        initializeDecks();
+        
         drawUpTo(state.getPlayerA());
         drawUpTo(state.getPlayerB());
         if (telemetry != null) telemetry.emit(new Telemetry.MatchStart(state.getRng().seed()));
@@ -256,10 +263,138 @@ public final class TurnEngine {
         if (telemetry != null) telemetry.emit(new Telemetry.CardPlayed(recipient.state() == state.getPlayerA() ? 0 : 1, cardId, tierIdx + 1));
     }
 
+    private void initializeDecks() {
+        // Get all available card IDs
+        List<String> allCardIds = index.getAllCards().stream()
+            .map(card -> card.id())
+            .toList();
+            
+        System.out.println("DEBUG initializeDecks: Found " + allCardIds.size() + " card types: " + allCardIds);
+        
+        // Create a deck with multiple copies of each card for each player
+        // Each player gets 3 copies of each card to ensure variety
+        int copiesPerCard = 3;
+        
+        // Initialize Player A deck
+        for (String cardId : allCardIds) {
+            for (int i = 0; i < copiesPerCard; i++) {
+                state.getPlayerA().getDeck().add(new Cards(cardId));
+            }
+        }
+        
+        // Initialize Player B deck
+        for (String cardId : allCardIds) {
+            for (int i = 0; i < copiesPerCard; i++) {
+                state.getPlayerB().getDeck().add(new Cards(cardId));
+            }
+        }
+        
+        // Shuffle both decks using Fisher-Yates algorithm
+        shuffleDeck(state.getPlayerA().getDeck());
+        shuffleDeck(state.getPlayerB().getDeck());
+        
+        System.out.println("DEBUG initializeDecks: Player A deck size: " + state.getPlayerA().getDeck().size());
+        System.out.println("DEBUG initializeDecks: Player B deck size: " + state.getPlayerB().getDeck().size());
+    }
+    
+    private void shuffleDeck(java.util.Deque<Cards> deck) {
+        // Convert to list for shuffling
+        List<Cards> deckList = new java.util.ArrayList<>(deck);
+        deck.clear();
+        
+        // Fisher-Yates shuffle
+        for (int i = deckList.size() - 1; i > 0; i--) {
+            int j = state.getRng().nextInt(i + 1);
+            Cards temp = deckList.get(i);
+            deckList.set(i, deckList.get(j));
+            deckList.set(j, temp);
+        }
+        
+        // Add back to deck
+        deck.addAll(deckList);
+    }
+
     private void drawUpTo(PlayerState ps) {
-        while (ps.getHand().size() < ps.getMaxHandSize() && !ps.getDeck().isEmpty()) {
+        // First, ensure minimum of 2 distinct cards
+        ensureMinimumDistinctCards(ps);
+        
+        // Then, fill up to max hand size with smart drawing
+        smartDrawUpToMax(ps);
+    }
+    
+    private void ensureMinimumDistinctCards(PlayerState ps) {
+        // Count distinct cards in hand
+        long distinctCount = ps.getHand().stream()
+            .map(card -> card.cardId())
+            .distinct()
+            .count();
+            
+        System.out.println("DEBUG ensureMinimumDistinctCards: Starting with " + distinctCount + " distinct cards, deck size: " + ps.getDeck().size());
+            
+        // If we have less than 2 distinct cards, draw until we have at least 2
+        int attempts = 0;
+        int maxAttempts = ps.getDeck().size() * 2; // Prevent infinite loops
+        
+        while (distinctCount < 2 && !ps.getDeck().isEmpty() && attempts < maxAttempts) {
             if (ps.consumeBlockDrawIfAny()) continue;
-            ps.getHand().add(ps.getDeck().pop());
+            
+            Cards newCard = ps.getDeck().pop();
+            String newCardId = newCard.cardId();
+            attempts++;
+            
+            // Check if this card is already in hand
+            boolean isDuplicate = ps.getHand().stream()
+                .anyMatch(card -> card.cardId().equals(newCardId));
+                
+            if (!isDuplicate) {
+                // Only add if it's not a duplicate
+                ps.getHand().add(newCard);
+                distinctCount++;
+                System.out.println("DEBUG ensureMinimumDistinctCards: Drew distinct card " + newCardId + ", distinct count now: " + distinctCount);
+            } else {
+                // If it's a duplicate, put it back and try next card
+                ps.getDeck().push(newCard);
+                System.out.println("DEBUG ensureMinimumDistinctCards: Skipped duplicate card " + newCardId + " (attempt " + attempts + ")");
+            }
+        }
+        
+        if (distinctCount < 2) {
+            System.out.println("DEBUG ensureMinimumDistinctCards: WARNING - Could not ensure 2 distinct cards. Deck may be empty or have only duplicates. Distinct count: " + distinctCount);
+        }
+    }
+    
+    private void smartDrawUpToMax(PlayerState ps) {
+        // Count distinct cards in hand
+        long distinctCount = ps.getHand().stream()
+            .map(card -> card.cardId())
+            .distinct()
+            .count();
+            
+        // If we already have 2+ distinct cards, only draw 1 more to fill up
+        int targetHandSize = (distinctCount >= 2) ? 
+            Math.min(ps.getHand().size() + 1, ps.getMaxHandSize()) : 
+            ps.getMaxHandSize();
+            
+        System.out.println("DEBUG smartDrawUpToMax: distinctCount=" + distinctCount + ", currentHandSize=" + ps.getHand().size() + ", targetHandSize=" + targetHandSize);
+        
+        // Draw cards up to target size, avoiding duplicates in this turn
+        Set<String> cardsDrawnThisTurn = new HashSet<>();
+        while (ps.getHand().size() < targetHandSize && !ps.getDeck().isEmpty()) {
+            if (ps.consumeBlockDrawIfAny()) continue;
+            
+            Cards newCard = ps.getDeck().pop();
+            String newCardId = newCard.cardId();
+            
+            // Check if we already drew this card this turn
+            if (!cardsDrawnThisTurn.contains(newCardId)) {
+                ps.getHand().add(newCard);
+                cardsDrawnThisTurn.add(newCardId);
+                System.out.println("DEBUG smartDrawUpToMax: Drew card " + newCardId + " (turn draw #" + cardsDrawnThisTurn.size() + ")");
+            } else {
+                // If it's a duplicate from this turn, put it back
+                ps.getDeck().push(newCard);
+                System.out.println("DEBUG smartDrawUpToMax: Skipped duplicate card " + newCardId + " from this turn");
+            }
         }
     }
 

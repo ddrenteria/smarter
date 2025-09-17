@@ -5,8 +5,6 @@ import java.util.Map;
 
 public record MatchStateDto(
         String id,
-        int lpA,
-        int lpB,
         int handSizeA,
         int handSizeB,
         int tableauSizeA,
@@ -21,7 +19,7 @@ public record MatchStateDto(
         String faceDownCardId,
         boolean waitingForOpponentChoice,
         int sharedDotCounter,
-        // New Milestone 1 fields
+        // Player info
         String playerA,
         String playerB,
         boolean readyA,
@@ -64,8 +62,6 @@ public record MatchStateDto(
             String cardName,
             String effectDescription,
             int dotChange,
-            int lpChangeA,
-            int lpChangeB,
             long timestamp
     ) {}
 }
