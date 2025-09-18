@@ -3524,9 +3524,15 @@
                const wouldBeActiveForMe = idx === myNextLevel;
                const wouldBeActiveForOpp = idx === oppNextLevel;
                
-               if (wouldBeActiveForMe || wouldBeActiveForOpp) {
-                 // This tier would be active - show both colors since either player can get the card
+               if (wouldBeActiveForMe && wouldBeActiveForOpp) {
+                 // This tier would be active for BOTH players - show both colors
                  effectClass = 'effect-both';
+               } else if (wouldBeActiveForMe) {
+                 // This tier would be active only for ME - show blue
+                 effectClass = 'effect-mine';
+               } else if (wouldBeActiveForOpp) {
+                 // This tier would be active only for OPPONENT - show orange
+                 effectClass = 'effect-opponent';
                }
                
                li.className = effectClass;
