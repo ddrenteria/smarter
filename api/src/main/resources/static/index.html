@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Office Duell - New UI v17.1 - Double Turn Phase Timers</title>
+  <title>Deception Tour - New UI v17.2 - Fixed Card Interaction</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
-    // Force refresh if cached - v17.1
-    console.log('Loading Office Duel v17.1 - Board Symmetry Fix');
+    // Force refresh if cached - v17.2
+    console.log('Loading Deception Tour v17.2 - Fixed Card Interaction');
     if(window.location.search.indexOf('v=') === -1) {
       window.location.href = window.location.href + '?v=' + Date.now();
     }
@@ -253,25 +253,497 @@
     /* Game Styles */
     .game-container { 
       display: grid; 
-      grid-template-columns: 280px 1fr; 
-      grid-template-rows: auto 160px 1fr auto; 
+      grid-template-columns: 1fr; 
+      grid-template-rows: auto 1fr auto; 
       gap: 20px; 
-      min-height: 80vh;
+      min-height: 100vh;
       width: 100%;
+      height: 100vh;
+      overflow: hidden;
     }
-    .game-header { grid-column: 2; grid-row: 1; }
-    .recent-effects-full-width { grid-column: 1 / -1; grid-row: 2; }
-    .game-main { grid-column: 2; grid-row: 3; }
-    .game-footer { grid-column: 2; grid-row: 4; }
-    .game-sidebar { 
-      grid-column: 1; 
-      grid-row: 1 / 5; 
+    .game-header { grid-column: 1; grid-row: 1; }
+    .game-main { grid-column: 1; grid-row: 2; }
+    .game-footer { grid-column: 1; grid-row: 3; }
+    
+    /* DISABLED: Collapsible sections removed to prevent hover interference */
+    
+    /* Hover effects for focus - DISABLED to prevent interference with card interaction */
+    /* .game-main:hover .collapsed:not(:hover) {
+      opacity: 0.2;
+      transform: scale(0.9);
+    } */
+    
+    .player-section {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    
+    .player-section:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+    
+    .player-section.collapsed {
+      padding: 8px;
+      margin: 5px 0;
+    }
+    
+    .player-section.collapsed .hand,
+    .player-section.collapsed .tableau {
+      display: flex;
+    }
+    
+    .player-section.collapsed .player-area-label {
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+    
+    /* Card selection panel responsive */
+    .card-selection-panel {
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 20;
+    }
+    
+    .card-selection-panel.collapsed {
+      transform: scale(0.8);
+      opacity: 0.7;
+    }
+    
+    .card-selection-panel:hover {
+      transform: scale(1.05);
+      z-index: 30;
+    }
+    
+    /* Floating Elements */
+    .floating-counter {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+      pointer-events: none;
+    }
+    
+    .floating-timer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    
+    .floating-timer .timer-label {
+      font-weight: bold;
+    }
+    
+    .floating-timer .timer {
+      font-family: monospace;
+      font-size: 16px;
+    }
+    
+    
+    .winner-display {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    
+    /* Player section headers with stats */
+    .player-area-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .player-stats-inline {
+      display: flex;
+      gap: 15px;
+      font-size: 0.9em;
+      color: #666;
+    }
+    
+    .stat-inline {
       display: flex;
       flex-direction: column;
-      justify-content: center; /* Centra verticalmente el contenido */
-      align-items: center; /* Centra horizontalmente el contenido */
-      padding: 20px 0; /* Padding vertical para espaciado */
-      gap: 15px; /* Espacio entre elementos */
+      align-items: center;
+    }
+    
+    .stat-inline .label {
+      font-size: 0.8em;
+      color: #999;
+    }
+    
+    .stat-inline .value {
+      font-weight: bold;
+      color: #333;
+    }
+    
+    
+    /* Hidden elements */
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Eye button styling */
+    .eye-button {
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      margin-left: 8px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      opacity: 0.7;
+    }
+    
+    .eye-button:hover {
+      background-color: rgba(0,0,0,0.1);
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    
+    /* Toast Styles */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    
+    .toast {
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      font-size: 14px;
+      font-weight: 500;
+      max-width: 300px;
+      word-wrap: break-word;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .toast.hide {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    
+    .toast.success {
+      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    }
+    
+    .toast.info {
+      background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    }
+    
+    .toast.warning {
+      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    }
+    
+    .toast.error {
+      background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    }
+    
+    .toast.effect {
+      background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+    }
+    
+    /* Responsive Game Board */
+    @media (max-width: 768px) {
+      .game-container {
+        gap: 5px;
+        min-height: 100vh;
+        overflow-y: auto;
+      }
+      
+      .game-header {
+        text-align: center;
+        padding: 10px;
+        display: none; /* Hide on mobile to save space */
+      }
+      
+      .game-main {
+        padding: 5px;
+        overflow-y: auto;
+        max-height: calc(100vh - 80px);
+      }
+      
+      .game-footer {
+        padding: 10px;
+        display: none; /* Hide on mobile to save space */
+      }
+      
+      .player-section {
+        margin: 3px 0;
+        padding: 8px;
+      }
+      
+      .hand {
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      
+      .card {
+        width: 100px !important;
+        min-height: 100px !important;
+        font-size: 9px !important;
+        margin: 2px !important;
+      }
+      
+      .player-section.collapsed {
+        padding: 5px;
+        margin: 3px 0;
+      }
+      
+      .card-selection-panel {
+        margin: 10px 5px;
+        padding: 15px;
+      }
+      
+      .card-choice-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .card-choice {
+        width: 100%;
+        margin: 0;
+      }
+      
+      .floating-timer {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      
+      
+      .player-stats-inline {
+        gap: 10px;
+        font-size: 0.8em;
+      }
+    }
+    
+    /* Layout horizontal para pantallas muy bajas */
+    @media (max-height: 700px) and (min-width: 1000px) {
+      .game-main {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        align-items: flex-start;
+        overflow-x: auto;
+        padding: 5px;
+        max-height: none;
+      }
+      
+      .player-section {
+        flex: 1;
+        min-width: 250px;
+        max-width: 350px;
+        margin: 0;
+      }
+      
+      .card-selection-panel {
+        flex: 0 0 300px;
+        order: 2;
+        margin: 0;
+      }
+      
+      /* Layout order: opponent, panel, self */
+      #playerB { order: 1; }              /* Opponent Area at top */
+      #cardSelectionPanel { order: 2; }   /* Choose Panel in middle */
+      #playerA { order: 3; }              /* Your Area at bottom */
+      
+      .card-choice-container {
+        flex-direction: row;
+        gap: 5px;
+      }
+      
+      /* Responsive design for choose panel */
+      @media (max-width: 1200px) {
+        .card-selection-panel {
+          padding: 15px;
+          margin: 10px;
+        }
+        
+        .card-choice {
+          min-width: 140px;
+        }
+        
+        .card-preview {
+          min-height: 80px;
+          padding: 8px;
+        }
+        
+        .legend {
+          margin: 8px 0;
+        }
+      }
+      
+      @media (max-width: 900px) {
+        .card-selection-panel {
+          padding: 12px;
+          margin: 8px;
+        }
+        
+        .card-choice-container {
+          flex-direction: column;
+          gap: 10px;
+          align-items: center;
+        }
+        
+        .card-choice {
+          min-width: 120px;
+          max-width: 200px;
+        }
+        
+        .card-preview {
+          min-height: 60px;
+          padding: 6px;
+        }
+        
+        .choose-btn {
+          padding: 8px 12px;
+          font-size: 0.9em;
+        }
+        
+        .dot-counter-display {
+          right: 10px !important;  /* Right side on mobile */
+          left: auto !important;    /* Clear left */
+          min-width: 50px;
+          max-width: 50px;
+          padding: 6px;
+          font-size: 0.9em;
+        }
+      }
+      
+      @media (max-width: 600px) {
+        .card-selection-panel {
+          padding: 10px;
+          margin: 5px;
+        }
+        
+        .card-choice {
+          min-width: 100px;
+          max-width: 150px;
+        }
+        
+        .card-preview {
+          min-height: 50px;
+          padding: 4px;
+          font-size: 0.8em;
+        }
+        
+        .choose-btn {
+          padding: 6px 10px;
+          font-size: 0.8em;
+        }
+        
+        .legend {
+          margin: 5px 0;
+          font-size: 0.9em;
+        }
+        
+        .legend-item {
+          margin: 0 8px;
+        }
+        
+        .panel-header h3 {
+          font-size: 1.1em;
+          margin: 5px 0;
+        }
+        
+        .dot-counter-display {
+          right: 5px !important;   /* Right side on small screens */
+          left: auto !important;    /* Clear left */
+          min-width: 45px;
+          max-width: 45px;
+          padding: 4px;
+          font-size: 0.8em;
+        }
+      }
+      
+      .card-choice {
+        flex: 1;
+        padding: 5px;
+      }
+      
+      .card-preview {
+        min-height: 50px;
+      }
+      
+      .dot-counter-floating {
+        left: 2px;
+        padding: 6px;
+        min-width: 70px;
+        max-width: 70px;
+        font-size: 0.8em;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .game-container {
+        gap: 5px;
+      }
+      
+      .player-section {
+        padding: 8px;
+        margin: 3px 0;
+      }
+      
+      .card-selection-panel {
+        margin: 5px;
+        padding: 10px;
+      }
+      
+      .card-choice-container {
+        gap: 10px;
+      }
+      
+      .floating-timer {
+        top: 5px;
+        right: 5px;
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+      
+      .player-stats-inline {
+        gap: 8px;
+        font-size: 0.7em;
+      }
     }
     
     /* Player Info Section - Left Side */
@@ -328,13 +800,13 @@
     .card-selection-panel {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       border: 2px solid #dee2e6;
-      border-radius: 12px;
-      padding: 15px;
-      margin: 8px 0;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 5px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       position: relative;
       z-index: 10;
-      min-height: 200px;
+      min-height: 150px;
     }
     
     .panel-header {
@@ -394,14 +866,15 @@
     
     .card-choice-container {
       display: flex;
-      gap: 15px;
+      gap: 20px;
       justify-content: center;
+      align-items: center;
       margin-bottom: 15px;
     }
     
     .card-choice {
       background: white;
-      border: 2px solid #28a745;
+      border: 2px solid #dee2e6;
       border-radius: 8px;
       padding: 15px;
       text-align: center;
@@ -764,6 +1237,139 @@
     }
     .player-area-label.opponent { background: #ff5722; }
     
+    .hand-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .hand-header h4 {
+      margin: 0;
+    }
+    
+    .toggle-hand-btn {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      color: #333;
+      font-weight: bold;
+    }
+    
+    .toggle-hand-btn:hover {
+      background: #e9ecef;
+      border-color: #adb5bd;
+      transform: scale(1.1);
+    }
+    
+    .opponent-hand.hidden {
+      display: none !important;
+    }
+    
+    .panel-header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .panel-header h3 {
+      margin: 0;
+    }
+    
+    
+    .dot-counter-display {
+      position: fixed !important;
+      right: 20px !important;           /* Right side with padding */
+      top: 50% !important;             /* Vertically centered */
+      transform: translateY(-50%) !important; /* Perfect vertical center */
+      text-align: center;
+      min-width: 60px;                  /* Narrower */
+      max-width: 60px;
+      background: rgba(0, 0, 0, 0.1) !important;  /* Almost transparent dark background */
+      border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Subtle transparent border */
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; /* Subtle shadow */
+      z-index: 99999 !important;        /* High z-index */
+      backdrop-filter: blur(3px);       /* Light glass effect */
+    }
+    
+    .visual-counter-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .visual-counter-display .player-name {
+      font-size: 0.6em;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.6);  /* More subtle white text */
+      margin: 2px 0;
+    }
+    
+    .active-indicator {
+      font-size: 0.8em;
+      margin-left: 5px;
+      animation: pulse 1s infinite;
+    }
+    
+    .player-name-pill {
+      display: inline-block;
+      background: #6c757d;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7em;
+      font-weight: normal;
+      margin-left: 10px;
+      margin-bottom: 8px;
+    }
+    
+    /* CSS-only reordering for Player A's view of Player B */
+    .player-a-view-opponent {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .player-a-view-opponent .player-area-label {
+      order: 1;
+    }
+    
+    .player-a-view-opponent .player-name-pill {
+      order: 2;
+    }
+    
+    /* Swap the h4 elements: make "Hand:" (originally 2nd) appear first */
+    .player-a-view-opponent h4:nth-of-type(2) {
+      order: 3; /* "Hand:" header */
+    }
+    
+    .player-a-view-opponent #handB {
+      order: 4; /* Hand div */
+    }
+    
+    /* Make "Tableau:" (originally 1st) appear second */
+    .player-a-view-opponent h4:nth-of-type(1) {
+      order: 5; /* "Tableau:" header */
+    }
+    
+    .player-a-view-opponent #tableauB {
+      order: 6; /* Tableau div */
+    }
+    
+    .player-a-view-opponent .status-effects {
+      order: 8;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
     /* Horizontal player info layout */
     .player-info-horizontal {
       display: flex;
@@ -806,7 +1412,8 @@
       padding: 8px;
       border: 2px solid #888;
       border-radius: 8px;
-      cursor: pointer;
+      cursor: pointer !important;
+      pointer-events: auto !important;
       background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
       display: flex;
       flex-direction: column;
@@ -916,6 +1523,32 @@
       border: 2px solid #ff9d46 !important;
       background: rgba(255, 157, 70, 0.1) !important;
       box-shadow: 0 0 8px rgba(255, 157, 70, 0.3);
+    }
+    
+    /* Effect coloring for hand cards */
+    .card-effects li.effect-mine {
+      background: rgba(61, 167, 255, 0.15);
+      border-left: 3px solid #3da7ff;
+      padding: 2px 4px;
+      margin: 1px 0;
+      border-radius: 3px;
+    }
+    
+    .card-effects li.effect-opponent {
+      background: rgba(255, 157, 70, 0.15);
+      border-left: 3px solid #ff9d46;
+      padding: 2px 4px;
+      margin: 1px 0;
+      border-radius: 3px;
+    }
+    
+    .card-effects li.effect-both {
+      background: linear-gradient(90deg, rgba(61, 167, 255, 0.15) 50%, rgba(255, 157, 70, 0.15) 50%);
+      border-left: 3px solid;
+      border-image: linear-gradient(180deg, #3da7ff 50%, #ff9d46 50%) 1;
+      padding: 2px 4px;
+      margin: 1px 0;
+      border-radius: 3px;
     }
     .tableau { display: flex; gap: 4px; margin: 10px 0; flex-wrap: wrap; }
     .tableau-card {
@@ -1108,22 +1741,32 @@
       height: 16px;
       line-height: 16px;
       text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 50%;
       transition: all 0.3s ease;
+      margin: 1px;
+      font-size: 0.9em;
     }
     
     .stone.active {
       color: #ffd700;
+      background: rgba(255, 215, 0, 0.3);
+      border: 2px solid #ffd700;
       text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
-      transform: scale(1.2);
+      transform: scale(1.3);
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
     }
     
     .stone.inactive {
       color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
     }
     
     .stone.center {
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.5);
       font-weight: bold;
     }
     .dot-labels {
@@ -1525,24 +2168,6 @@
       }
     }
     
-    .auto-turn-btn {
-      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.85em;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
-    }
-    
-    .auto-turn-btn:hover {
-      background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
-    }
     
     .enemy-area {
       margin-bottom: 20px;
@@ -1725,12 +2350,11 @@
   </style>
 </head>
 <body>
-   <h1>🎮 Office Duell - New 4-Screen UI v17.0 - Double Turn Phase Timers</h1>
   
   <!-- Screen 1: Home Screen -->
   <div id="homeScreen" class="screen" style="display: block;">
     <div class="screen-content">
-      <h2>🎮 Welcome to Office Duel!</h2>
+      <h2>🎮 Welcome to Deception Tour!</h2>
       <p>Choose how you want to play:</p>
       <div class="home-buttons">
         <button id="createMatchBtn" class="home-btn">🏢 Create Match</button>
@@ -1796,104 +2420,60 @@
   <div id="gameScreen" class="screen" style="display: none;">
     <div class="game-container" id="gameContainer">
     
-    <!-- Left Sidebar - Shared Counter -->
-    <div class="game-sidebar">
-      <!-- Opponent Info Section (Top) -->
-      <div class="player-info-section" id="opponentInfoSection">
-        <h4 id="opponentName">Opponent</h4>
-        <div class="player-stats">
-          <div class="stat-item">
-            <span class="stat-label">Hand:</span>
-            <span class="stat-value" id="opponentHandCount">0 cards</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Tableau:</span>
-            <span class="stat-value" id="opponentTableauCount">0 cards</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="shared-counter">
-        <h3>Battle Stones</h3>
-        <div class="dot-display">
-          <div class="dot-value" id="dotCounter">0</div>
-          <div class="dot-labels">
-            <span class="player-label">B Wins (-5)</span>
-            <span class="neutral-label">Neutral (0)</span>
-            <span class="player-label">A Wins (+5)</span>
-          </div>
-        </div>
-        <!-- Timer moved below dot counter -->
-        <div class="timer-display-container">
-          <div class="status">Timer: <span id="timer" class="timer-display">-</span></div>
-          <button id="autoBtn" class="auto-turn-btn">Auto Turn</button>
-        </div>
-        
-        <div id="winnerDisplay" class="winner-display" style="display: none;">
-          <h2 id="winnerText">Game Over!</h2>
-          <div style="margin-top: 15px;">
-            <button id="rematchBtn" class="btn btn-primary" style="margin-right: 10px;">🔄 Rematch</button>
-            <button id="gameBackToHomeBtn" class="btn btn-secondary">🏠 Back to Home</button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Player Info Section (Bottom) -->
-      <div class="player-info-section" id="playerInfoSection">
-        <h4 id="playerName">You</h4>
-        <div class="player-stats">
-          <div class="stat-item">
-            <span class="stat-label">Hand:</span>
-            <span class="stat-value" id="playerHandCount">0 cards</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Tableau:</span>
-            <span class="stat-value" id="playerTableauCount">0 cards</span>
-          </div>
-        </div>
+    <!-- Floating Counter - Over the game board -->
+    <div class="floating-counter">
+      <div id="visualCounter" class="visual-counter">
+        <!-- Stones will be generated here -->
       </div>
     </div>
     
-    <!-- Game Header -->
-    <div class="game-header">
+    <!-- Timer - Top right corner -->
+    <div class="floating-timer">
+      <div class="timer-label">Timer:</div>
+      <div id="gameTimer" class="timer">0s</div>
+    </div>
+    
+    <!-- Winner Display - Center -->
+    <div id="winnerDisplay" class="winner-display" style="display: none;">
+      <h2 id="winnerText">Game Over!</h2>
+      <div style="margin-top: 15px;">
+        <button id="rematchBtn" class="btn btn-primary" style="margin-right: 10px;">🔄 Rematch</button>
+        <button id="gameBackToHomeBtn" class="btn btn-secondary">🏠 Back to Home</button>
+      </div>
+    </div>
+    
+    <!-- Game Header - HIDDEN to save space -->
+    <div class="game-header" style="display: none;">
       <div class="status">Active Player: <span id="active">-</span></div>
       <div class="status">Phase: <span id="phase">-</span></div>
     </div>
     
-    <!-- Recent Effects Section - Full Width -->
-    <div class="recent-effects-full-width">
-      <div class="recent-effects-header">
-        <h3>Efectos Recientes</h3>
-      </div>
-      <div id="effectFeedback" class="effect-feedback-list-horizontal">
-        <!-- Effects will be displayed here -->
-      </div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container">
+      <!-- Toasts will be displayed here -->
     </div>
     
     <!-- Main Game Area -->
     <div class="game-main">
-      <!-- Enemy Area (Top) -->
-      <div class="player-section enemy-area" id="playerA">
-        <div class="player-area-label opponent">Opponent Area</div>
-        <h4>Hand:</h4>
-        <div class="hand" id="handA"></div>
-        <h4>Tableau:</h4>
-        <div class="tableau" id="tableauA"></div>
-        <div class="status-effects" id="statusEffectsA">
-          <h4>Estados Activos</h4>
-          <div class="status-effects-list" id="statusEffectsListA">
-            <!-- Status effects will be displayed here -->
+      <!-- Opponent Area (Top) -->
+      <div class="player-section enemy-area" id="playerB">
+        <div class="player-area-label opponent">
+          <span>Opponent</span>
+          <div class="player-stats-inline" id="opponentStatsInline">
+            <div class="stat-inline">
+              <div class="label">Hand</div>
+              <div class="value" id="opponentHandCount">0</div>
+            </div>
+            <div class="stat-inline">
+              <div class="label">Tableau</div>
+              <div class="value" id="opponentTableauCount">0</div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Your Area (Bottom) -->
-      <div class="player-section player-area" id="playerB">
-        <div class="player-area-label">Your Area</div>
-        <h4>Tableau:</h4>
+        <h4>Hand: <button class="eye-button" onclick="toggleOpponentHand()">👁️</button></h4>
+        <div class="hand opponent-hand hidden" id="handB"></div>
+        <h4>Tableau: <button class="eye-button" onclick="toggleOpponentTableau()">👁️</button></h4>
         <div class="tableau" id="tableauB"></div>
-        <h4>Hand:</h4>
-        <div class="hand" id="handB"></div>
         <div class="status-effects" id="statusEffectsB">
           <h4>Estados Activos</h4>
           <div class="status-effects-list" id="statusEffectsListB">
@@ -1901,29 +2481,21 @@
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Card Selection Panel (Fixed Position Between Areas) -->
-    <div class="card-selection-panel" id="cardSelectionPanel">
+
+      <!-- Card Selection Panel (Between Areas) -->
+      <div class="card-selection-panel" id="cardSelectionPanel">
       <div class="panel-header">
-        <h3>Choose Between These Cards</h3>
-        <div class="phase-info">Phase: <span id="currentPhase">PLAY_TWO_CARDS</span></div>
+        <h3 id="panelTitle">Choose Cards <button class="eye-button" onclick="toggleChoosePanel()">👁️</button></h3>
       </div>
       
       <div class="legend">
-        <span class="legend-item">
-          <span class="legend-color blue"></span>
-          Blue = Effect for you
-        </span>
-        <span class="legend-item">
-          <span class="legend-color orange"></span>
-          Orange = Effect for opponent
-        </span>
+        <span class="legend-item"><span class="legend-dot you"></span> You</span>
+        <span class="legend-item"><span class="legend-dot opp"></span> Opp</span>
       </div>
       
       <div class="card-choice-container">
         <div class="card-choice" id="faceUpCard">
-          <h4>Face Up Card</h4>
+          <h4>Face Up</h4>
           <div class="card-preview" id="faceUpPreview">
             <div class="placeholder">Drag a card here</div>
           </div>
@@ -1931,7 +2503,7 @@
         </div>
         
         <div class="card-choice" id="faceDownCard">
-          <h4>Face Down Card</h4>
+          <h4>Face Down</h4>
           <div class="card-preview" id="faceDownPreview">
             <div class="placeholder">Drag a card here</div>
           </div>
@@ -1940,18 +2512,47 @@
       </div>
       
       <div class="play-controls">
-        <div class="status" id="selectionStatus">Selected: Face Up=<span id="selUp">-</span>, Face Down=<span id="selDown">-</span></div>
-        <button id="playBtn" class="play-selected-btn" style="display: none;">🎯 Play Selected Cards</button>
+        <button id="playBtn" class="play-selected-btn" style="display: none;">▶️ Play Cards</button>
       </div>
     </div>
-    </div>
+
+      <!-- Your Area (Bottom) -->
+      <div class="player-section player-area" id="playerA">
+        <div class="player-area-label">
+          <span>You</span>
+          <div class="player-stats-inline" id="playerStatsInline">
+            <div class="stat-inline">
+              <div class="label">Hand</div>
+              <div class="value" id="playerHandCount">0</div>
+            </div>
+            <div class="stat-inline">
+              <div class="label">Tableau</div>
+              <div class="value" id="playerTableauCount">0</div>
+            </div>
+          </div>
+        </div>
+        <h4>Tableau: <button class="eye-button" onclick="toggleSelfTableau()">👁️</button></h4>
+        <div class="tableau" id="tableauA"></div>
+        <h4>Hand: <button class="eye-button" onclick="toggleSelfHand()">👁️</button></h4>
+        <div class="hand" id="handA"></div>
+        <div class="status-effects" id="statusEffectsA">
+          <h4>Estados Activos</h4>
+          <div class="status-effects-list" id="statusEffectsListA">
+            <!-- Status effects will be displayed here -->
+          </div>
+        </div>
+      </div>
+      
+    </div>  <!-- End game-main -->
     
     <!-- Game Footer -->
     <div class="game-footer">
-        <h3>Game Log</h3>
-        <div id="gameLog" class="log"></div>
+        <!-- Game log removed - using toasts instead -->
       </div>
     </div>
+    
+    <!-- Floating Dot Counter -->
+    <div id="dotCounter" class="dot-counter-display"></div>
   </div>
 
 
@@ -1966,6 +2567,7 @@
     let matchId = '';
     let playerSeat = null;
     let playerName = null;
+    let playerToken = null;
     let gameState = null;
     let selUp = null, selDown = null;
     let turnTimer = null;
@@ -1997,12 +2599,45 @@
       return r.json();
     }
 
-    function log(msg){
-      const el = document.getElementById('gameLog');
-      if (el) {
-        el.textContent += msg + "\n";
-        el.scrollTop = el.scrollHeight;
-      }
+    function log(msg, type = 'info'){
+      console.log(msg);
+      showToast(msg, type);
+    }
+    
+    function showToast(message, type = 'info', duration = 3000) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      
+      container.appendChild(toast);
+      
+      // Trigger animation
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+      
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, duration);
+      
+      // Click to dismiss
+      toast.addEventListener('click', () => {
+        toast.classList.add('hide');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      });
     }
     
     // Read matchId from URL and check for existing seat
@@ -2021,10 +2656,12 @@
       // Check localStorage for existing seat
       const storedSeat = localStorage.getItem('match_' + matchId + '_seat');
       const storedName = localStorage.getItem('match_' + matchId + '_name');
+      const storedToken = localStorage.getItem('match_' + matchId + '_token');
       
-      if(storedSeat !== null && storedName !== null){
+      if(storedSeat !== null && storedName !== null && storedToken !== null){
         playerSeat = parseInt(storedSeat);
         playerName = storedName;
+        playerToken = storedToken;
       }
       
       if(matchId){
@@ -2077,10 +2714,12 @@
         });
 
         playerSeat = response.seat;
+        playerToken = response.token;
         
         // Store in localStorage
         localStorage.setItem('match_' + matchId + '_seat', playerSeat);
         localStorage.setItem('match_' + matchId + '_name', playerName);
+        localStorage.setItem('match_' + matchId + '_token', playerToken);
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('wasVsBot', 'false'); // Player vs Player
         
@@ -2089,7 +2728,7 @@
         startAutoRefresh();
         refresh();
         
-        log('Created match and joined as Player ' + (playerSeat === 0 ? 'A' : 'B'));
+        log('Created match and joined successfully');
       } catch (error) {
         alert('Failed to create match: ' + error.message);
       }
@@ -2111,11 +2750,13 @@
         });
 
         playerSeat = response.seat;
+        playerToken = response.token;
         playerName = name;
         
         // Store in localStorage
         localStorage.setItem('match_' + matchId + '_seat', playerSeat);
         localStorage.setItem('match_' + matchId + '_name', playerName);
+        localStorage.setItem('match_' + matchId + '_token', playerToken);
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('wasVsBot', 'true');
         
@@ -2124,7 +2765,7 @@
         startAutoRefresh();
         refresh();
         
-        log('Created bot match and joined as Player ' + (playerSeat === 0 ? 'A' : 'B'));
+        log('Created bot match and joined successfully');
       } catch (error) {
         alert('Failed to create bot match: ' + error.message);
       }
@@ -2150,11 +2791,13 @@
         });
 
         playerSeat = response.seat;
+        playerToken = response.token;
         playerName = name;
         
         // Persist for reloads
         localStorage.setItem('match_' + id + '_seat', playerSeat);
         localStorage.setItem('match_' + id + '_name', playerName);
+        localStorage.setItem('match_' + id + '_token', playerToken);
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('wasVsBot', 'false'); // Player vs Player
         
@@ -2163,7 +2806,7 @@
         startAutoRefresh();
         refresh();
         
-        log('Joined match as Player ' + (playerSeat === 0 ? 'A' : 'B'));
+        log('Joined match successfully');
       } catch (error) {
         alert('Failed to join match: ' + error.message);
       }
@@ -2195,43 +2838,51 @@
     // For brevity, I'll add the essential functions
 
     // Generate visual stone counter display
-    function generateVisualCounter(dotCounter, playerAName, playerBName) {
-      // Clamp counter between -5 and 5
+    function generateVisualCounter(dotCounter, topPlayerName, bottomPlayerName, playerSeat = null) {
+      // Don't adjust the counter value here, keep original for stone calculation
       const clampedCounter = Math.max(-5, Math.min(5, dotCounter));
       
-      console.log('DEBUG generateVisualCounter: dotCounter =', dotCounter, 'clampedCounter =', clampedCounter);
+      console.log('DEBUG generateVisualCounter: dotCounter =', dotCounter, 'clampedCounter =', clampedCounter, 'playerSeat =', playerSeat);
       
       // Truncate player names to max 10 characters
-      const nameA = playerAName.length > 10 ? playerAName.substring(0, 10) + '...' : playerAName;
-      const nameB = playerBName.length > 10 ? playerBName.substring(0, 10) + '...' : playerBName;
+      const nameTop = topPlayerName.length > 10 ? topPlayerName.substring(0, 10) + '...' : topPlayerName;
+      const nameBottom = bottomPlayerName.length > 10 ? bottomPlayerName.substring(0, 10) + '...' : bottomPlayerName;
       
-      // Generate stones array: 5 for player A, 1 neutral (center), 5 for player B
+      // Generate stones array: 5 toward opponent (top), 1 neutral (center), 5 toward self (bottom)
       const stones = [];
       
-      // Player A stones (top) - positive values (+1 to +5) - INVERTED
-      console.log('DEBUG generateVisualCounter: Generating Player A stones (top to bottom: 5,4,3,2,1)');
+      // FIXED: Invert for correct "push" visualization - positive = push toward opponent (top)
+      let effectiveCounter = -clampedCounter;
+      console.log('DEBUG generateVisualCounter: Input counter:', clampedCounter, '→ Visual counter (inverted for push logic):', effectiveCounter);
+      
+      // Top stones (when pushing toward opponent) - positive values
+      console.log('DEBUG generateVisualCounter: Generating opponent-side stones (when you\'re winning)');
       for (let i = 5; i >= 1; i--) {
-        if (clampedCounter === i) {
-          console.log('DEBUG generateVisualCounter: Activating Player A stone', i, 'for counter', clampedCounter, '- Position in array:', stones.length);
-          stones.push('<span class="stone active">●</span>'); // Active stone for exact position
+        const stoneIndex = stones.length;
+        if (effectiveCounter === i) {
+          console.log('DEBUG generateVisualCounter: Activating opponent-side stone for value', i, 'at array position', stoneIndex);
+          stones.push('<span class="stone active">●</span>'); // You're pushing toward opponent
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
         }
       }
       
       // Center neutral stone (0)
-      if (clampedCounter === 0) {
-        stones.push('<span class="stone active">●</span>'); // Active center stone
+      const centerIndex = stones.length;
+      if (effectiveCounter === 0) {
+        console.log('DEBUG generateVisualCounter: Activating center stone at array position', centerIndex);
+        stones.push('<span class="stone active">●</span>'); // Neutral/balanced
       } else {
         stones.push('<span class="stone center">○</span>'); // Inactive center stone
       }
       
-      // Player B stones (bottom) - negative values (-1 to -5) - INVERTED
-      console.log('DEBUG generateVisualCounter: Generating Player B stones (top to bottom: -1,-2,-3,-4,-5)');
-      for (let i = 5; i >= 1; i--) {
-        if (clampedCounter === -i) {
-          console.log('DEBUG generateVisualCounter: Activating Player B stone', i, 'for counter', clampedCounter, '- Position in array:', stones.length);
-          stones.push('<span class="stone active">●</span>'); // Active stone for exact position
+      // Bottom stones (when being pushed toward self) - negative values
+      console.log('DEBUG generateVisualCounter: Generating self-side stones (when you\'re losing)');
+      for (let i = 1; i <= 5; i++) {
+        const stoneIndex = stones.length;
+        if (effectiveCounter === -i) {
+          console.log('DEBUG generateVisualCounter: Activating self-side stone for value', -i, 'at array position', stoneIndex);
+          stones.push('<span class="stone active">●</span>'); // Opponent is pushing toward you
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
         }
@@ -2240,27 +2891,225 @@
       // Combine everything with vertical layout
       console.log('DEBUG generateVisualCounter: Final stones array:', stones.map((stone, index) => {
         const isActive = stone.includes('active');
-        return `Stone ${index}: ${isActive ? 'ACTIVE' : 'inactive'}`;
+        const isCenter = stone.includes('center');
+        return `Stone ${index}: ${isActive ? 'ACTIVE' : (isCenter ? 'center' : 'inactive')} - HTML: ${stone}`;
       }));
       
       return `<div class="visual-counter-display">
-        <div class="player-name">${nameA}</div>
+        <div class="player-name">${nameTop}</div>
         <div class="stones-container">${stones.join('')}</div>
-        <div class="player-name">${nameB}</div>
+        <div class="player-name">${nameBottom}</div>
       </div>`;
+    }
+
+    /**
+     * Normalize gameState to always have self/opponent format
+     * This handles both legacy (playerA/playerB) and new (self/opponent) API responses
+     */
+    function normalizeGameState(gameState) {
+      // If already in new format, return as-is
+      if (gameState.self && gameState.opponent) {
+        return {
+          ...gameState,
+          self: gameState.self,
+          opponent: gameState.opponent,
+          selfDotCounter: gameState.selfDotCounter !== undefined ? gameState.selfDotCounter : gameState.sharedDotCounter,
+          phase: gameState.phase,
+          faceUpCardId: gameState.faceUpCardId,
+          faceDownCardId: gameState.faceDownCardId,
+          waitingForOpponentChoice: gameState.waitingForOpponentChoice,
+          isMyTurn: gameState.isMyTurn !== undefined ? gameState.isMyTurn : false,
+          canChooseCards: gameState.canChooseCards !== undefined ? gameState.canChooseCards : false,
+          winner: gameState.winner || null,
+          cardDefinitions: gameState.cardDefinitions,
+          recentEffects: gameState.recentEffects || [],
+          started: gameState.started
+        };
+      }
+      
+      // Legacy format - convert based on playerSeat
+      const isPlayerA = playerSeat === 0;
+      
+      const selfPlayer = {
+        name: isPlayerA ? gameState.playerA : gameState.playerB,
+        handSize: isPlayerA ? gameState.handSizeA : gameState.handSizeB,
+        handCardIds: gameState.activeHandCardIds || [],
+        tableauSize: isPlayerA ? gameState.tableauSizeA : gameState.tableauSizeB,
+        tableauCardIds: isPlayerA ? gameState.tableauCardIdsA : gameState.tableauCardIdsB,
+        revealedCards: isPlayerA ? gameState.revealedCardsA : gameState.revealedCardsB,
+        recentlyAddedCards: isPlayerA ? gameState.recentlyAddedCardsA : gameState.recentlyAddedCardsB,
+        activeStatuses: isPlayerA ? gameState.activeStatusesA : gameState.activeStatusesB,
+        ready: isPlayerA ? gameState.readyA : gameState.readyB,
+        isBot: isPlayerA ? gameState.playerAIsBot : gameState.playerBIsBot
+      };
+      
+      const opponentPlayer = {
+        name: isPlayerA ? gameState.playerB : gameState.playerA,
+        handSize: isPlayerA ? gameState.handSizeB : gameState.handSizeA,
+        handCardIds: [], // Opponent hand is always hidden
+        tableauSize: isPlayerA ? gameState.tableauSizeB : gameState.tableauSizeA,
+        tableauCardIds: isPlayerA ? gameState.tableauCardIdsB : gameState.tableauCardIdsA,
+        revealedCards: isPlayerA ? gameState.revealedCardsB : gameState.revealedCardsA,
+        recentlyAddedCards: isPlayerA ? gameState.recentlyAddedCardsB : gameState.recentlyAddedCardsA,
+        activeStatuses: isPlayerA ? gameState.activeStatusesB : gameState.activeStatusesA,
+        ready: isPlayerA ? gameState.readyB : gameState.readyA,
+        isBot: isPlayerA ? gameState.playerBIsBot : gameState.playerAIsBot
+      };
+      
+      return {
+        matchId: gameState.id,
+        self: selfPlayer,
+        opponent: opponentPlayer,
+        selfDotCounter: isPlayerA ? gameState.sharedDotCounter : -gameState.sharedDotCounter,
+        phase: gameState.phase,
+        faceUpCardId: gameState.faceUpCardId,
+        faceDownCardId: gameState.faceDownCardId,
+        waitingForOpponentChoice: gameState.waitingForOpponentChoice,
+        isMyTurn: playerSeat !== null && playerSeat === gameState.activePlayer,
+        canChooseCards: (gameState.phase === 'OPPONENT_PICK') && (playerSeat !== null && playerSeat !== gameState.activePlayer),
+        winner: null, // Legacy format doesn't have winner info, calculate in frontend if needed
+        cardDefinitions: gameState.cardDefinitions,
+        recentEffects: gameState.recentEffects || [],
+        started: gameState.started,
+        // Keep legacy fields for backward compatibility during transition
+        activePlayer: gameState.activePlayer,
+        playerA: gameState.playerA,
+        playerB: gameState.playerB
+      };
+    }
+    
+    function toggleOpponentHand() {
+      const oppHandDiv = document.getElementById('handB');
+      if (oppHandDiv) {
+        oppHandDiv.classList.toggle('hidden');
+      }
+    }
+    
+    function toggleOpponentTableau() {
+      const oppTableauDiv = document.getElementById('tableauB');
+      if (oppTableauDiv) {
+        oppTableauDiv.classList.toggle('hidden');
+      }
+    }
+    
+    function toggleChoosePanel() {
+      const choosePanelContent = document.querySelector('#cardSelectionPanel .legend, #cardSelectionPanel .card-choice-container, #cardSelectionPanel .play-controls');
+      const elements = document.querySelectorAll('#cardSelectionPanel .legend, #cardSelectionPanel .card-choice-container, #cardSelectionPanel .play-controls');
+      elements.forEach(el => {
+        if (el) el.classList.toggle('hidden');
+      });
+    }
+    
+    function toggleSelfTableau() {
+      const selfTableauDiv = document.getElementById('tableauA');
+      if (selfTableauDiv) {
+        selfTableauDiv.classList.toggle('hidden');
+      }
+    }
+    
+    function toggleSelfHand() {
+      const selfHandDiv = document.getElementById('handA');
+      if (selfHandDiv) {
+        selfHandDiv.classList.toggle('hidden');
+      }
+    }
+    
+    /**
+     * Helper function to make API calls using token-based or legacy endpoints
+     */
+    async function apiCall(endpoint, body = null) {
+      if (playerToken) {
+        // Use new token-based endpoints
+        let url, method;
+        if (endpoint === 'play') {
+          url = api + '/api/match/' + matchId + '/play-token';
+          method = 'POST';
+        } else if (endpoint === 'choose') {
+          url = api + '/api/match/' + matchId + '/choose-token';
+          method = 'POST';
+        } else if (endpoint === 'ready') {
+          url = api + '/api/match/' + matchId + '/ready-token';
+          method = 'POST';
+        } else {
+          throw new Error('Unknown endpoint: ' + endpoint);
+        }
+        
+        const response = await req(url, {
+          method: method,
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Player-Token': playerToken
+          },
+          body: body ? JSON.stringify(body) : undefined
+        });
+        
+        // Update gameState with response (token endpoints return full state)
+        gameState = response;
+        return response;
+      } else {
+        // Fallback to legacy endpoints
+        let url;
+        if (endpoint === 'play') {
+          url = playerSeat !== null ? 
+            api + '/api/match/' + matchId + '/play?seat=' + playerSeat :
+            api + '/api/match/' + matchId + '/play';
+        } else if (endpoint === 'choose') {
+          url = playerSeat !== null ? 
+            api + '/api/match/' + matchId + '/choose?seat=' + playerSeat :
+            api + '/api/match/' + matchId + '/choose';
+        } else if (endpoint === 'ready') {
+          url = api + '/api/match/' + matchId + '/ready?seat=' + playerSeat;
+        } else {
+          throw new Error('Unknown endpoint: ' + endpoint);
+        }
+        
+        const response = await req(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: body ? JSON.stringify(body) : undefined
+        });
+        
+        // For legacy endpoints, we need to refresh separately
+        if (endpoint !== 'ready') {
+          gameState = response;
+        }
+        return response;
+      }
     }
 
     async function refresh() {
       if (!matchId) return;
       console.log('DEBUG refresh: Starting refresh for matchId =', matchId);
       
-      const url = playerSeat !== null ? 
-        api + '/api/match/' + matchId + '?seat=' + playerSeat :
-        api + '/api/match/' + matchId;
+      // Use new token-based endpoint if we have a token
+      let gameState_response;
+      if (playerToken) {
+        gameState_response = await req(api + '/api/match/' + matchId + '/state', {
+          method: 'GET',
+          headers: { 'X-Player-Token': playerToken }
+        });
+      } else {
+        // Fallback to old endpoint for backward compatibility
+        const url = playerSeat !== null ? 
+          api + '/api/match/' + matchId + '?seat=' + playerSeat :
+          api + '/api/match/' + matchId;
+        gameState_response = await req(url);
+      }
       
-      gameState = await req(url);
-      console.log('DEBUG refresh: gameState.recentlyAddedCardsA =', gameState.recentlyAddedCardsA);
-      console.log('DEBUG refresh: gameState.recentlyAddedCardsB =', gameState.recentlyAddedCardsB);
+      gameState = gameState_response;
+      console.log('DEBUG refresh: gameState =', gameState);
+      
+      // For new token-based API, we have different structure
+      if (playerToken && gameState.self && gameState.opponent) {
+        console.log('DEBUG refresh: using new API format with self/opponent');
+        console.log('DEBUG refresh: gameState.self =', gameState.self);
+        console.log('DEBUG refresh: gameState.opponent =', gameState.opponent);
+      } else {
+        console.log('DEBUG refresh: using legacy API format');
+        console.log('DEBUG refresh: gameState.recentlyAddedCardsA =', gameState.recentlyAddedCardsA);
+        console.log('DEBUG refresh: gameState.recentlyAddedCardsB =', gameState.recentlyAddedCardsB);
+        console.log('DEBUG refresh: gameState.activeHandCardIds =', gameState.activeHandCardIds);
+      }
       
       // Handle lobby state
       if (!gameState.started) {
@@ -2271,95 +3120,96 @@
       // Game started - show game UI
       showGame();
       
-      // Update player names and area labels based on current player
-      const playerAName = gameState.playerA || 'Player A';
-      const playerBName = gameState.playerB || 'Player B';
+      // Normalize gameState to always have self/opponent format
+      const normalizedState = normalizeGameState(gameState);
       
-      // Update player info in sidebar based on perspective
-      if (playerSeat === 0) {
-        // Player A perspective - A sees themselves at bottom, opponent at top
-        document.getElementById('opponentName').textContent = playerBName; // Opponent (at top)
-        document.getElementById('opponentHandCount').textContent = gameState.handSizeB + ' cards'; // B's hand
-        document.getElementById('opponentTableauCount').textContent = gameState.tableauSizeB + ' cards'; // B's tableau
-        
-        document.getElementById('playerName').textContent = playerAName; // Player (at bottom)
-        document.getElementById('playerHandCount').textContent = gameState.handSizeA + ' cards'; // A's hand
-        document.getElementById('playerTableauCount').textContent = gameState.tableauSizeA + ' cards'; // A's tableau
-      } else if (playerSeat === 1) {
-        // Player B perspective - B sees themselves at bottom, opponent at top
-        document.getElementById('opponentName').textContent = playerAName; // Opponent (at top)
-        document.getElementById('opponentHandCount').textContent = gameState.handSizeA + ' cards'; // A's hand
-        document.getElementById('opponentTableauCount').textContent = gameState.tableauSizeA + ' cards'; // A's tableau
-        
-        document.getElementById('playerName').textContent = playerBName; // Player (at bottom)
-        document.getElementById('playerHandCount').textContent = gameState.handSizeB + ' cards'; // B's hand
-        document.getElementById('playerTableauCount').textContent = gameState.tableauSizeB + ' cards'; // B's tableau
+      // Update player info in sidebar (simple self/opponent)
+      const opponentHandCount = document.getElementById('opponentHandCount');
+      const opponentTableauCount = document.getElementById('opponentTableauCount');
+      const playerHandCount = document.getElementById('playerHandCount');
+      const playerTableauCount = document.getElementById('playerTableauCount');
+      
+      if (opponentHandCount) opponentHandCount.textContent = normalizedState.opponent.handSize;
+      if (opponentTableauCount) opponentTableauCount.textContent = normalizedState.opponent.tableauSize;
+      if (playerHandCount) playerHandCount.textContent = normalizedState.self.handSize;
+      if (playerTableauCount) playerTableauCount.textContent = normalizedState.self.tableauSize;
+      
+      const activeElement = document.getElementById('active');
+      const phaseElement = document.getElementById('phase');
+      // For now, keep legacy active player display until we fully migrate
+      if (activeElement) activeElement.textContent = normalizedState.activePlayer === 0 ? normalizedState.playerA : normalizedState.playerB;
+      if (phaseElement) phaseElement.textContent = normalizedState.phase || 'PLAY_TWO_CARDS';
+      
+      
+      // Simplified layout - just update labels, no complex DOM manipulation
+      // Add name pills using normalized state
+      addPlayerNamePill(document.getElementById('playerA'), normalizedState.self.name);
+      addPlayerNamePill(document.getElementById('playerB'), normalizedState.opponent.name);
+      
+      // Ensure self hand (handA) is always visible
+      const selfHand = document.getElementById('handA');
+      if (selfHand) {
+        selfHand.classList.remove('opponent-hand', 'hidden');
       }
       
-      document.getElementById('active').textContent = gameState.activePlayer === 0 ? playerAName : playerBName;
-      document.getElementById('phase').textContent = gameState.phase || 'PLAY_TWO_CARDS';
-      
-      
-      // Make board symmetric - both players see themselves at bottom
-      const gameMain = document.querySelector('.game-main');
-      const playerA = document.getElementById('playerA');
-      const playerB = document.getElementById('playerB');
-      const cardSelectionPanel = document.getElementById('cardSelectionPanel');
-      
-      // Update area labels based on current player perspective
-      const playerALabel = document.querySelector('#playerA .player-area-label');
-      const playerBLabel = document.querySelector('#playerB .player-area-label');
-      
-      if (playerSeat === 0) {
-        // Current player is Player A - they should see themselves at bottom
-        // Reorder DOM: move playerA to bottom, playerB to top
-        playerALabel.textContent = 'Your Area';
-        playerALabel.className = 'player-area-label';
-        playerBLabel.textContent = 'Opponent Area';
-        playerBLabel.className = 'player-area-label opponent';
-        
-        // Move playerA to bottom (after playerB)
-        gameMain.appendChild(playerA);
-        
-        // Ensure card selection panel is always in the middle
-        // Insert it between playerB and playerA
-        gameMain.insertBefore(cardSelectionPanel, playerA);
-      } else if (playerSeat === 1) {
-        // Current player is Player B - they should see themselves at bottom
-        // Keep original order: playerA at top, playerB at bottom
-        playerALabel.textContent = 'Opponent Area';
-        playerALabel.className = 'player-area-label opponent';
-        playerBLabel.textContent = 'Your Area';
-        playerBLabel.className = 'player-area-label';
-        
-        // Ensure card selection panel is always in the middle
-        // Insert it between playerA and playerB
-        gameMain.insertBefore(cardSelectionPanel, playerB);
+      // Ensure opponent hand (handB) starts hidden
+      const oppHand = document.getElementById('handB');
+      if (oppHand) {
+        oppHand.classList.add('opponent-hand', 'hidden');
       }
       
-      // Update dot counter with visual stone system
-      const dotCounter = gameState.sharedDotCounter;
+      // Update dot counter with visual stone system (now relative to player)
+      const dotCounter = normalizedState.selfDotCounter;
       const dotCounterElement = document.getElementById('dotCounter');
       
-      // Generate visual stone display
-      const visualCounter = generateVisualCounter(dotCounter, playerAName, playerBName);
-      dotCounterElement.innerHTML = visualCounter;
+      if (dotCounterElement) {
+        console.log('DEBUG: dotCounterElement found, updating with dotCounter =', dotCounter);
+        console.log('DEBUG: dotCounterElement position =', dotCounterElement.getBoundingClientRect());
+        console.log('DEBUG: dotCounterElement computed style =', window.getComputedStyle(dotCounterElement));
+        
+        // Generate visual stone display - unified self/opponent approach
+        const topPlayerName = normalizedState.opponent.name;
+        const bottomPlayerName = normalizedState.self.name;
+        
+        const visualCounter = generateVisualCounter(dotCounter, topPlayerName, bottomPlayerName, playerSeat);
+        dotCounterElement.innerHTML = visualCounter;
+        console.log('DEBUG: dotCounterElement updated, innerHTML =', dotCounterElement.innerHTML);
+        
+        // Force visibility and position
+        dotCounterElement.style.display = 'block';
+        dotCounterElement.style.visibility = 'visible';
+        dotCounterElement.style.opacity = '1';
+        dotCounterElement.style.position = 'fixed';
+        dotCounterElement.style.right = '20px';  /* Right side */
+        dotCounterElement.style.left = '';       /* Clear left */
+        dotCounterElement.style.top = '50%';
+        dotCounterElement.style.transform = 'translateY(-50%)';
+        dotCounterElement.style.zIndex = '99999';
+        console.log('DEBUG: Forced visibility and position styles applied');
+      } else {
+        console.log('DEBUG: dotCounterElement NOT FOUND');
+      }
       
       // Update counter styling based on value
-      dotCounterElement.className = 'dot-value visual-counter';
-      if (dotCounter >= 5) {
-        dotCounterElement.style.color = '#4caf50'; // Green for Player A winning
-        dotCounterElement.style.textShadow = '0 0 10px rgba(76, 175, 80, 0.5)';
-      } else if (dotCounter <= -5) {
-        dotCounterElement.style.color = '#f44336'; // Red for Player B winning
-        dotCounterElement.style.textShadow = '0 0 10px rgba(244, 67, 54, 0.5)';
-      } else {
-        dotCounterElement.style.color = '#fff'; // White for neutral
-        dotCounterElement.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+      if (dotCounterElement) {
+        dotCounterElement.className = 'dot-counter-display'; // Keep the main CSS class
+        if (dotCounter >= 5) {
+          dotCounterElement.style.color = '#4caf50'; // Green for Player A winning
+          dotCounterElement.style.textShadow = '0 0 10px rgba(76, 175, 80, 0.5)';
+        } else if (dotCounter <= -5) {
+          dotCounterElement.style.color = '#f44336'; // Red for Player B winning
+          dotCounterElement.style.textShadow = '0 0 10px rgba(244, 67, 54, 0.5)';
+        } else {
+          dotCounterElement.style.color = '#fff'; // White for neutral
+          dotCounterElement.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+        }
       }
       
       // Check win conditions
       checkWinConditions();
+      
+      // Apply responsive collapse logic
+      applyResponsiveCollapse();
       
       // Update active player highlighting with enhanced visual feedback
       const playerAElement = document.getElementById('playerA');
@@ -2388,48 +3238,82 @@
       // Setup drag and drop for central panel
       setupDragAndDrop();
       
-      // Ensure interaction is properly toggled
-      const isMyTurn = playerSeat !== null && playerSeat === gameState.activePlayer;
+      // Use the backend-provided isMyTurn flag for accurate turn determination
+      const isMyTurn = normalizedState.isMyTurn && normalizedState.phase === 'PLAY_TWO_CARDS';
+      console.log('DEBUG TURNS: normalizedState.isMyTurn =', normalizedState.isMyTurn);
+      console.log('DEBUG TURNS: normalizedState.phase =', normalizedState.phase);
+      console.log('DEBUG TURNS: calculated isMyTurn =', isMyTurn);
       toggleInteraction(isMyTurn);
       
       // Show/hide central panel based on phase and player
       updateCentralPanelVisibility();
       
-      // Auto-play bot turns
-      if (gameState.started) {
-        const isPlayerABot = gameState.playerAIsBot;
-        const isPlayerBBot = gameState.playerBIsBot;
-        const activePlayer = gameState.activePlayer;
-        const phase = gameState.phase;
-        const inactivePlayer = 1 - activePlayer;
+      // Auto-play bot turns using normalized state
+      if (normalizedState.started) {
+        const isSelfBot = normalizedState.self.isBot;
+        const isOpponentBot = normalizedState.opponent.isBot;
+        const phase = normalizedState.phase;
+        const isMyTurn = normalizedState.isMyTurn;
+        const canChooseCards = normalizedState.canChooseCards;
         
-        console.log('Bot check: started=' + gameState.started + ', isPlayerABot=' + isPlayerABot + ', isPlayerBBot=' + isPlayerBBot + ', activePlayer=' + activePlayer + ', phase=' + phase);
+        console.log('Bot check: started=' + normalizedState.started + ', isSelfBot=' + isSelfBot + ', isOpponentBot=' + isOpponentBot + ', isMyTurn=' + isMyTurn + ', phase=' + phase + ', canChooseCards=' + canChooseCards);
+        console.log('Bot check: selfName=' + normalizedState.self.name + ', opponentName=' + normalizedState.opponent.name);
         
         let shouldAct = false;
         let delay = 1000;
         let action = 'playing';
         
-        if (phase === 'PLAY_TWO_CARDS') {
-          // Submit phase: only active player bot acts
-          if ((activePlayer === 0 && isPlayerABot) || (activePlayer === 1 && isPlayerBBot)) {
-            shouldAct = true;
-            delay = 1000; // 1 second to select cards
-            action = 'selecting cards';
-          }
-        } else if (phase === 'OPPONENT_PICK') {
-          // Choice phase: only inactive player bot acts
-          if ((inactivePlayer === 0 && isPlayerABot) || (inactivePlayer === 1 && isPlayerBBot)) {
-            shouldAct = true;
-            delay = 3000; // 3 seconds to choose between cards
-            action = 'choosing between cards';
-          }
+        if (phase === 'PLAY_TWO_CARDS' && isMyTurn && isSelfBot) {
+          // It's our turn and we're a bot - select cards
+          shouldAct = true;
+          delay = 1000; // 1 second to select cards
+          action = 'selecting cards';
+        } else if (phase === 'OPPONENT_PICK' && canChooseCards && isSelfBot) {
+          // We can choose cards and we're a bot - choose between cards
+          shouldAct = true;
+          delay = 3000; // 3 seconds to choose between cards
+          action = 'choosing between cards';
         }
         
         if (shouldAct) {
           console.log('Bot will ' + action + ' in ' + delay + 'ms');
           setTimeout(async () => {
             try {
-              await req(api + '/api/match/' + matchId + '/bot-turn?seat=' + playerSeat, { method: 'POST' });
+              console.log('Bot executing action:', action, 'for phase:', phase);
+              if (phase === 'PLAY_TWO_CARDS') {
+                // Bot selects two random cards from hand
+                console.log('Bot PLAY_TWO_CARDS: handCardIds =', normalizedState.self.handCardIds);
+                if (normalizedState.self.handCardIds && normalizedState.self.handCardIds.length >= 2) {
+                  const cards = normalizedState.self.handCardIds;
+                  const faceUpCard = cards[Math.floor(Math.random() * cards.length)];
+                  let faceDownCard = cards[Math.floor(Math.random() * cards.length)];
+                  // Ensure different cards
+                  while (faceDownCard === faceUpCard && cards.length > 1) {
+                    faceDownCard = cards[Math.floor(Math.random() * cards.length)];
+                  }
+                  
+                  console.log('Bot about to play cards:', faceUpCard, faceDownCard);
+                  // Use new token-based endpoint if available
+                  await apiCall('play', {
+                    faceUpId: faceUpCard,
+                    faceDownId: faceDownCard
+                  });
+                  console.log('Bot selected cards automatically:', faceUpCard, faceDownCard);
+                } else {
+                  console.log('Bot PLAY_TWO_CARDS: Not enough cards in hand, handCardIds =', normalizedState.self.handCardIds);
+                }
+              } else if (phase === 'OPPONENT_PICK') {
+                // Bot chooses randomly between face up and face down
+                console.log('Bot OPPONENT_PICK: canChooseCards =', canChooseCards);
+                const choice = Math.random() < 0.5 ? 'faceUp' : 'faceDown';
+                
+                console.log('Bot about to choose:', choice);
+                // Use new token-based endpoint if available
+                await apiCall('choose', {
+                  chooseFaceUp: choice === 'faceUp'
+                });
+                console.log('Bot chose automatically:', choice);
+              }
               log('Bot ' + action + ' automatically');
             } catch (error) {
               console.log('Bot auto-play failed:', error);
@@ -2442,34 +3326,81 @@
     function showLobby() {
       showScreen('readyScreen');
       
-      // Update lobby info
-      document.getElementById('playerAName').textContent = gameState.playerA || '-';
-      document.getElementById('playerBName').textContent = gameState.playerB || '-';
+      // Normalize gameState to handle both legacy and new formats
+      const normalizedState = normalizeGameState(gameState);
       
-      const playerAReady = document.getElementById('playerAReady');
-      const playerBReady = document.getElementById('playerBReady');
-      
-      playerAReady.textContent = gameState.readyA ? '(Ready)' : '(Not Ready)';
-      playerBReady.textContent = gameState.readyB ? '(Ready)' : '(Not Ready)';
-      playerAReady.className = gameState.readyA ? 'ready-status ready' : 'ready-status not-ready';
-      playerBReady.className = gameState.readyB ? 'ready-status ready' : 'ready-status not-ready';
-      
-      // Show ready button if this player isn't ready yet
-      const readyBtn = document.getElementById('readyBtn');
-      const waitingMsg = document.getElementById('waitingMessage');
-      
-      if (playerSeat === 0 && !gameState.readyA) {
-        readyBtn.style.display = 'block';
-        waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
-      } else if (playerSeat === 1 && !gameState.readyB) {
-        readyBtn.style.display = 'block';
-        waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
-      } else if (!gameState.readyA || !gameState.readyB) {
-        readyBtn.style.display = 'none';
-        waitingMsg.textContent = 'Waiting for the other player to be ready...';
+      // Update lobby info using self/opponent format
+      if (normalizedState.self && normalizedState.opponent) {
+        // New format: use self/opponent
+        // For lobby display, we need to show "You" and "Opponent" or actual names
+        
+        // Simplified: Always show self and opponent in consistent positions
+        // For now, we'll use the existing HTML structure but populate it consistently
+        // TODO: Later we should change HTML to have selfName/opponentName instead of playerA/playerB
+        
+        // Show self as "You" and opponent by name, regardless of which slot they're in
+        const selfLabel = normalizedState.self.name || 'You';
+        const opponentLabel = normalizedState.opponent.name || 'Waiting...';
+        
+        // For consistency, always put self in the first slot and opponent in second
+        document.getElementById('playerAName').textContent = selfLabel;
+        document.getElementById('playerBName').textContent = opponentLabel;
+        
+        const playerAReady = document.getElementById('playerAReady');
+        const playerBReady = document.getElementById('playerBReady');
+        
+        playerAReady.textContent = normalizedState.self.ready ? '(Ready)' : '(Not Ready)';
+        playerBReady.textContent = normalizedState.opponent.ready ? '(Ready)' : '(Not Ready)';
+        playerAReady.className = normalizedState.self.ready ? 'ready-status ready' : 'ready-status not-ready';
+        playerBReady.className = normalizedState.opponent.ready ? 'ready-status ready' : 'ready-status not-ready';
+        
+        // Update labels to be more semantic
+        document.querySelector('#playerAName').previousElementSibling.textContent = 'You:';
+        document.querySelector('#playerBName').previousElementSibling.textContent = 'Opponent:';
+        
+        // Show ready button if this player isn't ready yet
+        const readyBtn = document.getElementById('readyBtn');
+        const waitingMsg = document.getElementById('waitingMessage');
+        
+        if (!normalizedState.self.ready) {
+          readyBtn.style.display = 'block';
+          waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
+        } else if (!normalizedState.opponent.ready) {
+          readyBtn.style.display = 'none';
+          waitingMsg.textContent = 'Waiting for the other player to be ready...';
         } else {
-        readyBtn.style.display = 'none';
-        waitingMsg.textContent = 'Both players ready! Starting game...';
+          readyBtn.style.display = 'none';
+        }
+      } else {
+        // Legacy format fallback
+        document.getElementById('playerAName').textContent = gameState.playerA || '-';
+        document.getElementById('playerBName').textContent = gameState.playerB || '-';
+        
+        const playerAReady = document.getElementById('playerAReady');
+        const playerBReady = document.getElementById('playerBReady');
+        
+        playerAReady.textContent = gameState.readyA ? '(Ready)' : '(Not Ready)';
+        playerBReady.textContent = gameState.readyB ? '(Ready)' : '(Not Ready)';
+        playerAReady.className = gameState.readyA ? 'ready-status ready' : 'ready-status not-ready';
+        playerBReady.className = gameState.readyB ? 'ready-status ready' : 'ready-status not-ready';
+        
+        // Show ready button if this player isn't ready yet
+        const readyBtn = document.getElementById('readyBtn');
+        const waitingMsg = document.getElementById('waitingMessage');
+        
+        if (playerSeat === 0 && !gameState.readyA) {
+          readyBtn.style.display = 'block';
+          waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
+        } else if (playerSeat === 1 && !gameState.readyB) {
+          readyBtn.style.display = 'block';
+          waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
+        } else if (!gameState.readyA || !gameState.readyB) {
+          readyBtn.style.display = 'none';
+          waitingMsg.textContent = 'Waiting for the other player to be ready...';
+        } else {
+          readyBtn.style.display = 'none';
+          waitingMsg.textContent = 'Both players ready! Starting game...';
+        }
       }
     }
 
@@ -2505,13 +3436,10 @@
     // Add event listeners for game controls
     document.getElementById('readyBtn').onclick = setReady;
     document.getElementById('copyMatchIdBtn').onclick = copyMatchId;
-    document.getElementById('autoBtn').onclick = autoTurn;
 
     async function setReady() {
       try {
-        await req(api + '/api/match/' + matchId + '/ready?seat=' + playerSeat, {
-          method: 'POST'
-        });
+        await apiCall('ready');
         log('Ready status sent');
         refresh();
       } catch (error) {
@@ -2551,18 +3479,9 @@
       }
     }
 
-    async function autoTurn() {
-      if (!matchId) return;
-      const url = playerSeat !== null ? 
-        api + '/api/match/' + matchId + '/auto?seat=' + playerSeat :
-        api + '/api/match/' + matchId + '/auto';
-      await req(url, { method:'POST' });
-      log('Auto turn submitted');
-      await refresh();
-    }
 
     // Complete game functions implementation
-    function renderCard(cardId, cardDef, isSelectable = false, realCardId = null) {
+    function renderCard(cardId, cardDef, isSelectable = false, realCardId = null, applyEffectColors = false) {
       const div = document.createElement('div');
       div.className = 'card-tooltip';
       
@@ -2580,11 +3499,48 @@
           btn.appendChild(title);
           const ul = document.createElement('ul');
           ul.className = 'card-effects';
-          cardDef.tiers.forEach((tier, idx)=>{
-             const li=document.createElement('li');
-             li.innerHTML = (idx+1)+'. '+ (tier.actions[0]?.description || '');
-             ul.appendChild(li);
-          });
+          
+          if (applyEffectColors && gameState) {
+            // Apply effect coloring for hand cards - they can go to either player's tableau
+            const normalizedState = normalizeGameState(gameState);
+            const myTableau = normalizedState.self.tableauCardIds || [];
+            const oppTableau = normalizedState.opponent.tableauCardIds || [];
+            
+            // Use the realId for tableau calculations
+            const cardTableauId = realId;
+            
+            cardDef.tiers.forEach((tier, idx)=>{
+               const li=document.createElement('li');
+               
+               // For hand cards, determine what level this card would have in each tableau
+               const myNextLevel = getNextEffectLevel(cardTableauId, myTableau);
+               const oppNextLevel = getNextEffectLevel(cardTableauId, oppTableau);
+               
+               // Determine effect colors - for hand cards, show both colors since either player can get it
+               let effectClass = '';
+               const actionDescription = tier.actions[0]?.description || '';
+               
+               // Check if this tier would be active for either player
+               const wouldBeActiveForMe = idx === myNextLevel;
+               const wouldBeActiveForOpp = idx === oppNextLevel;
+               
+               if (wouldBeActiveForMe || wouldBeActiveForOpp) {
+                 // This tier would be active - show both colors since either player can get the card
+                 effectClass = 'effect-both';
+               }
+               
+               li.className = effectClass;
+               li.innerHTML = (idx+1)+'. '+ actionDescription;
+               ul.appendChild(li);
+            });
+          } else {
+            // Original rendering without colors
+            cardDef.tiers.forEach((tier, idx)=>{
+               const li=document.createElement('li');
+               li.innerHTML = (idx+1)+'. '+ (tier.actions[0]?.description || '');
+               ul.appendChild(li);
+            });
+          }
           btn.appendChild(ul);
       } else {
           btn.textContent = displayId;
@@ -2595,14 +3551,17 @@
       if (canSelect) {
         // Make card draggable
         btn.draggable = true;
+        console.log('DEBUG renderCard: Made card draggable:', realId, 'canSelect:', canSelect);
         
         // Add drag event listeners
         btn.addEventListener('dragstart', (e) => {
+          console.log('DEBUG dragstart: Starting drag for card:', realId);
           e.dataTransfer.setData('text/plain', realId);
           btn.classList.add('dragging');
         });
         
         btn.addEventListener('dragend', (e) => {
+          console.log('DEBUG dragend: Ending drag for card:', realId);
           btn.classList.remove('dragging');
         });
         
@@ -2774,9 +3733,10 @@
           <div class="card-preview-tiers">
       `;
       
-      // Get tableau information for highlighting
-      const myTableau = playerSeat === 0 ? gameState.tableauCardIdsA : gameState.tableauCardIdsB;
-      const oppTableau = playerSeat === 0 ? gameState.tableauCardIdsB : gameState.tableauCardIdsA;
+      // Get tableau information for highlighting using normalized state
+      const normalizedState = normalizeGameState(gameState);
+      const myTableau = normalizedState.self.tableauCardIds || [];
+      const oppTableau = normalizedState.opponent.tableauCardIds || [];
       
       // Find the card ID in tableaus for effect level calculation
       const cardId = findCardIdInTableau(cardDef, myTableau, oppTableau);
@@ -2872,21 +3832,32 @@
       // Always show the panel, but control interaction based on phase and player
       cardSelectionPanel.style.display = 'block';
       
-      const isOpponentPickPhase = gameState.phase === 'OPPONENT_PICK';
-      const isPlayTwoCardsPhase = gameState.phase === 'PLAY_TWO_CARDS';
-      const isInactivePlayer = playerSeat !== null && playerSeat !== gameState.activePlayer;
-      const isActivePlayer = playerSeat !== null && playerSeat === gameState.activePlayer;
+      const normalizedState = normalizeGameState(gameState);
+      const isOpponentPickPhase = normalizedState.phase === 'OPPONENT_PICK';
+      const isPlayTwoCardsPhase = normalizedState.phase === 'PLAY_TWO_CARDS';
+      const isMyTurn = normalizedState.isMyTurn;
+      const isWaitingForChoice = normalizedState.waitingForOpponentChoice;
       
-      if (isOpponentPickPhase && isInactivePlayer) {
-        // Inactive player can choose between the two cards
+      console.log('DEBUG updateCentralPanelVisibility: phase =', normalizedState.phase, 'isMyTurn =', isMyTurn, 'waitingForChoice =', isWaitingForChoice, 'canChooseCards =', normalizedState.canChooseCards);
+      
+      if (isOpponentPickPhase && normalizedState.canChooseCards) {
+        // We can choose between the two cards (we're the opponent)
         enableCentralPanelInteraction(true);
         updatePanelTitle('Choose Between These Cards');
-      } else if (isPlayTwoCardsPhase && isActivePlayer) {
-        // Active player can select two cards to play
+      } else if (isOpponentPickPhase && !normalizedState.canChooseCards) {
+        // We submitted the cards, waiting for opponent to choose
+        enableCentralPanelInteraction(false);
+        updatePanelTitle('Waiting for Opponent to Choose...');
+      } else if (isPlayTwoCardsPhase && isMyTurn) {
+        // We can select two cards to play
         enableCentralPanelInteraction(true);
         updatePanelTitle('Select Your Cards to Play');
+      } else if (isPlayTwoCardsPhase && !isMyTurn) {
+        // Opponent's turn to play cards
+        enableCentralPanelInteraction(false);
+        updatePanelTitle('Opponent is Playing...');
       } else {
-        // Disable interaction for other cases
+        // Other cases
         enableCentralPanelInteraction(false);
         updatePanelTitle('Waiting...');
       }
@@ -3053,35 +4024,23 @@
       
       try {
         const chooseFaceUp = choice === 'faceUp';
-        const url = `${api}/api/match/${matchId}/choose`;
         const body = { chooseFaceUp: chooseFaceUp };
         
         console.log('Submitting opponent choice:', {
           choice,
           chooseFaceUp,
-          url,
           body,
           currentPhase: gameState.phase,
-          activePlayer: gameState.activePlayer,
           playerSeat
         });
         
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
+        const response = await apiCall('choose', body);
         
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
+        console.log('Opponent choice submitted successfully');
+        console.log('New game state:', response);
         
-        if (response.ok) {
-          console.log('Opponent choice submitted successfully');
-          await refresh();
-        } else {
-          const errorText = await response.text();
-          console.error('Failed to submit opponent choice:', response.status, errorText);
-        }
+        // apiCall already updates gameState, so just refresh UI
+        await refresh();
       } catch (error) {
         console.error('Error submitting opponent choice:', error);
       } finally {
@@ -3090,15 +4049,24 @@
     }
 
     function renderHands() {
-      if (!gameState || playerSeat === null) return;
-      
+      console.log('DEBUG renderHands: Starting renderHands');
       console.log('DEBUG renderHands: gameState =', gameState);
       console.log('DEBUG renderHands: playerSeat =', playerSeat);
-      console.log('DEBUG renderHands: activeHandCardIds =', gameState.activeHandCardIds);
       
-      // Determine which hand divs belong to me vs opponent
-      const myHandDiv = playerSeat === 0 ? document.getElementById('handA') : document.getElementById('handB');
-      const oppHandDiv = playerSeat === 0 ? document.getElementById('handB') : document.getElementById('handA');
+      if (!gameState || playerSeat === null) {
+        console.log('DEBUG renderHands: Early return - gameState:', !!gameState, 'playerSeat:', playerSeat);
+        return;
+      }
+      
+      // Normalize gameState to handle both legacy and new formats
+      const normalizedState = normalizeGameState(gameState);
+      console.log('DEBUG renderHands: normalizedState =', normalizedState);
+      console.log('DEBUG renderHands: self.handCardIds =', normalizedState.self.handCardIds);
+      
+      // UPDATED: New layout mapping - handA = self, handB = opponent
+      // playerA section = "Your Area" (bottom), playerB section = "Opponent Area" (top)
+      const myHandDiv = document.getElementById('handA');     // Your hand
+      const oppHandDiv = document.getElementById('handB');    // Opponent hand
       
       console.log('DEBUG renderHands: myHandDiv =', myHandDiv);
       console.log('DEBUG renderHands: oppHandDiv =', oppHandDiv);
@@ -3108,25 +4076,35 @@
       oppHandDiv.innerHTML = '';
       
       // Render my hand with real cards
-      if (gameState.activeHandCardIds && gameState.activeHandCardIds.length > 0) {
+      console.log('DEBUG renderHands: Checking self.handCardIds:', normalizedState.self.handCardIds);
+      if (normalizedState.self.handCardIds && normalizedState.self.handCardIds.length > 0) {
+        console.log('DEBUG renderHands: Found', normalizedState.self.handCardIds.length, 'cards to render');
         const cardCounts = {};
-        gameState.activeHandCardIds.forEach(id => {
+        normalizedState.self.handCardIds.forEach(id => {
           cardCounts[id] = (cardCounts[id] || 0) + 1;
         });
         
+        console.log('DEBUG renderHands: Card counts:', cardCounts);
         Object.keys(cardCounts).forEach(id => {
           const count = cardCounts[id];
-          const cardDef = gameState.cardDefinitions[id];
+          const cardDef = normalizedState.cardDefinitions[id];
+          console.log('DEBUG renderHands: Rendering card', id, 'count:', count, 'def:', cardDef);
           for (let i = 0; i < count; i++) {
             const uniqueId = count > 1 ? `${id}_${i}` : id;
-            myHandDiv.appendChild(renderCard(uniqueId, cardDef, true, id));
+            const cardElement = renderCard(uniqueId, cardDef, true, id, true); // Enable effect colors
+            console.log('DEBUG renderHands: Created card element:', cardElement);
+            myHandDiv.appendChild(cardElement);
           }
         });
+        console.log('DEBUG renderHands: My hand div after rendering:', myHandDiv.innerHTML);
+        console.log('DEBUG renderHands: My hand div children count:', myHandDiv.children.length);
+      } else {
+        console.log('DEBUG renderHands: No cards to render or self.handCardIds is empty');
       }
       
       // Render opponent hand - show revealed cards if any, otherwise show card backs
-      const oppHandSize = playerSeat === 0 ? gameState.handSizeB : gameState.handSizeA;
-      const revealedCards = playerSeat === 0 ? gameState.revealedCardsB : gameState.revealedCardsA;
+      const oppHandSize = normalizedState.opponent.handSize;
+      const revealedCards = normalizedState.opponent.revealedCards;
       
       let revealedCardIndex = 0;
       for (let i = 0; i < oppHandSize; i++) {
@@ -3220,13 +4198,17 @@
     function renderTableaus() {
       if (!gameState || playerSeat === null) return;
       
-      // Determine which tableau divs belong to me vs opponent based on current perspective
-      const myTableauDiv = playerSeat === 0 ? document.getElementById('tableauA') : document.getElementById('tableauB');
-      const oppTableauDiv = playerSeat === 0 ? document.getElementById('tableauB') : document.getElementById('tableauA');
+      // Normalize gameState to handle both legacy and new formats
+      const normalizedState = normalizeGameState(gameState);
       
-      // Get the correct tableau data based on perspective
-      const myTableauIds = playerSeat === 0 ? gameState.tableauCardIdsA : gameState.tableauCardIdsB;
-      const oppTableauIds = playerSeat === 0 ? gameState.tableauCardIdsB : gameState.tableauCardIdsA;
+      // UPDATED: New layout mapping - tableauA = self, tableauB = opponent  
+      // playerA section = "Your Area" (bottom), playerB section = "Opponent Area" (top)
+      const myTableauDiv = document.getElementById('tableauA');     // Your tableau
+      const oppTableauDiv = document.getElementById('tableauB');    // Opponent tableau
+      
+      // Get the correct tableau data from normalized state
+      const myTableauIds = normalizedState.self.tableauCardIds || [];
+      const oppTableauIds = normalizedState.opponent.tableauCardIds || [];
       
       // Clear both tableaus
       myTableauDiv.innerHTML = '';
@@ -3240,7 +4222,7 @@
       
       Object.keys(cardCountsMy).forEach(id => {
         const count = cardCountsMy[id];
-        const cardDef = gameState.cardDefinitions[id];
+        const cardDef = normalizedState.cardDefinitions[id];
         const stackedCard = renderStackedCard(id, cardDef, count);
         myTableauDiv.appendChild(stackedCard);
       });
@@ -3253,7 +4235,7 @@
       
       Object.keys(cardCountsOpp).forEach(id => {
         const count = cardCountsOpp[id];
-        const cardDef = gameState.cardDefinitions[id];
+        const cardDef = normalizedState.cardDefinitions[id];
         const stackedCard = renderStackedCard(id, cardDef, count);
         oppTableauDiv.appendChild(stackedCard);
       });
@@ -3272,79 +4254,33 @@
         return;
       }
       
-      const effectContainer = document.getElementById('effectFeedback');
-      if (!effectContainer) {
-        console.log('DEBUG renderEffectFeedback: No effectContainer found');
-        return;
-      }
-      
-      // Add new effects to the persistent log
+      // Add new effects to the persistent log and show as toasts
       if (gameState.recentEffects.length > lastEffectCount) {
         const newEffects = gameState.recentEffects.slice(lastEffectCount);
         allEffects = allEffects.concat(newEffects);
         lastEffectCount = gameState.recentEffects.length;
         
-        // Limit to last 50 effects to prevent memory issues
+        // Keep only last 50 effects
         if (allEffects.length > 50) {
           allEffects = allEffects.slice(-50);
         }
+        
+        // Show new effects as toasts
+        newEffects.forEach(effect => {
+          const playerName = effect.playerName || 'Unknown';
+          const effectDescription = effect.effectDescription || 'No description';
+          const dotChange = effect.dotChange || 0;
+          
+          let message = `${playerName}: ${effectDescription}`;
+          if (dotChange !== 0) {
+            message += ` (${dotChange > 0 ? '+' : ''}${dotChange} dots)`;
+          }
+          
+          showToast(message, 'effect', 4000);
+        });
       }
       
       console.log('DEBUG renderEffectFeedback: All effects =', allEffects);
-      
-      // Clear container and render all effects
-      effectContainer.innerHTML = '';
-      
-      // Show all effects (most recent at bottom)
-      const effectsToShow = allEffects.slice(-20); // Show last 20 effects
-      
-      effectsToShow.forEach(effect => {
-        const effectDiv = document.createElement('div');
-        effectDiv.className = 'effect-item';
-        
-        // Determine effect type for styling
-        if (effect.effectDescription.includes('cura') || effect.effectDescription.includes('heal')) {
-          effectDiv.classList.add('heal');
-        } else if (effect.effectDescription.includes('daño') || effect.effectDescription.includes('damage')) {
-          effectDiv.classList.add('damage');
-        } else if (effect.dotChange !== 0) {
-          effectDiv.classList.add('dot-change');
-        }
-        
-        // Create timestamp
-        const timestamp = new Date(effect.timestamp);
-        const timeStr = timestamp.toLocaleTimeString();
-        
-        // Create effect text with clean formatting
-        let effectText = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #6c757d; font-size: 0.75em; font-weight: 500; min-width: 60px;">${timeStr}</span>
-            <span style="font-weight: 600; color: #495057;">${effect.playerName}</span>
-            <span style="color: #333;">${effect.effectDescription}</span>
-        `;
-        
-        // Add change indicators with nice badges
-        if (effect.dotChange !== 0) {
-          const changeText = effect.dotChange > 0 ? `+${effect.dotChange}` : `${effect.dotChange}`;
-          const badgeColor = effect.dotChange > 0 ? '#28a745' : '#dc3545';
-          effectText += `<span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: 600; margin-left: 8px;">${changeText} puntos</span>`;
-        }
-        
-        if (effect.lpChangeA !== 0 || effect.lpChangeB !== 0) {
-          const lpChanges = [];
-          if (effect.lpChangeA !== 0) lpChanges.push(`A: ${effect.lpChangeA > 0 ? '+' : ''}${effect.lpChangeA}`);
-          if (effect.lpChangeB !== 0) lpChanges.push(`B: ${effect.lpChangeB > 0 ? '+' : ''}${effect.lpChangeB}`);
-          effectText += `<span style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; font-weight: 600; margin-left: 8px;">${lpChanges.join(', ')} LP</span>`;
-        }
-        
-        effectText += '</div>';
-        
-        effectDiv.innerHTML = effectText;
-        effectContainer.appendChild(effectDiv);
-      });
-      
-      // Scroll to bottom to show latest effects
-      effectContainer.scrollTop = effectContainer.scrollHeight;
     }
     
     function renderStatusEffects() {
@@ -3620,7 +4556,7 @@
     }
     
     function updateTimerDisplay() {
-      const timerElement = document.getElementById('timer');
+      const timerElement = document.getElementById('gameTimer');
       if (!timerElement) return;
       
       const currentTime = turnTimer ? turnTimeLeft : choiceTimeLeft;
@@ -3711,9 +4647,11 @@
     }
 
     function updateUIForPhase() {
-      const isWaitingForChoice = gameState.waitingForOpponentChoice;
-      const phase = gameState.phase || 'PLAY_TWO_CARDS';
-      const isMyTurn = playerSeat !== null && playerSeat === gameState.activePlayer;
+      const normalizedState = normalizeGameState(gameState);
+      const isWaitingForChoice = normalizedState.waitingForOpponentChoice;
+      const phase = normalizedState.phase || 'PLAY_TWO_CARDS';
+      // Use the backend-provided isMyTurn flag
+      const isMyTurn = normalizedState.isMyTurn;
       
       // Show/hide selection status
       const selectionStatus = document.getElementById('selectionStatus');
@@ -3742,18 +4680,19 @@
         const faceUpDef = gameState.cardDefinitions[gameState.faceUpCardId];
         const faceDownDef = gameState.cardDefinitions[gameState.faceDownCardId];
         
-        // Only show choice buttons to the opponent (not the player who submitted the cards)
-        const isOpponentTurn = playerSeat !== null && playerSeat !== gameState.activePlayer;
-        const isCardSubmitter = playerSeat !== null && playerSeat === gameState.activePlayer;
+        // In OPPONENT_PICK phase, the opponent should be able to choose
+        // For now, we'll assume if we're in this phase and waiting, we can choose
+        const isOpponentTurn = normalizedState.phase === 'OPPONENT_PICK' && normalizedState.waitingForOpponentChoice;
+        const isCardSubmitter = normalizedState.phase === 'OPPONENT_PICK' && !normalizedState.waitingForOpponentChoice;
         
-        // Get current player's tableaus for effect highlighting
-        const myTableau = playerSeat === 0 ? gameState.tableauCardIdsA : gameState.tableauCardIdsB;
-        const oppTableau = playerSeat === 0 ? gameState.tableauCardIdsB : gameState.tableauCardIdsA;
+        // Get current player's tableaus for effect highlighting using normalized state
+        const myTableau = normalizedState.self.tableauCardIds || [];
+        const oppTableau = normalizedState.opponent.tableauCardIds || [];
         
         // Debug: Log current state
         console.log('Choice Panel Debug:');
-        console.log('  My tableau:', myTableau.map(id => `${id} = ${gameState.cardDefinitions[id]?.name || 'Unknown'}`));
-        console.log('  Opp tableau:', oppTableau.map(id => `${id} = ${gameState.cardDefinitions[id]?.name || 'Unknown'}`));
+        console.log('  My tableau:', myTableau.map(id => `${id} = ${normalizedState.cardDefinitions[id]?.name || 'Unknown'}`));
+        console.log('  Opp tableau:', oppTableau.map(id => `${id} = ${normalizedState.cardDefinitions[id]?.name || 'Unknown'}`));
         console.log('  Face up card ID:', gameState.faceUpCardId);
         console.log('  Face down card ID:', gameState.faceDownCardId);
         console.log('  Face up def:', faceUpDef);
@@ -3820,8 +4759,11 @@
       const phase = gameState.phase || 'PLAY_TWO_CARDS';
       const canInteract = isMyTurn && phase === 'PLAY_TWO_CARDS';
       
+      console.log('DEBUG toggleInteraction: isMyTurn =', isMyTurn, 'phase =', phase, 'canInteract =', canInteract);
+      
       // Enable/disable hand cards
       const handCards = document.querySelectorAll('.hand .card');
+      console.log('DEBUG toggleInteraction: found', handCards.length, 'hand cards');
       handCards.forEach(card => {
         if (canInteract) {
           card.style.pointerEvents = 'auto';
@@ -3898,10 +4840,102 @@
         }
       }
     }
+    
+    // Responsive collapse functionality
+    function applyResponsiveCollapse() {
+      const gameMain = document.querySelector('.game-main');
+      const playerSections = document.querySelectorAll('.player-section');
+      const cardSelectionPanel = document.querySelector('.card-selection-panel');
+      
+      if (!gameMain || !playerSections.length) return;
+      
+      // DISABLED: No longer adding collapsible classes to prevent hover interference
+      
+      // DISABLED: Auto-collapse logic that interferes with card interaction
+      // Keep all sections expanded for better card interaction
+      const activePlayer = gameState?.activePlayer;
+      const phase = gameState?.phase;
+      
+      // DISABLED: No longer manipulating expanded/collapsed classes
+    }
+    
+    // DISABLED: Hover effects removed to prevent interference with card interaction
+    function setupHoverEffects() {
+      // This function has been disabled to improve card interactivity
+    }
+    
+    function addPlayerNamePill(playerSection, playerName) {
+      // Remove existing name pill if any
+      const existingPill = playerSection.querySelector('.player-name-pill');
+      if (existingPill) {
+        existingPill.remove();
+      }
+      
+      // Create name pill
+      const namePill = document.createElement('div');
+      namePill.className = 'player-name-pill';
+      namePill.textContent = playerName;
+      
+      // Insert after the player-area-label
+      const label = playerSection.querySelector('.player-area-label');
+      if (label) {
+        label.parentNode.insertBefore(namePill, label.nextSibling);
+      }
+    }
+    
+    function setupOpponentHandToggle(opponentHandId) {
+      // Only setup once to avoid duplicates
+      if (document.getElementById('toggleOpponentHand')) {
+        return; // Already setup
+      }
+      
+      const opponentHand = document.getElementById(opponentHandId);
+      if (!opponentHand) return;
+      
+      // Find the hand header (h4 that says "Hand:")
+      const handHeader = opponentHand.previousElementSibling;
+      if (handHeader && handHeader.tagName === 'H4') {
+        // Create a container for the header and button
+        const headerContainer = document.createElement('div');
+        headerContainer.className = 'hand-header';
+        
+        // Clone the h4 to avoid moving it
+        const h4Clone = handHeader.cloneNode(true);
+        headerContainer.appendChild(h4Clone);
+        
+        // Create the toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.id = 'toggleOpponentHand';
+        toggleBtn.className = 'toggle-hand-btn';
+        toggleBtn.textContent = '👁️';
+        toggleBtn.title = 'Show/Hide opponent hand';
+        
+        headerContainer.appendChild(toggleBtn);
+        
+        // Replace the original h4 with the container
+        handHeader.parentNode.replaceChild(headerContainer, handHeader);
+        
+        // Set hand as hidden by default
+        opponentHand.classList.add('opponent-hand', 'hidden');
+        
+        // Add click event
+        toggleBtn.addEventListener('click', function() {
+          if (opponentHand.classList.contains('hidden')) {
+            opponentHand.classList.remove('hidden');
+            toggleBtn.textContent = '🙈'; // Hide icon
+            toggleBtn.title = 'Hide opponent hand';
+          } else {
+            opponentHand.classList.add('hidden');
+            toggleBtn.textContent = '👁️'; // Show icon
+            toggleBtn.title = 'Show opponent hand';
+          }
+        });
+      }
+    }
 
     function disableGameControls() {
       // Disable all game controls when someone wins
-      const controls = ['playBtn', 'autoBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
+      const controls = ['playBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
       controls.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -4099,10 +5133,10 @@
       }
       
       // Reset timer display
-      const timer = document.getElementById('timer');
+      const timer = document.getElementById('gameTimer');
       if (timer) {
-        timer.textContent = '';
-        timer.className = 'timer-display';
+        timer.textContent = '0s';
+        timer.className = 'timer';
       }
       
       // Hide choice modal
@@ -4115,7 +5149,7 @@
       }
       
       // Re-enable game controls
-      const controls = ['playBtn', 'autoBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
+      const controls = ['playBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
       controls.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -4167,10 +5201,10 @@
       }
       
       // Reset timer display
-      const timer = document.getElementById('timer');
+      const timer = document.getElementById('gameTimer');
       if (timer) {
-        timer.textContent = '';
-        timer.className = 'timer-display';
+        timer.textContent = '0s';
+        timer.className = 'timer';
       }
       
       // Reset player displays
@@ -4206,7 +5240,7 @@
       }
       
       // Re-enable game controls
-      const controls = ['playBtn', 'autoBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
+      const controls = ['playBtn', 'chooseFaceUpBtn', 'chooseFaceDownBtn'];
       controls.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -4222,6 +5256,12 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM loaded, showing home screen');
       showScreen('homeScreen');
+      
+      // Initialize hover effects for game board
+      setupHoverEffects();
+      
+      // Initialize opponent hand toggle
+      setupOpponentHandToggle();
     });
 
     // Also show home screen immediately

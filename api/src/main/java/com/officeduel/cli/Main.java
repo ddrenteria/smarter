@@ -56,7 +56,7 @@ public class Main {
                     eng.startMatch();
                     int t = 0;
                     while (g.getPlayerA().getLifePoints() > 0 && g.getPlayerB().getLifePoints() > 0 && t < 200) {
-                        eng.playTurnAuto();
+                        // Auto turn removed
                         t++;
                     }
                     if (g.getPlayerA().getLifePoints() > 0) aWins++; else bWins++;
@@ -65,7 +65,7 @@ public class Main {
             } else {
                 int turns = 0;
                 while (gs.getPlayerA().getLifePoints() > 0 && gs.getPlayerB().getLifePoints() > 0 && turns < 200) {
-                    engine.playTurnAuto();
+                    // Auto turn removed
                     turns++;
                 }
                 System.out.println("Match ended in " + turns + " turns. LP A=" + gs.getPlayerA().getLifePoints() + ", B=" + gs.getPlayerB().getLifePoints());

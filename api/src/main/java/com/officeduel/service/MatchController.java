@@ -3,6 +3,7 @@ package com.officeduel.service;
 import com.officeduel.engine.cards.CardDefinitionSet;
 import com.officeduel.engine.engine.CardIndex;
 import com.officeduel.service.dto.MatchStateDto;
+import com.officeduel.service.dto.PlayerGameStateDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,60 +87,11 @@ public class MatchController {
         ));
     }
 
-    @PostMapping("/{id}/auto")
-    public ResponseEntity<MatchStateDto> auto(@PathVariable String id, @RequestParam(required = false) Integer seat) {
-        var e = registry.get(id);
-        if (e == null) return ResponseEntity.notFound().build();
-        if (e.engine() == null) return ResponseEntity.status(409).body(null); // Match not started
-        
-        try {
-            e.engine().playTurnAuto();
-        } catch (IllegalStateException ex) {
-            return ResponseEntity.status(409).body(null); // Conflict - wrong phase
-        }
-        
-        var gs = e.state();
-        // Fog of war: only show hand to the seat that owns it
-        var handIds = List.<String>of();
-        if (seat != null && seat == gs.getActivePlayerIndex()) {
-            var active = gs.getActivePlayerIndex() == 0 ? gs.getPlayerA() : gs.getPlayerB();
-            handIds = active.getHand().stream().map(c -> c.cardId()).toList();
-        }
-        
-        var tableauIdsA = gs.getPlayerA().getTableau().stream().map(c -> c.cardId()).toList();
-        var tableauIdsB = gs.getPlayerB().getTableau().stream().map(c -> c.cardId()).toList();
-        
-        return ResponseEntity.ok(new MatchStateDto(
-                id,
-                gs.getPlayerA().getHand().size(),
-                gs.getPlayerB().getHand().size(),
-                gs.getPlayerA().getTableau().size(),
-                gs.getPlayerB().getTableau().size(),
-                gs.getActivePlayerIndex(),
-                handIds,
-                tableauIdsA,
-                tableauIdsB,
-                getCardDefinitions(),
-                gs.getPhase().name(),
-                gs.getFaceUpCardId(),
-                gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK ? "???" : gs.getFaceDownCardId(),
-                gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
-                gs.getSharedDotCounter(),
-                e.playerA(), e.playerB(), e.readyA(), e.readyB(), true, e.playerAIsBot(), e.playerBIsBot(),
-                convertEffectFeedback(gs.getRecentEffects()),
-                gs.getRevealedCardsA(),
-                gs.getRevealedCardsB(),
-                gs.getRecentlyAddedCardsA(),
-                gs.getRecentlyAddedCardsB(),
-                convertStatusMap(gs.getActiveStatusesA()),
-                convertStatusMap(gs.getActiveStatusesB())
-        ));
-    }
 
     public record SubmitTurnBody(String faceUpId, String faceDownId) {}
     public record OpponentChoiceBody(boolean chooseFaceUp) {}
     public record JoinMatchBody(String name) {}
-    public record JoinMatchResponse(int seat) {}
+    public record JoinMatchResponse(int seat, String token) {}
 
     @PostMapping("/{id}/play")
     public ResponseEntity<MatchStateDto> play(@PathVariable String id, @RequestBody SubmitTurnBody body, @RequestParam(required = false) Integer seat) {
@@ -411,11 +363,11 @@ public class MatchController {
             return ResponseEntity.badRequest().build(); // Name too long
         }
         
-        int seat = registry.joinMatch(id, trimmedName);
-        if (seat == -1) return ResponseEntity.notFound().build();
-        if (seat == -2) return ResponseEntity.status(409).body(new JoinMatchResponse(-1)); // Conflict - match full
+        var result = registry.joinMatch(id, trimmedName);
+        if (result.seat() == -1) return ResponseEntity.notFound().build();
+        if (result.seat() == -2) return ResponseEntity.status(409).body(new JoinMatchResponse(-1, null)); // Conflict - match full
         
-        return ResponseEntity.ok(new JoinMatchResponse(seat));
+        return ResponseEntity.ok(new JoinMatchResponse(result.seat(), result.token()));
     }
     
     @PostMapping("/{id}/ready")
@@ -438,11 +390,411 @@ public class MatchController {
         return ResponseEntity.ok(Map.of("status", "bot_added"));
     }
     
-    @PostMapping("/{id}/bot-turn")
-    public ResponseEntity<MatchStateDto> botTurn(@PathVariable String id, @RequestParam(required = false) Integer seat) {
-        registry.autoPlayBotTurn(id);
-        return get(id, seat);
+    /**
+     * New endpoint that returns game state from player perspective (self/opponent)
+     */
+    @GetMapping("/{id}/state")
+    public ResponseEntity<PlayerGameStateDto> getPlayerState(@PathVariable String id, 
+                                                            @RequestHeader("X-Player-Token") String token) {
+        var entry = registry.get(id);
+        if (entry == null) return ResponseEntity.notFound().build();
+        
+        int playerSeat = registry.getPlayerSeat(id, token);
+        if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
+        
+        // If match not started yet, return lobby state
+        if (!entry.started()) {
+            var selfPlayer = playerSeat == 0 ? 
+                new PlayerGameStateDto.PlayerDto(entry.playerA() != null ? entry.playerA() : "Player A", 0, List.of(), 0, List.of(), 
+                                               List.of(), List.of(), Map.of(), entry.readyA(), entry.playerAIsBot()) :
+                new PlayerGameStateDto.PlayerDto(entry.playerB() != null ? entry.playerB() : "Player B", 0, List.of(), 0, List.of(), 
+                                               List.of(), List.of(), Map.of(), entry.readyB(), entry.playerBIsBot());
+            
+            var opponentPlayer = playerSeat == 0 ? 
+                new PlayerGameStateDto.PlayerDto(entry.playerB() != null ? entry.playerB() : "Waiting...", 0, List.of(), 0, List.of(), 
+                                               List.of(), List.of(), Map.of(), entry.readyB(), entry.playerBIsBot()) :
+                new PlayerGameStateDto.PlayerDto(entry.playerA() != null ? entry.playerA() : "Waiting...", 0, List.of(), 0, List.of(), 
+                                               List.of(), List.of(), Map.of(), entry.readyA(), entry.playerAIsBot());
+            
+            return ResponseEntity.ok(new PlayerGameStateDto(
+                id, selfPlayer, opponentPlayer, 0, "LOBBY", null, null, false, false, false, null,
+                convertCardDefinitions(getCardDefinitions()), List.of(), false
+            ));
+        }
+        
+        var gs = entry.state();
+        var engine = entry.engine();
+        if (engine == null) return ResponseEntity.status(500).build();
+        
+        // Determine self and opponent based on token
+        boolean isPlayerA = playerSeat == 0;
+        var selfState = isPlayerA ? gs.getPlayerA() : gs.getPlayerB();
+        var opponentState = isPlayerA ? gs.getPlayerB() : gs.getPlayerA();
+        
+        // Build self player (with hand visible)
+        var selfHandIds = selfState.getHand().stream().map(c -> c.cardId()).toList();
+        var selfTableauIds = selfState.getTableau().stream().map(c -> c.cardId()).toList();
+        var selfRevealed = isPlayerA ? gs.getRevealedCardsA() : gs.getRevealedCardsB();
+        var selfRecentlyAdded = isPlayerA ? gs.getRecentlyAddedCardsA() : gs.getRecentlyAddedCardsB();
+        var selfStatuses = isPlayerA ? convertStatusMap(gs.getActiveStatusesA()) : convertStatusMap(gs.getActiveStatusesB());
+        
+        var selfPlayer = new PlayerGameStateDto.PlayerDto(
+            isPlayerA ? (entry.playerA() != null ? entry.playerA() : "Player A") : (entry.playerB() != null ? entry.playerB() : "Player B"),
+            selfState.getHand().size(),
+            selfHandIds,
+            selfState.getTableau().size(),
+            selfTableauIds,
+            selfRevealed,
+            selfRecentlyAdded,
+            selfStatuses,
+            isPlayerA ? entry.readyA() : entry.readyB(),
+            isPlayerA ? entry.playerAIsBot() : entry.playerBIsBot()
+        );
+        
+        // Build opponent player (hand hidden)
+        var opponentTableauIds = opponentState.getTableau().stream().map(c -> c.cardId()).toList();
+        var opponentRevealed = isPlayerA ? gs.getRevealedCardsB() : gs.getRevealedCardsA();
+        var opponentRecentlyAdded = isPlayerA ? gs.getRecentlyAddedCardsB() : gs.getRecentlyAddedCardsA();
+        var opponentStatuses = isPlayerA ? convertStatusMap(gs.getActiveStatusesB()) : convertStatusMap(gs.getActiveStatusesA());
+        
+        var opponentPlayer = new PlayerGameStateDto.PlayerDto(
+            isPlayerA ? (entry.playerB() != null ? entry.playerB() : "Player B") : (entry.playerA() != null ? entry.playerA() : "Player A"),
+            opponentState.getHand().size(),
+            List.of(), // Hand hidden for opponent
+            opponentState.getTableau().size(),
+            opponentTableauIds,
+            opponentRevealed,
+            opponentRecentlyAdded,
+            opponentStatuses,
+            isPlayerA ? entry.readyB() : entry.readyA(),
+            isPlayerA ? entry.playerBIsBot() : entry.playerAIsBot()
+        );
+        
+        // Determine if it's this player's turn
+        boolean isMyTurn = (playerSeat == gs.getActivePlayerIndex());
+        
+        // Determine if this player can choose cards in OPPONENT_PICK phase
+        // Only the opponent (inactive player) can choose
+        boolean canChooseCards = (gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK) 
+                                && (playerSeat != gs.getActivePlayerIndex());
+        
+        // Calculate dot counter from requesting player's perspective
+        // sharedDotCounter: +5 = Player A wins, -5 = Player B wins
+        // For Player A: return as-is (+5 = I win, -5 = I lose)
+        // For Player B: invert (-5 = I win, +5 = I lose)
+        int selfDotCounter = isPlayerA ? gs.getSharedDotCounter() : -gs.getSharedDotCounter();
+        
+        // Determine winner based on dots
+        String winner = null;
+        int winnerIndex = gs.winnerIndexOrMinusOne();
+        if (winnerIndex == 0) {
+            winner = entry.playerA() != null ? entry.playerA() : "Player A";
+        } else if (winnerIndex == 1) {
+            winner = entry.playerB() != null ? entry.playerB() : "Player B";
+        }
+        
+        System.out.println("DEBUG TURNS: playerSeat = " + playerSeat + ", activePlayerIndex = " + gs.getActivePlayerIndex() + ", isMyTurn = " + isMyTurn + ", canChooseCards = " + canChooseCards);
+        System.out.println("DEBUG DOTS: sharedDotCounter = " + gs.getSharedDotCounter() + ", isPlayerA = " + isPlayerA + ", selfDotCounter = " + selfDotCounter + ", winner = " + winner);
+        
+        // Auto-play bot turns from backend
+        scheduleAutoBotPlay(id, entry, gs);
+        
+        return ResponseEntity.ok(new PlayerGameStateDto(
+            id,
+            selfPlayer,
+            opponentPlayer,
+            selfDotCounter,
+            gs.getPhase().name(),
+            gs.getFaceUpCardId(),
+            gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK ? "???" : gs.getFaceDownCardId(),
+            gs.getPhase() == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK,
+            isMyTurn,
+            canChooseCards,
+            winner,
+            convertCardDefinitions(getCardDefinitions()),
+            convertEffectFeedbackForPlayerDto(gs.getRecentEffects()),
+            true
+        ));
     }
+    
+    /**
+     * New play endpoint that uses token-based authentication
+     */
+    @PostMapping("/{id}/play-token")
+    public ResponseEntity<PlayerGameStateDto> playWithToken(@PathVariable String id, 
+                                                           @RequestBody SubmitTurnBody body,
+                                                           @RequestHeader("X-Player-Token") String token) {
+        var entry = registry.get(id);
+        if (entry == null) return ResponseEntity.notFound().build();
+        if (entry.engine() == null) return ResponseEntity.status(409).build(); // Match not started
+        if (body == null || body.faceUpId() == null || body.faceDownId() == null) return ResponseEntity.badRequest().build();
+        
+        int playerSeat = registry.getPlayerSeat(id, token);
+        if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
+        
+        var gs = entry.state();
+        if (gs.getActivePlayerIndex() != playerSeat) {
+            return ResponseEntity.status(409).build(); // Not your turn
+        }
+        
+        try {
+            entry.engine().playTurnManual(body.faceUpId(), body.faceDownId());
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(409).build(); // Wrong phase
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).build();
+        }
+        
+        // Return updated state
+        return getPlayerState(id, token);
+    }
+    
+    /**
+     * New choose endpoint that uses token-based authentication
+     */
+    @PostMapping("/{id}/choose-token")
+    public ResponseEntity<PlayerGameStateDto> chooseWithToken(@PathVariable String id, 
+                                                            @RequestBody OpponentChoiceBody body,
+                                                            @RequestHeader("X-Player-Token") String token) {
+        var entry = registry.get(id);
+        if (entry == null) return ResponseEntity.notFound().build();
+        if (entry.engine() == null) return ResponseEntity.status(409).build(); // Match not started
+        if (body == null) return ResponseEntity.badRequest().build();
+        
+        int playerSeat = registry.getPlayerSeat(id, token);
+        if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
+        
+        var gs = entry.state();
+        if (gs.getPhase() != com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK) {
+            return ResponseEntity.status(409).build(); // Wrong phase
+        }
+        
+        // CRITICAL: Only the opponent (inactive player) should be able to choose
+        if (playerSeat == gs.getActivePlayerIndex()) {
+            System.out.println("DEBUG OPPONENT_PICK: Card submitter (seat " + playerSeat + ") tried to choose, but only opponent should choose");
+            return ResponseEntity.status(403).build(); // Forbidden - you submitted the cards, opponent must choose
+        }
+        
+        try {
+            String picked = body.chooseFaceUp() ? gs.getFaceUpCardId() : gs.getFaceDownCardId();
+            String remaining = body.chooseFaceUp() ? gs.getFaceDownCardId() : gs.getFaceUpCardId();
+            entry.engine().playTurnWithChoice(picked, remaining);
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(409).build(); // Wrong phase
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).build();
+        }
+        
+        // Return updated state
+        return getPlayerState(id, token);
+    }
+    
+    /**
+     * Ready endpoint that uses token-based authentication
+     */
+    @PostMapping("/{id}/ready-token")
+    public ResponseEntity<PlayerGameStateDto> readyWithToken(@PathVariable String id, 
+                                                           @RequestHeader("X-Player-Token") String token) {
+        var entry = registry.get(id);
+        if (entry == null) return ResponseEntity.notFound().build();
+        
+        int playerSeat = registry.getPlayerSeat(id, token);
+        if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
+        
+        boolean success = registry.setReady(id, playerSeat);
+        if (!success) return ResponseEntity.status(500).build();
+        
+        // Return updated state
+        return getPlayerState(id, token);
+    }
+    
+    /**
+     * Convert MatchStateDto.CardInfo to PlayerGameStateDto.CardInfo
+     */
+    private Map<String, PlayerGameStateDto.CardInfo> convertCardDefinitions(Map<String, MatchStateDto.CardInfo> original) {
+        Map<String, PlayerGameStateDto.CardInfo> converted = new HashMap<>();
+        for (var entry : original.entrySet()) {
+            var original_card = entry.getValue();
+            var converted_tiers = original_card.tiers().stream().map(tier -> 
+                new PlayerGameStateDto.TierInfo(
+                    tier.actions().stream().map(action ->
+                        new PlayerGameStateDto.ActionInfo(
+                            action.type(),
+                            action.target(),
+                            action.amount(),
+                            action.count(),
+                            action.description()
+                        )
+                    ).toList()
+                )
+            ).toList();
+            
+            converted.put(entry.getKey(), new PlayerGameStateDto.CardInfo(
+                original_card.name(),
+                original_card.tags(),
+                converted_tiers
+            ));
+        }
+        return converted;
+    }
+    
+    /**
+     * Convert MatchStateDto.EffectFeedback to PlayerGameStateDto.EffectFeedback
+     */
+    private List<PlayerGameStateDto.EffectFeedback> convertEffectFeedbackForPlayerDto(
+            List<com.officeduel.engine.model.GameState.EffectFeedback> original) {
+        return original.stream().map(effect ->
+            new PlayerGameStateDto.EffectFeedback(
+                effect.playerName(),
+                effect.cardName(),
+                effect.effectDescription(),
+                effect.dotChange(),
+                effect.timestamp()
+            )
+        ).toList();
+    }
+    
+    // Track bot actions to avoid duplicates
+    private final java.util.Set<String> scheduledBotActions = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    
+    /**
+     * Schedule bot auto-play from backend
+     */
+    private void scheduleAutoBotPlay(String id, MatchRegistry.Entry entry, com.officeduel.engine.model.GameState gs) {
+        // Check if any player is a bot and should act
+        boolean playerAIsBot = entry.playerAIsBot();
+        boolean playerBIsBot = entry.playerBIsBot();
+        int activePlayerIndex = gs.getActivePlayerIndex();
+        var phase = gs.getPhase();
+        
+        // Create unique key for this game state to avoid duplicate bot actions
+        String actionKey = id + "-" + phase + "-" + activePlayerIndex + "-" + gs.getHistory().size();
+        
+        boolean shouldActPlayerA = false;
+        boolean shouldActPlayerB = false;
+        
+        if (phase == com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS) {
+            // Active player should play cards
+            if (activePlayerIndex == 0 && playerAIsBot) shouldActPlayerA = true;
+            if (activePlayerIndex == 1 && playerBIsBot) shouldActPlayerB = true;
+        } else if (phase == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK) {
+            // In OPPONENT_PICK phase, the INACTIVE player should choose
+            // Bot should only auto-choose if the INACTIVE player is a bot AND the ACTIVE player is human
+            int inactivePlayerIndex = 1 - activePlayerIndex;
+            boolean activePlayerIsBot = (activePlayerIndex == 0) ? playerAIsBot : playerBIsBot;
+            boolean inactivePlayerIsBot = (inactivePlayerIndex == 0) ? playerAIsBot : playerBIsBot;
+            
+            System.out.println("DEBUG OPPONENT_PICK: activePlayer=" + activePlayerIndex + " (isBot=" + activePlayerIsBot + 
+                              "), inactivePlayer=" + inactivePlayerIndex + " (isBot=" + inactivePlayerIsBot + ")");
+            
+            // CORRECT LOGIC: Only schedule bot action if:
+            // 1. The ACTIVE player is HUMAN (human played the cards), AND  
+            // 2. The INACTIVE player is BOT (bot should choose between the two cards)
+            if (!activePlayerIsBot && inactivePlayerIsBot) {
+                if (inactivePlayerIndex == 0) {
+                    shouldActPlayerA = true;
+                    System.out.println("DEBUG OPPONENT_PICK: Human played cards, scheduling bot (Player A) to choose");
+                } else {
+                    shouldActPlayerB = true;
+                    System.out.println("DEBUG OPPONENT_PICK: Human played cards, scheduling bot (Player B) to choose");
+                }
+            }
+            
+            // If bot played cards, human should choose manually (NO auto-action)
+            if (activePlayerIsBot && !inactivePlayerIsBot) {
+                System.out.println("DEBUG OPPONENT_PICK: Bot played cards, letting human (Player " + 
+                                  (inactivePlayerIndex == 0 ? "A" : "B") + ") choose manually");
+            }
+        }
+        
+        if ((shouldActPlayerA || shouldActPlayerB) && !scheduledBotActions.contains(actionKey)) {
+            // Mark this action as scheduled to avoid duplicates
+            scheduledBotActions.add(actionKey);
+            
+            // Schedule bot action in background thread
+            final int botPlayerIndex = shouldActPlayerA ? 0 : 1;
+            final var finalEntry = entry;
+            final var finalGs = gs;
+            final var finalPhase = phase;
+            final String finalActionKey = actionKey;
+            
+            System.out.println("Scheduling bot action for Player " + (botPlayerIndex == 0 ? "A" : "B") + " in phase " + phase + 
+                              " (activePlayer=" + activePlayerIndex + ", playerAIsBot=" + playerAIsBot + ", playerBIsBot=" + playerBIsBot + ")");
+            
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000); // 2 second delay
+                    executeBotAction(finalEntry, finalGs, botPlayerIndex, finalPhase);
+                    // Clean up the action key after execution
+                    scheduledBotActions.remove(finalActionKey);
+                } catch (Exception e) {
+                    System.out.println("Bot auto-play failed: " + e.getMessage());
+                    scheduledBotActions.remove(finalActionKey);
+                }
+            }).start();
+        }
+    }
+    
+    private void executeBotAction(MatchRegistry.Entry entry, com.officeduel.engine.model.GameState gs, 
+                                 int botPlayerIndex, com.officeduel.engine.model.GameState.Phase phase) {
+        try {
+            if (phase == com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS) {
+                // Bot plays two random cards but does NOT auto-choose
+                var botPlayer = botPlayerIndex == 0 ? gs.getPlayerA() : gs.getPlayerB();
+                var handCards = botPlayer.getHand();
+                
+                if (handCards.size() >= 2) {
+                    var card1 = handCards.get(0).cardId();
+                    var card2 = handCards.get(1).cardId();
+                    
+                    System.out.println("Bot (Player " + (botPlayerIndex == 0 ? "A" : "B") + ") auto-playing cards: " + card1 + ", " + card2);
+                    
+                    // Use custom method that only plays cards without auto-choosing
+                    playCardsOnly(entry.engine(), gs, card1, card2);
+                }
+            } else if (phase == com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK) {
+                // Bot chooses randomly
+                boolean chooseFaceUp = Math.random() < 0.5;
+                String picked = chooseFaceUp ? gs.getFaceUpCardId() : gs.getFaceDownCardId();
+                String remaining = chooseFaceUp ? gs.getFaceDownCardId() : gs.getFaceUpCardId();
+                
+                System.out.println("Bot (Player " + (botPlayerIndex == 0 ? "A" : "B") + ") auto-choosing: " + (chooseFaceUp ? "face up" : "face down"));
+                entry.engine().playTurnWithChoice(picked, remaining);
+            }
+        } catch (Exception e) {
+            System.out.println("Bot action execution failed: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Custom method that only plays cards and transitions to OPPONENT_PICK phase
+     * without auto-choosing. Based on TurnEngine.playTurnAuto() but stops before auto-choice.
+     */
+    private void playCardsOnly(com.officeduel.engine.engine.TurnEngine engine, 
+                              com.officeduel.engine.model.GameState gs, 
+                              String faceUpId, String faceDownId) {
+        try {
+            // Verify we're in the correct phase
+            if (gs.getPhase() != com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS) {
+                System.out.println("ERROR: playCardsOnly called in wrong phase: " + gs.getPhase());
+                return;
+            }
+            
+            System.out.println("DEBUG playCardsOnly: Playing cards " + faceUpId + ", " + faceDownId + " and transitioning to OPPONENT_PICK");
+            
+            // Set the cards and change phase to OPPONENT_PICK (like playTurnAuto lines 133-135)
+            gs.setFaceUpCardId(faceUpId);
+            gs.setFaceDownCardId(faceDownId);
+            gs.setPhase(com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK);
+            
+            System.out.println("DEBUG playCardsOnly: Phase changed to " + gs.getPhase() + ", waiting for opponent to choose");
+            
+            // DON'T auto-choose - let the human choose!
+        } catch (Exception e) {
+            System.out.println("ERROR in playCardsOnly: " + e.getMessage());
+        }
+    }
+    
 }
 
 

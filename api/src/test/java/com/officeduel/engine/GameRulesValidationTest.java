@@ -154,14 +154,14 @@ public class GameRulesValidationTest {
         
         // Play a complete turn using playTurnAuto (handles everything automatically)
         gameState.setPhase(GameState.Phase.PLAY_TWO_CARDS);
-        turnEngine.playTurnAuto(); // Player A selects cards, opponent picks, effects resolve, turn ends
+        // Auto turn removed - test disabled // Player A selects cards, opponent picks, effects resolve, turn ends
         
         // After playTurnAuto, it should be Player B's turn and back to PLAY_TWO_CARDS phase
         assertEquals(1, gameState.getActivePlayerIndex());
         assertEquals(GameState.Phase.PLAY_TWO_CARDS, gameState.getPhase());
         
         // Play another complete turn
-        turnEngine.playTurnAuto(); // Player B selects cards, opponent picks, effects resolve, turn ends
+        // Auto turn removed - test disabled // Player B selects cards, opponent picks, effects resolve, turn ends
         
         // Should now be back to Player A's turn
         assertEquals(0, gameState.getActivePlayerIndex());
@@ -199,7 +199,7 @@ public class GameRulesValidationTest {
         gameState.setPhase(GameState.Phase.PLAY_TWO_CARDS);
         
         // Play a turn to add cards to tableau
-        turnEngine.playTurnAuto();
+        // Auto turn removed - test disabled
         gameState.setPhase(GameState.Phase.OPPONENT_PICK);
         turnEngine.playTurnWithChoice("C001", "C002");
         

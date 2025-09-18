@@ -54,61 +54,6 @@ public final class TurnEngine {
         if (telemetry != null) telemetry.emit(new Telemetry.MatchStart(state.getRng().seed()));
     }
 
-    public void playTurnAuto() {
-        requirePhase(com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS);
-        
-        // Clear recently added cards from previous turn at the start of new turn
-        // Keep effects recent for persistent log view
-        state.clearRecentlyAddedCardsA();
-        state.clearRecentlyAddedCardsB();
-        
-        MatchPlayer active = new MatchPlayer(state.getActivePlayer());
-        MatchPlayer opponent = new MatchPlayer(state.getInactivePlayer());
-
-        if (active.state().isSkipNextTurn()) {
-            active.state().setSkipNextTurn(false);
-            endStep();
-            return;
-        }
-
-        // Auto: pick two random distinct cards from hand if available
-        int h = active.state().getHand().size();
-        if (h == 0) { endStep(); return; }
-        int idxUp = state.getRng().nextInt(h);
-        String faceUpId = active.state().getHand().get(idxUp).cardId();
-        int idxDown = h > 1 ? (idxUp + 1 + state.getRng().nextInt(h - 1)) % h : idxUp;
-        String faceDownId = active.state().getHand().get(idxDown).cardId();
-        state.setFaceUpCardId(faceUpId);
-        state.setFaceDownCardId(faceDownId);
-
-        // Opponent picks one randomly
-        boolean pickFaceUp = state.getRng().nextBoolean();
-        String picked = pickFaceUp ? faceUpId : faceDownId;
-        String remaining = pickFaceUp ? faceDownId : faceUpId;
-
-        resolveRecruit(remaining, active, opponent, active); // active gets remaining effect and plays it first
-        
-        // Check for winner after active player's effects (but before opponent's effects)
-        checkWinnerMidTurn();
-        
-        resolveRecruit(picked, opponent, active, opponent); // opponent gets picked effect and plays it second
-        
-        // Final check for winner after both players have resolved their effects
-        checkWinnerMidTurn();
-
-        // Move cards to tableau: opponent gets picked, active gets remaining
-        opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(picked));
-        active.state().getTableau().add(new com.officeduel.engine.model.Cards(remaining));
-
-        // Remove from hand (by id, first occurrence)
-        removeFirstById(active.state(), faceUpId);
-        removeFirstById(active.state(), faceDownId);
-
-        // Refill
-        drawUpTo(active.state());
-
-        endStep();
-    }
 
     public void playTurnManual(String faceUpId, String faceDownId) {
         requirePhase(com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS);
@@ -147,6 +92,55 @@ public final class TurnEngine {
         drawUpTo(active.state());
 
         endStep();
+    }
+
+    public void playTurnAuto() {
+        requirePhase(com.officeduel.engine.model.GameState.Phase.PLAY_TWO_CARDS);
+        
+        MatchPlayer active = new MatchPlayer(state.getActivePlayer());
+        
+        if (active.state().isSkipNextTurn()) {
+            active.state().setSkipNextTurn(false);
+            endStep();
+            return;
+        }
+        
+        // Auto: pick two random distinct cards from hand if available
+        int h = active.state().getHand().size();
+        if (h == 0) { 
+            endStep();
+            return; 
+        }
+        
+        int idxUp = state.getRng().nextInt(h);
+        String faceUpId = active.state().getHand().get(idxUp).cardId();
+        
+        // Ensure we select a different card for face down
+        String faceDownId;
+        if (h == 1) {
+            // Only one card in hand - use the same card
+            faceDownId = faceUpId;
+        } else {
+            // Try to find a different card
+            int idxDown;
+            do {
+                idxDown = state.getRng().nextInt(h);
+            } while (idxDown == idxUp && h > 1);
+            faceDownId = active.state().getHand().get(idxDown).cardId();
+        }
+        
+        // Set the cards and change phase to OPPONENT_PICK
+        state.setFaceUpCardId(faceUpId);
+        state.setFaceDownCardId(faceDownId);
+        state.setPhase(com.officeduel.engine.model.GameState.Phase.OPPONENT_PICK);
+        
+        // Auto-choose as well
+        boolean chooseFaceUp = state.getRng().nextBoolean();
+        String picked = chooseFaceUp ? faceUpId : faceDownId;
+        String remaining = chooseFaceUp ? faceDownId : faceUpId;
+        
+        // Use the existing choice method
+        playTurnWithChoice(picked, remaining);
     }
 
     public void playTurnWithChoice(String pickedCardId, String remainingCardId) {
@@ -194,15 +188,18 @@ public final class TurnEngine {
         opponent.state().getTableau().add(new com.officeduel.engine.model.Cards(pickedCardId));
         
         // Track recently added cards
-        System.out.println("DEBUG: Tracking recently added cards - remaining: " + remainingCardId + ", picked: " + pickedCardId);
+        // Active player gets remaining card, Opponent gets picked card
+        System.out.println("DEBUG: Tracking recently added cards - remaining: " + remainingCardId + " (to active), picked: " + pickedCardId + " (to opponent)");
         if (active.state() == state.getPlayerA()) {
-            state.addRecentlyAddedCardA(remainingCardId);
-            state.addRecentlyAddedCardB(pickedCardId);
-            System.out.println("DEBUG: Added to A: " + remainingCardId + ", Added to B: " + pickedCardId);
+            // Active is A, Opponent is B
+            state.addRecentlyAddedCardA(remainingCardId);  // A gets remaining
+            state.addRecentlyAddedCardB(pickedCardId);     // B gets picked
+            System.out.println("DEBUG: Added to A (active): " + remainingCardId + ", Added to B (opponent): " + pickedCardId);
         } else {
-            state.addRecentlyAddedCardB(remainingCardId);
-            state.addRecentlyAddedCardA(pickedCardId);
-            System.out.println("DEBUG: Added to B: " + remainingCardId + ", Added to A: " + pickedCardId);
+            // Active is B, Opponent is A  
+            state.addRecentlyAddedCardB(remainingCardId);  // B gets remaining
+            state.addRecentlyAddedCardA(pickedCardId);     // A gets picked
+            System.out.println("DEBUG: Added to B (active): " + remainingCardId + ", Added to A (opponent): " + pickedCardId);
         }
         System.out.println("DEBUG: Recently added cards A: " + state.getRecentlyAddedCardsA());
         System.out.println("DEBUG: Recently added cards B: " + state.getRecentlyAddedCardsB());
@@ -330,17 +327,25 @@ public final class TurnEngine {
             .count();
             
         System.out.println("DEBUG ensureMinimumDistinctCards: Starting with " + distinctCount + " distinct cards, deck size: " + ps.getDeck().size());
+        
+        // If we already have 2+ distinct cards, we're done
+        if (distinctCount >= 2) {
+            return;
+        }
             
         // If we have less than 2 distinct cards, draw until we have at least 2
+        Set<String> triedCards = new HashSet<>();
+        int initialDeckSize = ps.getDeck().size();
         int attempts = 0;
-        int maxAttempts = ps.getDeck().size() * 2; // Prevent infinite loops
+        int maxAttempts = initialDeckSize * 2; // Safety limit
         
         while (distinctCount < 2 && !ps.getDeck().isEmpty() && attempts < maxAttempts) {
+            attempts++;
+            
             if (ps.consumeBlockDrawIfAny()) continue;
             
             Cards newCard = ps.getDeck().pop();
             String newCardId = newCard.cardId();
-            attempts++;
             
             // Check if this card is already in hand
             boolean isDuplicate = ps.getHand().stream()
@@ -351,15 +356,34 @@ public final class TurnEngine {
                 ps.getHand().add(newCard);
                 distinctCount++;
                 System.out.println("DEBUG ensureMinimumDistinctCards: Drew distinct card " + newCardId + ", distinct count now: " + distinctCount);
+                triedCards.clear(); // Reset tried cards when we find a new distinct card
             } else {
-                // If it's a duplicate, put it back and try next card
+                // If it's a duplicate, put it back and track it
                 ps.getDeck().push(newCard);
-                System.out.println("DEBUG ensureMinimumDistinctCards: Skipped duplicate card " + newCardId + " (attempt " + attempts + ")");
+                triedCards.add(newCardId);
+                System.out.println("DEBUG ensureMinimumDistinctCards: Skipped duplicate card " + newCardId + ", tried cards: " + triedCards.size());
+                
+                // If we've tried all unique card types in deck, break to prevent infinite loop
+                if (triedCards.size() >= 5) { // Reasonable limit - if we've tried 5 different cards and all are dupes, stop
+                    System.out.println("DEBUG ensureMinimumDistinctCards: Tried too many different cards, all are duplicates, stopping");
+                    break;
+                }
             }
+        }
+        
+        if (attempts >= maxAttempts) {
+            System.out.println("DEBUG ensureMinimumDistinctCards: Hit maximum attempts limit, stopping to prevent infinite loop");
         }
         
         if (distinctCount < 2) {
             System.out.println("DEBUG ensureMinimumDistinctCards: WARNING - Could not ensure 2 distinct cards. Deck may be empty or have only duplicates. Distinct count: " + distinctCount);
+            // Force draw more cards even if duplicates to reach minimum hand size
+            while (ps.getHand().size() < 2 && !ps.getDeck().isEmpty()) {
+                if (ps.consumeBlockDrawIfAny()) continue;
+                Cards newCard = ps.getDeck().pop();
+                ps.getHand().add(newCard);
+                System.out.println("DEBUG ensureMinimumDistinctCards: Force drew card " + newCard.cardId() + " to reach minimum hand size");
+            }
         }
     }
     
@@ -370,17 +394,20 @@ public final class TurnEngine {
             .distinct()
             .count();
             
-        // If we already have 2+ distinct cards, only draw 1 more to fill up
-        int targetHandSize = (distinctCount >= 2) ? 
-            Math.min(ps.getHand().size() + 1, ps.getMaxHandSize()) : 
-            ps.getMaxHandSize();
+        // Draw up to max hand size
+        int targetHandSize = ps.getMaxHandSize();
             
-        System.out.println("DEBUG smartDrawUpToMax: distinctCount=" + distinctCount + ", currentHandSize=" + ps.getHand().size() + ", targetHandSize=" + targetHandSize);
         
         // Draw cards up to target size, avoiding duplicates in this turn
         Set<String> cardsDrawnThisTurn = new HashSet<>();
-        while (ps.getHand().size() < targetHandSize && !ps.getDeck().isEmpty()) {
-            if (ps.consumeBlockDrawIfAny()) continue;
+        int attempts = 0;
+        int maxAttempts = 100; // Prevent infinite loop
+        
+        while (ps.getHand().size() < targetHandSize && !ps.getDeck().isEmpty() && attempts < maxAttempts) {
+            if (ps.consumeBlockDrawIfAny()) {
+                attempts++;
+                continue;
+            }
             
             Cards newCard = ps.getDeck().pop();
             String newCardId = newCard.cardId();
@@ -389,12 +416,11 @@ public final class TurnEngine {
             if (!cardsDrawnThisTurn.contains(newCardId)) {
                 ps.getHand().add(newCard);
                 cardsDrawnThisTurn.add(newCardId);
-                System.out.println("DEBUG smartDrawUpToMax: Drew card " + newCardId + " (turn draw #" + cardsDrawnThisTurn.size() + ")");
             } else {
                 // If it's a duplicate from this turn, put it back
                 ps.getDeck().push(newCard);
-                System.out.println("DEBUG smartDrawUpToMax: Skipped duplicate card " + newCardId + " from this turn");
             }
+            attempts++;
         }
     }
 
@@ -424,6 +450,11 @@ public final class TurnEngine {
         state.swapActive();
         int newActivePlayer = state.getActivePlayerIndex();
         System.out.println("DEBUG endStep: Turn swapped from Player " + (previousActivePlayer == 0 ? "A" : "B") + " to Player " + (newActivePlayer == 0 ? "A" : "B"));
+        
+        // Ensure new active player has at least 2 distinct cards to play
+        PlayerState newActivePlayerState = newActivePlayer == 0 ? state.getPlayerA() : state.getPlayerB();
+        ensureMinimumDistinctCards(newActivePlayerState);
+        System.out.println("DEBUG endStep: Ensured new active player has minimum distinct cards");
     }
 
     private void removeFirstById(PlayerState ps, String cardId) {

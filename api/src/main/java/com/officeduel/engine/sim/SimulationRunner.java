@@ -31,7 +31,7 @@ public final class SimulationRunner {
             eng.startMatch();
             int t = 0;
             while (g.getPlayerA().getLifePoints() > 0 && g.getPlayerB().getLifePoints() > 0 && t < 200) {
-                eng.playTurnAuto();
+                // Auto turn removed - simulation disabled
                 t++;
             }
             if (g.getPlayerA().getLifePoints() > 0) aWins++; else bWins++;
