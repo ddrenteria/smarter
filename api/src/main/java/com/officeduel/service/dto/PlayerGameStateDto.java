@@ -21,7 +21,9 @@ public record PlayerGameStateDto(
         String winner,  // Name of winner, or null if game not finished
         Map<String, CardInfo> cardDefinitions,
         List<EffectFeedback> recentEffects,
-        boolean started
+        boolean started,
+        int playTwoCardsTimeSeconds,  // Time limit for PLAY_TWO_CARDS phase
+        int opponentPickTimeSeconds   // Time limit for OPPONENT_PICK phase
 ) {
     public record PlayerDto(
             String name,

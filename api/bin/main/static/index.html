@@ -874,7 +874,7 @@
       align-items: center;
       margin-bottom: 10px;    /* Reduced from 15px */
     }
-
+    
     .card-choice {
       background: white;
       border: 2px solid #dee2e6;
@@ -1626,6 +1626,32 @@
     .play-selected-btn:active {
       transform: translateY(0);
       box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+    
+    /* Recently added card highlighting */
+    .newly-added {
+      animation: newCardGlow 2s ease-in-out;
+      border: 3px solid #ffd700 !important;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6) !important;
+      background: rgba(255, 215, 0, 0.1) !important;
+    }
+    
+    @keyframes newCardGlow {
+      0% {
+        border-color: #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        background: rgba(255, 215, 0, 0.2);
+      }
+      50% {
+        border-color: #ffed4e;
+        box-shadow: 0 0 25px rgba(255, 237, 78, 0.9);
+        background: rgba(255, 237, 78, 0.15);
+      }
+      100% {
+        border-color: #ffd700;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        background: rgba(255, 215, 0, 0.1);
+      }
     }
     .tableau { display: flex; gap: 4px; margin: 10px 0; flex-wrap: wrap; }
     .tableau-card {
@@ -2424,6 +2450,122 @@
       font-style: italic;
       margin-top: 20px;
     }
+    
+    /* Timer configuration styling */
+    .timer-config {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .timer-config h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 1.2em;
+    }
+    
+    .timer-inputs {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .timer-input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 180px;
+    }
+    
+    .timer-input-group label {
+      font-weight: bold;
+      color: #555;
+      font-size: 0.9em;
+    }
+    
+    .timer-input-group select {
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+    
+    .timer-input-group select:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Active Effects Styling */
+    .status-effects {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .status-effects h4 {
+      margin: 0 0 10px 0;
+      font-size: 0.9em;
+      color: #ccc;
+      text-align: center;
+    }
+    
+    .status-effects-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .status-effect {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+    
+    .status-effect.self-effect {
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid rgba(76, 175, 80, 0.4);
+      color: #4CAF50;
+    }
+    
+    .status-effect.opponent-effect {
+      background: rgba(255, 152, 0, 0.2);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      color: #FF9800;
+    }
+    
+    .effect-name {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .effect-value {
+      font-weight: bold;
+      min-width: 30px;
+      text-align: right;
+    }
+    
+    .no-effects {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      font-size: 0.8em;
+      padding: 8px;
+    }
   </style>
 </head>
 <body>
@@ -2488,6 +2630,35 @@
           <span id="playerBReady" class="ready-status">(Not Ready)</span>
         </div>
       </div>
+      
+      <!-- Timer Configuration -->
+      <div class="timer-config" id="timerConfig" style="display: none;">
+        <h3>⏱️ Timer Settings</h3>
+        <div class="timer-inputs">
+          <div class="timer-input-group">
+            <label for="playTwoCardsTime">Play Two Cards Phase:</label>
+            <select id="playTwoCardsTime">
+              <option value="30">30 seconds</option>
+              <option value="60">60 seconds</option>
+              <option value="90">90 seconds</option>
+              <option value="120" selected>2 minutes</option>
+              <option value="180">3 minutes</option>
+              <option value="300">5 minutes</option>
+            </select>
+          </div>
+          <div class="timer-input-group">
+            <label for="opponentPickTime">Opponent Pick Phase:</label>
+            <select id="opponentPickTime">
+              <option value="15">15 seconds</option>
+              <option value="30">30 seconds</option>
+              <option value="45">45 seconds</option>
+              <option value="60" selected>60 seconds</option>
+              <option value="120">2 minutes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
       <button id="readyBtn" class="ready-btn" style="display: none;">I'm Ready!</button>
       <div id="waitingMessage" class="waiting-message">Waiting for both players to be ready...</div>
     </div>
@@ -2555,12 +2726,12 @@
           <h4>Estados Activos</h4>
           <div class="status-effects-list" id="statusEffectsListB">
             <!-- Status effects will be displayed here -->
-          </div>
         </div>
       </div>
-
+    </div>
+    
       <!-- Card Selection Panel (Between Areas) -->
-      <div class="card-selection-panel" id="cardSelectionPanel">
+    <div class="card-selection-panel" id="cardSelectionPanel">
       <div class="panel-header">
         <h3 id="panelTitle">Choose Cards <button class="eye-button" onclick="toggleChoosePanel()">👁️</button></h3>
       </div>
@@ -2616,9 +2787,9 @@
           <h4>Estados Activos</h4>
           <div class="status-effects-list" id="statusEffectsListA">
             <!-- Status effects will be displayed here -->
-          </div>
-        </div>
       </div>
+    </div>
+    </div>
       
     </div>  <!-- End game-main -->
     
@@ -2649,8 +2820,8 @@
     let selUp = null, selDown = null;
     let turnTimer = null;
     let choiceTimer = null;
-    let turnTimeLeft = 120; // Doubled from 60 to 120 seconds for card selection
-    let choiceTimeLeft = 60; // Doubled from 30 to 60 seconds for choice selection
+    let turnTimeLeft = 30; // Default timer for card selection phase
+    let choiceTimeLeft = 15; // Default timer for opponent choice phase
 
     // Screen management functions
     function showScreen(screenId) {
@@ -2984,9 +3155,15 @@
      * This handles both legacy (playerA/playerB) and new (self/opponent) API responses
      */
     function normalizeGameState(gameState) {
+      console.log('🔍 DEBUG normalizeGameState: input gameState =', gameState);
+      
       // If already in new format, return as-is
       if (gameState.self && gameState.opponent) {
-        return {
+        console.log('🔍 DEBUG normalizeGameState: using NEW format');
+        console.log('🔍 DEBUG normalizeGameState: gameState.playTwoCardsTimeSeconds =', gameState.playTwoCardsTimeSeconds);
+        console.log('🔍 DEBUG normalizeGameState: gameState.opponentPickTimeSeconds =', gameState.opponentPickTimeSeconds);
+        
+        const result = {
           ...gameState,
           self: gameState.self,
           opponent: gameState.opponent,
@@ -3000,8 +3177,14 @@
           winner: gameState.winner || null,
           cardDefinitions: gameState.cardDefinitions,
           recentEffects: gameState.recentEffects || [],
-          started: gameState.started
+          started: gameState.started,
+          playTwoCardsTimeSeconds: gameState.playTwoCardsTimeSeconds || 30,
+          opponentPickTimeSeconds: gameState.opponentPickTimeSeconds || 15
         };
+        
+        console.log('🔍 DEBUG normalizeGameState: result.playTwoCardsTimeSeconds =', result.playTwoCardsTimeSeconds);
+        console.log('🔍 DEBUG normalizeGameState: result.opponentPickTimeSeconds =', result.opponentPickTimeSeconds);
+        return result;
       }
       
       // Legacy format - convert based on playerSeat
@@ -3048,6 +3231,8 @@
         cardDefinitions: gameState.cardDefinitions,
         recentEffects: gameState.recentEffects || [],
         started: gameState.started,
+        playTwoCardsTimeSeconds: gameState.playTwoCardsTimeSeconds || 120,
+        opponentPickTimeSeconds: gameState.opponentPickTimeSeconds || 60,
         // Keep legacy fields for backward compatibility during transition
         activePlayer: gameState.activePlayer,
         playerA: gameState.playerA,
@@ -3167,9 +3352,9 @@
         });
       } else {
         // Fallback to old endpoint for backward compatibility
-        const url = playerSeat !== null ? 
-          api + '/api/match/' + matchId + '?seat=' + playerSeat :
-          api + '/api/match/' + matchId;
+      const url = playerSeat !== null ? 
+        api + '/api/match/' + matchId + '?seat=' + playerSeat :
+        api + '/api/match/' + matchId;
         gameState_response = await req(url);
       }
       
@@ -3183,9 +3368,9 @@
         console.log('DEBUG refresh: gameState.opponent =', gameState.opponent);
       } else {
         console.log('DEBUG refresh: using legacy API format');
-        console.log('DEBUG refresh: gameState.recentlyAddedCardsA =', gameState.recentlyAddedCardsA);
-        console.log('DEBUG refresh: gameState.recentlyAddedCardsB =', gameState.recentlyAddedCardsB);
-        console.log('DEBUG refresh: gameState.activeHandCardIds =', gameState.activeHandCardIds);
+      console.log('DEBUG refresh: gameState.recentlyAddedCardsA =', gameState.recentlyAddedCardsA);
+      console.log('DEBUG refresh: gameState.recentlyAddedCardsB =', gameState.recentlyAddedCardsB);
+      console.log('DEBUG refresh: gameState.activeHandCardIds =', gameState.activeHandCardIds);
       }
       
       // Handle lobby state
@@ -3201,11 +3386,11 @@
       const normalizedState = normalizeGameState(gameState);
       
       // Update player info in sidebar (simple self/opponent)
-      const opponentHandCount = document.getElementById('opponentHandCount');
-      const opponentTableauCount = document.getElementById('opponentTableauCount');
-      const playerHandCount = document.getElementById('playerHandCount');
-      const playerTableauCount = document.getElementById('playerTableauCount');
-      
+        const opponentHandCount = document.getElementById('opponentHandCount');
+        const opponentTableauCount = document.getElementById('opponentTableauCount');
+        const playerHandCount = document.getElementById('playerHandCount');
+        const playerTableauCount = document.getElementById('playerTableauCount');
+        
       if (opponentHandCount) opponentHandCount.textContent = normalizedState.opponent.handSize;
       if (opponentTableauCount) opponentTableauCount.textContent = normalizedState.opponent.tableauSize;
       if (playerHandCount) playerHandCount.textContent = normalizedState.self.handSize;
@@ -3342,14 +3527,14 @@
         
         if (phase === 'PLAY_TWO_CARDS' && isMyTurn && isSelfBot) {
           // It's our turn and we're a bot - select cards
-          shouldAct = true;
-          delay = 1000; // 1 second to select cards
-          action = 'selecting cards';
+            shouldAct = true;
+            delay = 1000; // 1 second to select cards
+            action = 'selecting cards';
         } else if (phase === 'OPPONENT_PICK' && canChooseCards && isSelfBot) {
           // We can choose cards and we're a bot - choose between cards
-          shouldAct = true;
-          delay = 3000; // 3 seconds to choose between cards
-          action = 'choosing between cards';
+            shouldAct = true;
+            delay = 3000; // 3 seconds to choose between cards
+            action = 'choosing between cards';
         }
         
         if (shouldAct) {
@@ -3372,8 +3557,8 @@
                   console.log('Bot about to play cards:', faceUpCard, faceDownCard);
                   // Use new token-based endpoint if available
                   await apiCall('play', {
-                    faceUpId: faceUpCard,
-                    faceDownId: faceDownCard
+                      faceUpId: faceUpCard,
+                      faceDownId: faceDownCard
                   });
                   console.log('Bot selected cards automatically:', faceUpCard, faceDownCard);
                 } else {
@@ -3387,7 +3572,7 @@
                 console.log('Bot about to choose:', choice);
                 // Use new token-based endpoint if available
                 await apiCall('choose', {
-                  chooseFaceUp: choice === 'faceUp'
+                    chooseFaceUp: choice === 'faceUp'
                 });
                 console.log('Bot chose automatically:', choice);
               }
@@ -3435,6 +3620,82 @@
         document.querySelector('#playerAName').previousElementSibling.textContent = 'You:';
         document.querySelector('#playerBName').previousElementSibling.textContent = 'Opponent:';
         
+        // Show timer configuration for the host
+        const timerConfig = document.getElementById('timerConfig');
+        let isHost = false;
+        
+        console.log('🎯 HOST DEBUG: normalizedState.self.isBot =', normalizedState.self.isBot);
+        console.log('🎯 HOST DEBUG: normalizedState.opponent.isBot =', normalizedState.opponent.isBot);
+        console.log('🎯 HOST DEBUG: playerSeat =', playerSeat);
+        
+        // Determine host based on game type
+        if (normalizedState.self.isBot && !normalizedState.opponent.isBot) {
+          // Bot vs Human: Human is host (regardless of seat)
+          isHost = !normalizedState.self.isBot;
+          console.log('🎯 HOST DEBUG: Bot vs Human case, isHost =', isHost);
+        } else if (!normalizedState.self.isBot && normalizedState.opponent.isBot) {
+          // Human vs Bot: Human is host
+          isHost = !normalizedState.self.isBot;
+          console.log('🎯 HOST DEBUG: Human vs Bot case, isHost =', isHost);
+        } else if (!normalizedState.self.isBot && !normalizedState.opponent.isBot) {
+          // Human vs Human: Player A (seat 0) is host
+          isHost = (playerSeat === 0);
+          console.log('🎯 HOST DEBUG: Human vs Human case, isHost =', isHost);
+        }
+        
+        console.log('🎯 HOST DEBUG: Final isHost =', isHost);
+        
+        if (timerConfig) {
+          timerConfig.style.display = isHost ? 'block' : 'none';
+          console.log('🎯 HOST DEBUG: Timer config display =', timerConfig.style.display);
+          
+          // Set timer values from backend only if they haven't been initialized yet
+          if (isHost) {
+            const playTwoCardsSelect = document.getElementById('playTwoCardsTime');
+            const opponentPickSelect = document.getElementById('opponentPickTime');
+            
+            console.log('🎯 HOST DEBUG: playTwoCardsSelect =', playTwoCardsSelect);
+            console.log('🎯 HOST DEBUG: opponentPickSelect =', opponentPickSelect);
+            
+            // Only set values from backend if:
+            // 1. They haven't been initialized yet AND
+            // 2. The backend values are different from defaults (120, 60) OR
+            // 3. The user hasn't changed them manually (no userModified flag)
+            if (playTwoCardsSelect && !playTwoCardsSelect.dataset.initialized && !playTwoCardsSelect.dataset.userModified) {
+              // Only set from backend if it's different from the frontend default (30s)
+              if (normalizedState.playTwoCardsTimeSeconds && normalizedState.playTwoCardsTimeSeconds !== parseInt(playTwoCardsSelect.value)) {
+                playTwoCardsSelect.value = normalizedState.playTwoCardsTimeSeconds;
+                console.log('🎯 HOST DEBUG: Set playTwoCardsTime to backend value', normalizedState.playTwoCardsTimeSeconds);
+              }
+              playTwoCardsSelect.dataset.initialized = 'true';
+            }
+            
+            if (opponentPickSelect && !opponentPickSelect.dataset.initialized && !opponentPickSelect.dataset.userModified) {
+              // Only set from backend if it's different from the frontend default (15s)  
+              if (normalizedState.opponentPickTimeSeconds && normalizedState.opponentPickTimeSeconds !== parseInt(opponentPickSelect.value)) {
+                opponentPickSelect.value = normalizedState.opponentPickTimeSeconds;
+                console.log('🎯 HOST DEBUG: Set opponentPickTime to backend value', normalizedState.opponentPickTimeSeconds);
+              }
+              opponentPickSelect.dataset.initialized = 'true';
+            }
+            
+            // Ensure event listeners are attached when host sees timer config
+            if (playTwoCardsSelect && !playTwoCardsSelect.dataset.listenerAttached) {
+              playTwoCardsSelect.removeEventListener('change', updateTimerSettings);
+              playTwoCardsSelect.addEventListener('change', updateTimerSettings);
+              playTwoCardsSelect.dataset.listenerAttached = 'true';
+              console.log('🎯 HOST DEBUG: Added change listener to playTwoCardsTime');
+            }
+            
+            if (opponentPickSelect && !opponentPickSelect.dataset.listenerAttached) {
+              opponentPickSelect.removeEventListener('change', updateTimerSettings);
+              opponentPickSelect.addEventListener('change', updateTimerSettings);
+              opponentPickSelect.dataset.listenerAttached = 'true';
+              console.log('🎯 HOST DEBUG: Added change listener to opponentPickTime');
+            }
+          }
+        }
+        
         // Show ready button if this player isn't ready yet
         const readyBtn = document.getElementById('readyBtn');
         const waitingMsg = document.getElementById('waitingMessage');
@@ -3450,33 +3711,33 @@
         }
       } else {
         // Legacy format fallback
-        document.getElementById('playerAName').textContent = gameState.playerA || '-';
-        document.getElementById('playerBName').textContent = gameState.playerB || '-';
-        
-        const playerAReady = document.getElementById('playerAReady');
-        const playerBReady = document.getElementById('playerBReady');
-        
-        playerAReady.textContent = gameState.readyA ? '(Ready)' : '(Not Ready)';
-        playerBReady.textContent = gameState.readyB ? '(Ready)' : '(Not Ready)';
-        playerAReady.className = gameState.readyA ? 'ready-status ready' : 'ready-status not-ready';
-        playerBReady.className = gameState.readyB ? 'ready-status ready' : 'ready-status not-ready';
-        
-        // Show ready button if this player isn't ready yet
-        const readyBtn = document.getElementById('readyBtn');
-        const waitingMsg = document.getElementById('waitingMessage');
-        
-        if (playerSeat === 0 && !gameState.readyA) {
-          readyBtn.style.display = 'block';
-          waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
-        } else if (playerSeat === 1 && !gameState.readyB) {
-          readyBtn.style.display = 'block';
-          waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
-        } else if (!gameState.readyA || !gameState.readyB) {
-          readyBtn.style.display = 'none';
-          waitingMsg.textContent = 'Waiting for the other player to be ready...';
+      document.getElementById('playerAName').textContent = gameState.playerA || '-';
+      document.getElementById('playerBName').textContent = gameState.playerB || '-';
+      
+      const playerAReady = document.getElementById('playerAReady');
+      const playerBReady = document.getElementById('playerBReady');
+      
+      playerAReady.textContent = gameState.readyA ? '(Ready)' : '(Not Ready)';
+      playerBReady.textContent = gameState.readyB ? '(Ready)' : '(Not Ready)';
+      playerAReady.className = gameState.readyA ? 'ready-status ready' : 'ready-status not-ready';
+      playerBReady.className = gameState.readyB ? 'ready-status ready' : 'ready-status not-ready';
+      
+      // Show ready button if this player isn't ready yet
+      const readyBtn = document.getElementById('readyBtn');
+      const waitingMsg = document.getElementById('waitingMessage');
+      
+      if (playerSeat === 0 && !gameState.readyA) {
+        readyBtn.style.display = 'block';
+        waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
+      } else if (playerSeat === 1 && !gameState.readyB) {
+        readyBtn.style.display = 'block';
+        waitingMsg.textContent = 'Click "I\'m Ready!" when you\'re ready to start';
+      } else if (!gameState.readyA || !gameState.readyB) {
+        readyBtn.style.display = 'none';
+        waitingMsg.textContent = 'Waiting for the other player to be ready...';
         } else {
-          readyBtn.style.display = 'none';
-          waitingMsg.textContent = 'Both players ready! Starting game...';
+        readyBtn.style.display = 'none';
+        waitingMsg.textContent = 'Both players ready! Starting game...';
         }
       }
     }
@@ -3515,7 +3776,48 @@
     document.getElementById('copyMatchIdBtn').onclick = copyMatchId;
 
     async function setReady() {
+      console.log('🎯 READY DEBUG: setReady() called');
+      
       try {
+        // First, send timer settings if user is host and has configured them
+        const timerConfig = document.getElementById('timerConfig');
+        console.log('🎯 READY DEBUG: timerConfig =', timerConfig);
+        console.log('🎯 READY DEBUG: timerConfig.style.display =', timerConfig ? timerConfig.style.display : 'N/A');
+        
+        if (timerConfig && timerConfig.style.display !== 'none') {
+          console.log('⏰ Host is setting ready - sending timer settings first...');
+          
+          // If we have pending timer settings, use those, otherwise get current values
+          if (window.pendingTimerSettings) {
+            console.log('⏰ Using pending timer settings:', window.pendingTimerSettings);
+            
+            // Send the pending settings now that we have matchId and token
+            try {
+              const response = await fetch(`/api/matches/${matchId}/timer-settings`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Player-Token': playerToken
+                },
+                body: JSON.stringify(window.pendingTimerSettings)
+              });
+              
+              if (response.ok) {
+                console.log('✅ Pending timer settings sent successfully');
+                delete window.pendingTimerSettings;
+              } else {
+                const errorText = await response.text();
+                console.warn('❌ Failed to send pending timer settings:', errorText);
+              }
+            } catch (error) {
+              console.error('❌ Error sending pending timer settings:', error);
+            }
+          } else {
+            // Fallback to current updateTimerSettings function
+            await updateTimerSettings();
+          }
+        }
+        
         await apiCall('ready');
         log('Ready status sent');
         refresh();
@@ -3618,11 +3920,11 @@
             });
           } else {
             // Original rendering without colors
-            cardDef.tiers.forEach((tier, idx)=>{
-               const li=document.createElement('li');
-               li.innerHTML = (idx+1)+'. '+ (tier.actions[0]?.description || '');
-               ul.appendChild(li);
-            });
+          cardDef.tiers.forEach((tier, idx)=>{
+             const li=document.createElement('li');
+             li.innerHTML = (idx+1)+'. '+ (tier.actions[0]?.description || '');
+             ul.appendChild(li);
+          });
           }
           btn.appendChild(ul);
       } else {
@@ -3794,7 +4096,7 @@
       if (selUp && gameState && gameState.cardDefinitions) {
         const cardDef = gameState.cardDefinitions[selUp];
         if (cardDef) {
-          faceUpPreview.innerHTML = createCardPreviewContent(cardDef);
+          faceUpPreview.innerHTML = createCardPreviewContent(cardDef, selUp); // Pass real ID
           faceUpPreview.className = 'card-preview has-card';
         }
       }
@@ -3803,13 +4105,13 @@
       if (selDown && gameState && gameState.cardDefinitions) {
         const cardDef = gameState.cardDefinitions[selDown];
         if (cardDef) {
-          faceDownPreview.innerHTML = createCardPreviewContent(cardDef);
+          faceDownPreview.innerHTML = createCardPreviewContent(cardDef, selDown); // Pass real ID
           faceDownPreview.className = 'card-preview has-card';
         }
       }
     }
     
-    function createCardPreviewContent(cardDef) {
+    function createCardPreviewContent(cardDef, realCardId = null) {
       // Create card content using the same style as hand cards
       const div = document.createElement('div');
       div.className = 'card-preview-content';
@@ -3829,10 +4131,15 @@
       const myTableau = normalizedState.self.tableauCardIds || [];
       const oppTableau = normalizedState.opponent.tableauCardIds || [];
       
-      // Use card name as ID for tableau calculations (same as hand cards)
-      const cardId = cardDef.name;
+      // Use the real card ID for tableau calculations (not card name)
+      const cardId = realCardId || cardDef.name;
       const myNextLevel = getNextEffectLevel(cardId, myTableau);
       const oppNextLevel = getNextEffectLevel(cardId, oppTableau);
+      
+      console.log('DEBUG createCardPreviewContent: cardId =', cardId, 'cardName =', cardDef.name);
+      console.log('DEBUG createCardPreviewContent: myTableau =', myTableau);
+      console.log('DEBUG createCardPreviewContent: oppTableau =', oppTableau);
+      console.log('DEBUG createCardPreviewContent: myNextLevel =', myNextLevel, 'oppNextLevel =', oppNextLevel);
       
       cardDef.tiers.forEach((tier, idx) => {
         const li = document.createElement('li');
@@ -3849,6 +4156,8 @@
         } else if (wouldBeActiveForOpp) {
           effectClass = 'effect-opponent';
         }
+        
+        console.log('DEBUG createCardPreviewContent: tier', idx+1, 'wouldBeActiveForMe =', wouldBeActiveForMe, 'wouldBeActiveForOpp =', wouldBeActiveForOpp, 'effectClass =', effectClass);
         
         li.className = effectClass;
         li.innerHTML = (idx + 1) + '. ' + (tier.actions[0]?.description || '');
@@ -4112,11 +4421,11 @@
         
         const response = await apiCall('choose', body);
         
-        console.log('Opponent choice submitted successfully');
+          console.log('Opponent choice submitted successfully');
         console.log('New game state:', response);
         
         // apiCall already updates gameState, so just refresh UI
-        await refresh();
+          await refresh();
       } catch (error) {
         console.error('Error submitting opponent choice:', error);
       } finally {
@@ -4271,6 +4580,59 @@
         return cardBack;
       }
     }
+    function renderActiveEffects() {
+      const normalizedState = normalizeGameState(gameState);
+      
+      // Render self active effects
+      const selfEffectsDiv = document.getElementById('statusEffectsListA');
+      const oppEffectsDiv = document.getElementById('statusEffectsListB');
+      
+      if (selfEffectsDiv) {
+        selfEffectsDiv.innerHTML = '';
+        const selfEffects = normalizedState.self.activeStatuses || {};
+        
+        Object.entries(selfEffects).forEach(([effectName, value]) => {
+          const effectElement = document.createElement('div');
+          effectElement.className = 'status-effect self-effect';
+          effectElement.innerHTML = `
+            <span class="effect-name">${effectName}</span>
+            <span class="effect-value">${value > 0 ? '+' : ''}${value}</span>
+          `;
+          selfEffectsDiv.appendChild(effectElement);
+        });
+        
+        if (Object.keys(selfEffects).length === 0) {
+          const noEffectsElement = document.createElement('div');
+          noEffectsElement.className = 'no-effects';
+          noEffectsElement.textContent = 'No active effects';
+          selfEffectsDiv.appendChild(noEffectsElement);
+        }
+      }
+      
+      // Render opponent active effects
+      if (oppEffectsDiv) {
+        oppEffectsDiv.innerHTML = '';
+        const oppEffects = normalizedState.opponent.activeStatuses || {};
+        
+        Object.entries(oppEffects).forEach(([effectName, value]) => {
+          const effectElement = document.createElement('div');
+          effectElement.className = 'status-effect opponent-effect';
+          effectElement.innerHTML = `
+            <span class="effect-name">${effectName}</span>
+            <span class="effect-value">${value > 0 ? '+' : ''}${value}</span>
+          `;
+          oppEffectsDiv.appendChild(effectElement);
+        });
+        
+        if (Object.keys(oppEffects).length === 0) {
+          const noEffectsElement = document.createElement('div');
+          noEffectsElement.className = 'no-effects';
+          noEffectsElement.textContent = 'No active effects';
+          oppEffectsDiv.appendChild(noEffectsElement);
+        }
+      }
+    }
+
     function renderTableaus() {
       if (!gameState || playerSeat === null) return;
       
@@ -4285,10 +4647,22 @@
       // Get the correct tableau data from normalized state
       const myTableauIds = normalizedState.self.tableauCardIds || [];
       const oppTableauIds = normalizedState.opponent.tableauCardIds || [];
+      const myRecentlyAdded = normalizedState.self.recentlyAddedCards || [];
+      const oppRecentlyAdded = normalizedState.opponent.recentlyAddedCards || [];
+      
+      console.log('DEBUG renderTableaus: myTableauIds =', myTableauIds);
+      console.log('DEBUG renderTableaus: oppTableauIds =', oppTableauIds);
+      console.log('DEBUG renderTableaus: myRecentlyAdded =', myRecentlyAdded);
+      console.log('DEBUG renderTableaus: oppRecentlyAdded =', oppRecentlyAdded);
       
       // Clear both tableaus
       myTableauDiv.innerHTML = '';
       oppTableauDiv.innerHTML = '';
+      
+      // Clear any existing newly-added classes from previous renders
+      document.querySelectorAll('.newly-added').forEach(element => {
+        element.classList.remove('newly-added');
+      });
       
       // Render my tableau
       const cardCountsMy = {};
@@ -4299,7 +4673,7 @@
       Object.keys(cardCountsMy).forEach(id => {
         const count = cardCountsMy[id];
         const cardDef = normalizedState.cardDefinitions[id];
-        const stackedCard = renderStackedCard(id, cardDef, count);
+        const stackedCard = renderStackedCard(id, cardDef, count, 'self');
         myTableauDiv.appendChild(stackedCard);
       });
       
@@ -4312,9 +4686,12 @@
       Object.keys(cardCountsOpp).forEach(id => {
         const count = cardCountsOpp[id];
         const cardDef = normalizedState.cardDefinitions[id];
-        const stackedCard = renderStackedCard(id, cardDef, count);
+        const stackedCard = renderStackedCard(id, cardDef, count, 'opponent');
         oppTableauDiv.appendChild(stackedCard);
       });
+      
+      // Also render active effects
+      renderActiveEffects();
     }
     
     // Global variable to store all effects for persistent log
@@ -4490,7 +4867,7 @@
       if (selectedFaceUpCard && gameState.cardDefinitions) {
         const cardDef = gameState.cardDefinitions[selectedFaceUpCard];
         if (cardDef) {
-          faceUpPreview.innerHTML = createCardPreviewContent(cardDef);
+          faceUpPreview.innerHTML = createCardPreviewContent(cardDef, selectedFaceUpCard); // Pass real ID
           faceUpPreview.className = 'card-preview has-card';
         }
       } else {
@@ -4537,7 +4914,7 @@
       updateCardPreviews();
     }
 
-    function renderStackedCard(cardId, cardDef, count) {
+    function renderStackedCard(cardId, cardDef, count, owner = 'self') {
       const div = document.createElement('div');
       div.className = 'card-tooltip stacked-card';
       
@@ -4547,14 +4924,27 @@
       btn.style.minHeight = '160px';
       btn.style.position='relative';
       
-      // Check if this card was recently added
-      // console.log('DEBUG renderStackedCard:', cardId, 'gameState.recentlyAddedCardsA:', gameState.recentlyAddedCardsA, 'gameState.recentlyAddedCardsB:', gameState.recentlyAddedCardsB);
-      const isRecentlyAdded = gameState.recentlyAddedCardsA?.includes(cardId) || 
-                             gameState.recentlyAddedCardsB?.includes(cardId);
-      // console.log('DEBUG isRecentlyAdded:', isRecentlyAdded, 'for card:', cardId);
+      // Check if this card was recently added using normalized state
+      const normalizedState = normalizeGameState(gameState);
+      
+      // Only use the relevant recently added cards based on owner
+      const recentlyAddedCards = owner === 'self' 
+        ? (normalizedState.self.recentlyAddedCards || [])
+        : (normalizedState.opponent.recentlyAddedCards || []);
+      
+      // Count how many of this card were recently added for this specific owner
+      const recentCount = recentlyAddedCards.filter(id => id === cardId).length;
+      
+      // Only highlight if this is a recent addition
+      const isRecentlyAdded = recentCount > 0;
+      
+      console.log(`DEBUG renderStackedCard (${owner}): cardId =`, cardId, 'count =', count);
+      console.log(`DEBUG renderStackedCard (${owner}): recentlyAddedCards =`, recentlyAddedCards);
+      console.log(`DEBUG renderStackedCard (${owner}): recentCount =`, recentCount, 'isRecentlyAdded =', isRecentlyAdded);
+      console.log(`DEBUG renderStackedCard (${owner}): cardDef.name =`, cardDef?.name);
+      
       if (isRecentlyAdded) {
         btn.classList.add('newly-added');
-        // console.log('DEBUG Added newly-added class to card:', cardId);
         // Remove the class after animation completes
         setTimeout(() => {
           btn.classList.remove('newly-added');
@@ -4599,7 +4989,19 @@
     }
     function startTurnTimer() {
       clearTimers();
-      turnTimeLeft = 120; // Doubled from 60 to 120 seconds
+      
+      // Use configured timer value from backend, default to 120 seconds
+      const normalizedState = normalizeGameState(gameState);
+      console.log('🔍 DEBUG startTurnTimer: gameState =', gameState);
+      console.log('🔍 DEBUG startTurnTimer: normalizedState.playTwoCardsTimeSeconds =', normalizedState.playTwoCardsTimeSeconds);
+      console.log('🔍 DEBUG startTurnTimer: normalizedState =', normalizedState);
+      
+      turnTimeLeft = normalizedState.playTwoCardsTimeSeconds || 30;
+      
+      console.log(`🕐 Starting turn timer: ${turnTimeLeft} seconds (PLAY_TWO_CARDS phase)`, {
+        configuredValue: normalizedState.playTwoCardsTimeSeconds,
+        fallbackUsed: !normalizedState.playTwoCardsTimeSeconds
+      });
       updateTimerDisplay();
       
       turnTimer = setInterval(() => {
@@ -4616,7 +5018,19 @@
 
     function startChoiceTimer() {
       clearTimers();
-      choiceTimeLeft = 60; // Doubled from 30 to 60 seconds
+      
+      // Use configured timer value from backend, default to 60 seconds
+      const normalizedState = normalizeGameState(gameState);
+      console.log('🔍 DEBUG startChoiceTimer: gameState =', gameState);
+      console.log('🔍 DEBUG startChoiceTimer: normalizedState.opponentPickTimeSeconds =', normalizedState.opponentPickTimeSeconds);
+      console.log('🔍 DEBUG startChoiceTimer: normalizedState =', normalizedState);
+      
+      choiceTimeLeft = normalizedState.opponentPickTimeSeconds || 15;
+      
+      console.log(`🕐 Starting choice timer: ${choiceTimeLeft} seconds (OPPONENT_PICK phase)`, {
+        configuredValue: normalizedState.opponentPickTimeSeconds,
+        fallbackUsed: !normalizedState.opponentPickTimeSeconds
+      });
       updateTimerDisplay();
       
       choiceTimer = setInterval(() => {
@@ -4864,54 +5278,60 @@
     }
 
     function checkWinConditions() {
-      const dots = gameState.sharedDotCounter;
-      console.log('DEBUG checkWinConditions: dots =', dots, 'gameState =', gameState);
+      const normalizedState = normalizeGameState(gameState);
+      const winner = normalizedState.winner;
+      
+      console.log('DEBUG checkWinConditions: winner =', winner, 'selfDotCounter =', normalizedState.selfDotCounter);
+      
       const winnerDisplay = document.getElementById('winnerDisplay');
       const winnerText = document.getElementById('winnerText');
+      const rematchBtn = document.getElementById('rematchBtn');
+      const gameBackToHomeBtn = document.getElementById('gameBackToHomeBtn');
       
-      if (winnerDisplay && winnerText) {
-      if (dots <= -5) {
-        // Player A wins (dots <= -5) - INVERTED LOGIC
-        const playerAName = gameState.playerA || 'Player A';
+      if (winner && winnerDisplay && winnerText) {
+        // Show winner message using backend calculation
         winnerDisplay.style.display = 'block';
         
-        // Show clearer message based on who actually won
-        if (gameState.playerAIsBot && !gameState.playerBBot) {
-          // Bot vs Human: Bot won
-          winnerText.textContent = '🤖 ' + playerAName + ' Wins! (-5 dots)';
+        // Determine if the winner is me or opponent
+        const isIWinner = winner === normalizedState.self.name;
+        const isOpponentBot = normalizedState.opponent.isBot;
+        
+        if (isIWinner) {
+          // I won!
+          winnerText.textContent = '🎉 You Win!';
+          winnerText.style.color = '#4CAF50'; // Green for victory
+        } else {
+          // Opponent won
+          if (isOpponentBot) {
+            winnerText.textContent = '🤖 ' + winner + ' Wins!';
           winnerText.style.color = '#ff6b6b'; // Red for bot victory
         } else {
-          // Human vs Human or other cases
-          winnerText.textContent = '🎉 ' + playerAName + ' Wins! (-5 dots)';
-          winnerText.style.color = '#4CAF50'; // Green for human victory
+            winnerText.textContent = '🎉 ' + winner + ' Wins!';
+            winnerText.style.color = '#ff6b6b'; // Red for opponent victory
+          }
         }
         
-        log('🎉 ' + playerAName + ' wins with ' + dots + ' dots!');
-        log('Debug: playerSeat=' + playerSeat + ', playerA=' + playerAName + ', playerB=' + (gameState.playerB || 'Player B') + ', isPlayerABot=' + gameState.playerAIsBot + ', isPlayerBBot=' + gameState.playerBIsBot);
-        log('Debug: dots=' + dots + ', condition=<=-5, winner=PlayerA');
-        disableGameControls();
-      } else if (dots >= 5) {
-        // Player B wins (dots >= 5) - INVERTED LOGIC
-        const playerBName = gameState.playerB || 'Player B';
-        winnerDisplay.style.display = 'block';
-        
-        // Show clearer message based on who actually won
-        if (gameState.playerAIsBot && !gameState.playerBBot) {
-          // Bot vs Human: Human won
-          winnerText.textContent = '🎉 You Win! (' + playerBName + ' +5 dots)';
-          winnerText.style.color = '#4CAF50'; // Green for human victory
-        } else {
-          // Human vs Human or other cases
-          winnerText.textContent = '🎉 ' + playerBName + ' Wins! (+5 dots)';
-          winnerText.style.color = '#4CAF50'; // Green for human victory
+        // Show buttons
+        if (rematchBtn) {
+          rematchBtn.style.display = 'inline-block';
+          rematchBtn.onclick = () => {
+            // Reset game or create new match
+            location.reload(); // Simple solution for now
+          };
         }
         
-        log('🎉 ' + playerBName + ' wins with ' + dots + ' dots!');
-        log('Debug: playerSeat=' + playerSeat + ', playerA=' + (gameState.playerA || 'Player A') + ', playerB=' + playerBName + ', isPlayerABot=' + gameState.playerAIsBot + ', isPlayerBBot=' + gameState.playerBIsBot);
-        log('Debug: dots=' + dots + ', condition=>=5, winner=PlayerB');
+        if (gameBackToHomeBtn) {
+          gameBackToHomeBtn.style.display = 'inline-block';
+          gameBackToHomeBtn.onclick = () => {
+            showScreen('homeScreen');
+          };
+        }
+        
+        log('🎉 Game Over! Winner: ' + winner);
         disableGameControls();
       } else {
-        // No winner yet
+        // No winner yet, hide winner display
+        if (winnerDisplay) {
         winnerDisplay.style.display = 'none';
         }
       }
@@ -5283,6 +5703,16 @@
         timer.className = 'timer';
       }
       
+      // Reset timer configuration initialization flags
+      const playTwoCardsSelect = document.getElementById('playTwoCardsTime');
+      const opponentPickSelect = document.getElementById('opponentPickTime');
+      if (playTwoCardsSelect) {
+        delete playTwoCardsSelect.dataset.initialized;
+      }
+      if (opponentPickSelect) {
+        delete opponentPickSelect.dataset.initialized;
+      }
+      
       // Reset player displays
       const playerAName = document.getElementById('playerAName');
       const playerBName = document.getElementById('playerBName');
@@ -5328,6 +5758,60 @@
       log('Game state cleared completely for rematch');
     }
 
+    // Function to send timer settings to backend
+    async function updateTimerSettings() {
+      const playTwoCardsSelect = document.getElementById('playTwoCardsTime');
+      const opponentPickSelect = document.getElementById('opponentPickTime');
+      
+      const playTwoCardsTime = parseInt(playTwoCardsSelect.value);
+      const opponentPickTime = parseInt(opponentPickSelect.value);
+      
+      // Mark that user has manually modified these values
+      playTwoCardsSelect.dataset.userModified = 'true';
+      opponentPickSelect.dataset.userModified = 'true';
+      
+      console.log(`⏰ updateTimerSettings called: PLAY_TWO_CARDS=${playTwoCardsTime}s, OPPONENT_PICK=${opponentPickTime}s`);
+      console.log(`⏰ matchId=${matchId}, playerToken=${playerToken}`);
+      
+      if (!matchId || !playerToken) {
+        console.log('⏰ No match or token available for timer update - storing locally for when ready is clicked');
+        
+        // Store values locally to send when ready is clicked
+        window.pendingTimerSettings = {
+          playTwoCardsTimeSeconds: playTwoCardsTime,
+          opponentPickTimeSeconds: opponentPickTime
+        };
+        console.log('⏰ Stored pending timer settings:', window.pendingTimerSettings);
+        return;
+      }
+      
+      try {
+        console.log('⏰ Sending timer settings to backend...');
+        const response = await fetch(`/api/matches/${matchId}/timer-settings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Player-Token': playerToken
+          },
+          body: JSON.stringify({
+            playTwoCardsTimeSeconds: playTwoCardsTime,
+            opponentPickTimeSeconds: opponentPickTime
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Timer settings updated successfully');
+          // Clear pending settings since they were sent successfully
+          delete window.pendingTimerSettings;
+        } else {
+          const errorText = await response.text();
+          console.warn('❌ Failed to update timer settings:', errorText);
+        }
+      } catch (error) {
+        console.error('❌ Error updating timer settings:', error);
+      }
+    }
+
     // Force show home screen on load
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM loaded, showing home screen');
@@ -5338,6 +5822,27 @@
       
       // Initialize opponent hand toggle
       setupOpponentHandToggle();
+      
+      // Setup timer configuration event listeners
+      const playTwoCardsTimeSelect = document.getElementById('playTwoCardsTime');
+      const opponentPickTimeSelect = document.getElementById('opponentPickTime');
+      
+      console.log('🎯 EVENT DEBUG: playTwoCardsTimeSelect =', playTwoCardsTimeSelect);
+      console.log('🎯 EVENT DEBUG: opponentPickTimeSelect =', opponentPickTimeSelect);
+      
+      if (playTwoCardsTimeSelect) {
+        // Remove existing listeners first
+        playTwoCardsTimeSelect.removeEventListener('change', updateTimerSettings);
+        playTwoCardsTimeSelect.addEventListener('change', updateTimerSettings);
+        console.log('🎯 EVENT DEBUG: Added change listener to playTwoCardsTime');
+      }
+      
+      if (opponentPickTimeSelect) {
+        // Remove existing listeners first
+        opponentPickTimeSelect.removeEventListener('change', updateTimerSettings);
+        opponentPickTimeSelect.addEventListener('change', updateTimerSettings);
+        console.log('🎯 EVENT DEBUG: Added change listener to opponentPickTime');
+      }
     });
 
     // Also show home screen immediately

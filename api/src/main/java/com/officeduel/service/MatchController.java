@@ -416,9 +416,11 @@ public class MatchController {
                 new PlayerGameStateDto.PlayerDto(entry.playerA() != null ? entry.playerA() : "Waiting...", 0, List.of(), 0, List.of(), 
                                                List.of(), List.of(), Map.of(), entry.readyA(), entry.playerAIsBot());
             
+            System.out.println("🔧 LOBBY STATE: Sending timer values to frontend: playTwoCardsTimeSeconds=" + entry.playTwoCardsTimeSeconds() + ", opponentPickTimeSeconds=" + entry.opponentPickTimeSeconds());
+            
             return ResponseEntity.ok(new PlayerGameStateDto(
                 id, selfPlayer, opponentPlayer, 0, "LOBBY", null, null, false, false, false, null,
-                convertCardDefinitions(getCardDefinitions()), List.of(), false
+                convertCardDefinitions(getCardDefinitions()), List.of(), false, entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()
             ));
         }
         
@@ -487,10 +489,18 @@ public class MatchController {
         // Determine winner based on dots
         String winner = null;
         int winnerIndex = gs.winnerIndexOrMinusOne();
+        System.out.println("DEBUG WINNER: sharedDotCounter = " + gs.getSharedDotCounter() + ", winnerIndex = " + winnerIndex);
+        System.out.println("DEBUG WINNER: playerA = " + entry.playerA() + ", playerB = " + entry.playerB());
+        
+        // FIX: Invert the winner logic as it was backwards
         if (winnerIndex == 0) {
-            winner = entry.playerA() != null ? entry.playerA() : "Player A";
-        } else if (winnerIndex == 1) {
             winner = entry.playerB() != null ? entry.playerB() : "Player B";
+            System.out.println("DEBUG WINNER: sharedDotCounter >= 5, but Player B actually wins, winner = " + winner);
+        } else if (winnerIndex == 1) {
+            winner = entry.playerA() != null ? entry.playerA() : "Player A";
+            System.out.println("DEBUG WINNER: sharedDotCounter <= -5, but Player A actually wins, winner = " + winner);
+        } else {
+            System.out.println("DEBUG WINNER: No winner yet");
         }
         
         System.out.println("DEBUG TURNS: playerSeat = " + playerSeat + ", activePlayerIndex = " + gs.getActivePlayerIndex() + ", isMyTurn = " + isMyTurn + ", canChooseCards = " + canChooseCards);
@@ -498,6 +508,8 @@ public class MatchController {
         
         // Auto-play bot turns from backend
         scheduleAutoBotPlay(id, entry, gs);
+        
+        System.out.println("🔧 GAME STATE: Sending timer values to frontend: playTwoCardsTimeSeconds=" + entry.playTwoCardsTimeSeconds() + ", opponentPickTimeSeconds=" + entry.opponentPickTimeSeconds());
         
         return ResponseEntity.ok(new PlayerGameStateDto(
             id,
@@ -513,7 +525,9 @@ public class MatchController {
             winner,
             convertCardDefinitions(getCardDefinitions()),
             convertEffectFeedbackForPlayerDto(gs.getRecentEffects()),
-            true
+            true,
+            entry.playTwoCardsTimeSeconds(),
+            entry.opponentPickTimeSeconds()
         ));
     }
     
@@ -606,6 +620,62 @@ public class MatchController {
         
         // Return updated state
         return getPlayerState(id, token);
+    }
+    
+    public record UpdateTimerSettingsBody(int playTwoCardsTimeSeconds, int opponentPickTimeSeconds) {}
+    
+    /**
+     * Update timer settings for a match (only host can do this)
+     */
+    @PostMapping("/{id}/timer-settings")
+    public ResponseEntity<String> updateTimerSettings(@PathVariable String id, @RequestHeader("X-Player-Token") String token, @RequestBody UpdateTimerSettingsBody body) {
+        System.out.println("🔧 TIMER SETTINGS: Received request for match " + id);
+        System.out.println("🔧 TIMER SETTINGS: playTwoCardsTimeSeconds = " + body.playTwoCardsTimeSeconds);
+        System.out.println("🔧 TIMER SETTINGS: opponentPickTimeSeconds = " + body.opponentPickTimeSeconds);
+        
+        int playerSeat = registry.getPlayerSeat(id, token);
+        System.out.println("🔧 TIMER SETTINGS: playerSeat = " + playerSeat);
+        if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
+        
+        var entry = registry.get(id);
+        if (entry == null) return ResponseEntity.notFound().build();
+        
+        System.out.println("🔧 TIMER SETTINGS: Current entry timers = " + entry.playTwoCardsTimeSeconds() + "s, " + entry.opponentPickTimeSeconds() + "s");
+        
+        // Determine who is the host based on game type
+        boolean isHost = false;
+        if (entry.playerAIsBot() && !entry.playerBIsBot()) {
+            // Bot vs Human: Human (Player B) is host
+            isHost = (playerSeat == 1);
+        } else if (!entry.playerAIsBot() && entry.playerBIsBot()) {
+            // Human vs Bot: Human (Player A) is host
+            isHost = (playerSeat == 0);
+        } else if (!entry.playerAIsBot() && !entry.playerBIsBot()) {
+            // Human vs Human: Player A is host
+            isHost = (playerSeat == 0);
+        }
+        
+        if (!isHost) {
+            return ResponseEntity.status(403).body("Only the host can change timer settings");
+        }
+        
+        // Validate timer values
+        if (body.playTwoCardsTimeSeconds < 10 || body.playTwoCardsTimeSeconds > 600) {
+            return ResponseEntity.badRequest().body("Play Two Cards time must be between 10 and 600 seconds");
+        }
+        if (body.opponentPickTimeSeconds < 5 || body.opponentPickTimeSeconds > 300) {
+            return ResponseEntity.badRequest().body("Opponent Pick time must be between 5 and 300 seconds");
+        }
+        
+        boolean success = registry.updateTimerSettings(id, body.playTwoCardsTimeSeconds, body.opponentPickTimeSeconds);
+        System.out.println("🔧 TIMER SETTINGS: Update success = " + success);
+        
+        if (success) {
+            var updatedEntry = registry.get(id);
+            System.out.println("🔧 TIMER SETTINGS: Updated entry timers = " + updatedEntry.playTwoCardsTimeSeconds() + "s, " + updatedEntry.opponentPickTimeSeconds() + "s");
+        }
+        
+        return success ? ResponseEntity.ok("Timer settings updated") : ResponseEntity.badRequest().body("Could not update timer settings");
     }
     
     /**
