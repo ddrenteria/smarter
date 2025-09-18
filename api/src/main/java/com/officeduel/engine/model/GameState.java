@@ -22,7 +22,8 @@ public final class GameState {
     private List<com.officeduel.engine.cards.CardDefinitionSet.Action> lastActionsAppliedPlayerA = new ArrayList<>();
     private List<com.officeduel.engine.cards.CardDefinitionSet.Action> lastActionsAppliedPlayerB = new ArrayList<>();
 
-    private int sharedDotCounter = 0; // Shared counter: 0 = neutral, 5 = A wins, -5 = B wins
+    private int sharedDotCounter = 0; // Shared counter: 0 = neutral, winPointsToReach = A wins, -winPointsToReach = B wins
+    private int winPointsToReach = 5; // Configurable win condition
     
     // Effect feedback tracking
     private final List<EffectFeedback> recentEffects = new CopyOnWriteArrayList<>();
@@ -43,6 +44,7 @@ public final class GameState {
         this.playerA = new PlayerState(0); // LP not used in push system, but keeping for compatibility
         this.playerB = new PlayerState(0);
         this.sharedDotCounter = 0; // Start at neutral
+        this.winPointsToReach = 5; // Default win condition
         this.previousLpA = 0;
         this.previousLpB = 0;
         this.previousDotCounter = 0;
@@ -80,14 +82,17 @@ public final class GameState {
     public void setSharedDotCounter(int dots) { this.sharedDotCounter = dots; }
     public void addToDotCounter(int delta) { 
         this.sharedDotCounter += delta;
-        // Clamp between -5 and 5
-        this.sharedDotCounter = Math.max(-5, Math.min(5, this.sharedDotCounter));
+        // Clamp between -winPointsToReach and winPointsToReach
+        this.sharedDotCounter = Math.max(-winPointsToReach, Math.min(winPointsToReach, this.sharedDotCounter));
     }
 
+    public int getWinPointsToReach() { return winPointsToReach; }
+    public void setWinPointsToReach(int winPointsToReach) { this.winPointsToReach = winPointsToReach; }
+
     public int winnerIndexOrMinusOne() {
-        // New dot system: 5 = A wins, -5 = B wins
-        if (sharedDotCounter >= 5) return 0;  // A wins
-        if (sharedDotCounter <= -5) return 1; // B wins
+        // Dynamic dot system: winPointsToReach = A wins, -winPointsToReach = B wins
+        if (sharedDotCounter >= winPointsToReach) return 0;  // A wins
+        if (sharedDotCounter <= -winPointsToReach) return 1; // B wins
         return -1; // No winner yet
     }
     

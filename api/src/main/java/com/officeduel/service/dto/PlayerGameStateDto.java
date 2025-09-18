@@ -23,7 +23,8 @@ public record PlayerGameStateDto(
         List<EffectFeedback> recentEffects,
         boolean started,
         int playTwoCardsTimeSeconds,  // Time limit for PLAY_TWO_CARDS phase
-        int opponentPickTimeSeconds   // Time limit for OPPONENT_PICK phase
+        int opponentPickTimeSeconds,  // Time limit for OPPONENT_PICK phase
+        int winPointsToReach          // Points needed to win the match
 ) {
     public record PlayerDto(
             String name,

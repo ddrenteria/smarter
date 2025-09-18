@@ -420,7 +420,7 @@ public class MatchController {
             
             return ResponseEntity.ok(new PlayerGameStateDto(
                 id, selfPlayer, opponentPlayer, 0, "LOBBY", null, null, false, false, false, null,
-                convertCardDefinitions(getCardDefinitions()), List.of(), false, entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()
+                convertCardDefinitions(getCardDefinitions()), List.of(), false, entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds(), entry.winPointsToReach()
             ));
         }
         
@@ -527,7 +527,8 @@ public class MatchController {
             convertEffectFeedbackForPlayerDto(gs.getRecentEffects()),
             true,
             entry.playTwoCardsTimeSeconds(),
-            entry.opponentPickTimeSeconds()
+            entry.opponentPickTimeSeconds(),
+            entry.winPointsToReach()
         ));
     }
     
@@ -623,6 +624,7 @@ public class MatchController {
     }
     
     public record UpdateTimerSettingsBody(int playTwoCardsTimeSeconds, int opponentPickTimeSeconds) {}
+    public record UpdateGameSettingsBody(int playTwoCardsTimeSeconds, int opponentPickTimeSeconds, int winPointsToReach) {}
     
     /**
      * Update timer settings for a match (only host can do this)
@@ -676,6 +678,64 @@ public class MatchController {
         }
         
         return success ? ResponseEntity.ok("Timer settings updated") : ResponseEntity.badRequest().body("Could not update timer settings");
+    }
+    
+    /**
+     * Update game settings for a match (only host can do this)
+     */
+    @PostMapping("/{id}/game-settings")
+    public ResponseEntity<String> updateGameSettings(@PathVariable String id, @RequestHeader("X-Player-Token") String token, @RequestBody UpdateGameSettingsBody body) {
+        System.out.println("🔧 GAME SETTINGS: Received request for match " + id);
+        System.out.println("🔧 GAME SETTINGS: playTwoCardsTimeSeconds = " + body.playTwoCardsTimeSeconds);
+        System.out.println("🔧 GAME SETTINGS: opponentPickTimeSeconds = " + body.opponentPickTimeSeconds);
+        System.out.println("🔧 GAME SETTINGS: winPointsToReach = " + body.winPointsToReach);
+        
+        int playerSeat = registry.getPlayerSeat(id, token);
+        System.out.println("🔧 GAME SETTINGS: playerSeat = " + playerSeat);
+        if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
+        
+        var entry = registry.get(id);
+        if (entry == null) return ResponseEntity.notFound().build();
+        
+        System.out.println("🔧 GAME SETTINGS: Current entry settings = " + entry.playTwoCardsTimeSeconds() + "s, " + entry.opponentPickTimeSeconds() + "s, " + entry.winPointsToReach() + " points");
+        
+        // Determine who is the host based on game type
+        boolean isHost = false;
+        if (entry.playerAIsBot() && !entry.playerBIsBot()) {
+            // Bot vs Human: Human (Player B) is host
+            isHost = (playerSeat == 1);
+        } else if (!entry.playerAIsBot() && entry.playerBIsBot()) {
+            // Human vs Bot: Human (Player A) is host
+            isHost = (playerSeat == 0);
+        } else if (!entry.playerAIsBot() && !entry.playerBIsBot()) {
+            // Human vs Human: Player A is host
+            isHost = (playerSeat == 0);
+        }
+        
+        if (!isHost) {
+            return ResponseEntity.status(403).body("Only the host can change game settings");
+        }
+        
+        // Validate timer values
+        if (body.playTwoCardsTimeSeconds < 10 || body.playTwoCardsTimeSeconds > 600) {
+            return ResponseEntity.badRequest().body("Play Two Cards time must be between 10 and 600 seconds");
+        }
+        if (body.opponentPickTimeSeconds < 5 || body.opponentPickTimeSeconds > 300) {
+            return ResponseEntity.badRequest().body("Opponent Pick time must be between 5 and 300 seconds");
+        }
+        if (body.winPointsToReach < 1 || body.winPointsToReach > 7) {
+            return ResponseEntity.badRequest().body("Win points must be between 1 and 7");
+        }
+        
+        boolean success = registry.updateGameSettings(id, body.playTwoCardsTimeSeconds, body.opponentPickTimeSeconds, body.winPointsToReach);
+        System.out.println("🔧 GAME SETTINGS: Update success = " + success);
+        
+        if (success) {
+            var updatedEntry = registry.get(id);
+            System.out.println("🔧 GAME SETTINGS: Updated entry settings = " + updatedEntry.playTwoCardsTimeSeconds() + "s, " + updatedEntry.opponentPickTimeSeconds() + "s, " + updatedEntry.winPointsToReach() + " points");
+        }
+        
+        return success ? ResponseEntity.ok("Game settings updated") : ResponseEntity.badRequest().body("Could not update game settings");
     }
     
     /**

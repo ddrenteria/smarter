@@ -22,7 +22,7 @@ public class MatchRegistry {
 
     public record Entry(GameState state, TurnEngine engine, String playerA, String playerB, 
                        String tokenA, String tokenB, boolean readyA, boolean readyB, boolean started, 
-                       boolean playerAIsBot, boolean playerBIsBot, int playTwoCardsTimeSeconds, int opponentPickTimeSeconds) {}
+                       boolean playerAIsBot, boolean playerBIsBot, int playTwoCardsTimeSeconds, int opponentPickTimeSeconds, int winPointsToReach) {}
 
     public MatchRegistry() throws Exception {
         Path cardsPath = Path.of("gameplay cards definition.txt");
@@ -41,7 +41,7 @@ public class MatchRegistry {
         }
         // Don't create engine or start match yet - wait for both players to be ready
         String id = UUID.randomUUID().toString();
-        matches.put(id, new Entry(gs, null, null, null, null, null, false, false, false, false, false, 30, 15));
+        matches.put(id, new Entry(gs, null, null, null, null, null, false, false, false, false, false, 30, 15, 5));
         return id;
     }
 
@@ -57,14 +57,14 @@ public class MatchRegistry {
             String token = UUID.randomUUID().toString();
             matches.put(matchId, new Entry(entry.state(), entry.engine(), playerName, entry.playerB(), 
                                          token, entry.tokenB(), false, entry.readyB(), entry.started(), 
-                                         entry.playerAIsBot(), entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()));
+                                         entry.playerAIsBot(), entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds(), entry.winPointsToReach()));
             return new JoinResult(0, token); // Player A
         } else if (entry.playerB() == null) {
             // Second player joins
             String token = UUID.randomUUID().toString();
             matches.put(matchId, new Entry(entry.state(), entry.engine(), entry.playerA(), playerName, 
                                          entry.tokenA(), token, entry.readyA(), false, entry.started(), 
-                                         entry.playerAIsBot(), entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()));
+                                         entry.playerAIsBot(), entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds(), entry.winPointsToReach()));
             return new JoinResult(1, token); // Player B
         } else {
             return new JoinResult(-2, null); // Match full
@@ -97,6 +97,8 @@ public class MatchRegistry {
         TurnEngine newEngine = entry.engine();
         
         if (newReadyA && newReadyB && !entry.started()) {
+            // Configure win points before starting the match
+            entry.state().setWinPointsToReach(entry.winPointsToReach());
             newEngine = new TurnEngine(entry.state(), index);
             newEngine.setPlayerNames(entry.playerA(), entry.playerB());
             newEngine.startMatch();
@@ -105,7 +107,7 @@ public class MatchRegistry {
         
         matches.put(matchId, new Entry(entry.state(), newEngine, entry.playerA(), entry.playerB(), 
                                      entry.tokenA(), entry.tokenB(), newReadyA, newReadyB, newStarted, 
-                                     entry.playerAIsBot(), entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()));
+                                     entry.playerAIsBot(), entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds(), entry.winPointsToReach()));
         return true;
     }
     
@@ -122,7 +124,7 @@ public class MatchRegistry {
         String id = UUID.randomUUID().toString();
         // Create match with Player A as bot, Player B as human
         // Bot is ready, but match won't start until human player joins and is ready
-        matches.put(id, new Entry(gs, null, "Bot", null, "bot-token", null, true, false, false, true, false, 30, 15));
+        matches.put(id, new Entry(gs, null, "Bot", null, "bot-token", null, true, false, false, true, false, 30, 15, 5));
         return id;
     }
     
@@ -134,23 +136,28 @@ public class MatchRegistry {
             // Add bot as Player A
             matches.put(matchId, new Entry(entry.state(), entry.engine(), "Bot", entry.playerB(), 
                                          "bot-token", entry.tokenB(), true, entry.readyB(), entry.started(), 
-                                         true, entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()));
+                                         true, entry.playerBIsBot(), entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds(), entry.winPointsToReach()));
         } else if (entry.playerB() == null) {
             // Add bot as Player B
             matches.put(matchId, new Entry(entry.state(), entry.engine(), entry.playerA(), "Bot", 
                                          entry.tokenA(), "bot-token", entry.readyA(), true, entry.started(), 
-                                         entry.playerAIsBot(), true, entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds()));
+                                         entry.playerAIsBot(), true, entry.playTwoCardsTimeSeconds(), entry.opponentPickTimeSeconds(), entry.winPointsToReach()));
         }
     }
     
-    public synchronized boolean updateTimerSettings(String matchId, int playTwoCardsTimeSeconds, int opponentPickTimeSeconds) {
+    public synchronized boolean updateGameSettings(String matchId, int playTwoCardsTimeSeconds, int opponentPickTimeSeconds, int winPointsToReach) {
         Entry entry = matches.get(matchId);
-        if (entry == null || entry.started()) return false; // Can't change timers after match starts
+        if (entry == null || entry.started()) return false; // Can't change settings after match starts
         
         matches.put(matchId, new Entry(entry.state(), entry.engine(), entry.playerA(), entry.playerB(), 
                                      entry.tokenA(), entry.tokenB(), entry.readyA(), entry.readyB(), entry.started(), 
-                                     entry.playerAIsBot(), entry.playerBIsBot(), playTwoCardsTimeSeconds, opponentPickTimeSeconds));
+                                     entry.playerAIsBot(), entry.playerBIsBot(), playTwoCardsTimeSeconds, opponentPickTimeSeconds, winPointsToReach));
         return true;
+    }
+    
+    // Backward compatibility method
+    public synchronized boolean updateTimerSettings(String matchId, int playTwoCardsTimeSeconds, int opponentPickTimeSeconds) {
+        return updateGameSettings(matchId, playTwoCardsTimeSeconds, opponentPickTimeSeconds, 5); // Default to 5 points
     }
     
     
