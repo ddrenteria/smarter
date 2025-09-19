@@ -1,9 +1,18 @@
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
-# Copy Gradle wrapper and build files first for better caching
-COPY gradlew .
-COPY gradle/ gradle/
+# Install Gradle
+RUN apt-get update && apt-get install -y wget unzip && \
+    wget https://services.gradle.org/distributions/gradle-8.10.2-bin.zip && \
+    unzip gradle-8.10.2-bin.zip && \
+    mv gradle-8.10.2 /opt/gradle && \
+    rm gradle-8.10.2-bin.zip && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Add Gradle to PATH
+ENV PATH="/opt/gradle/bin:${PATH}"
+
+# Copy build files
 COPY build.gradle .
 COPY settings.gradle .
 
@@ -11,7 +20,7 @@ COPY settings.gradle .
 COPY src/ src/
 
 # Build the application
-RUN ./gradlew clean build -x test
+RUN gradle clean build -x test
 
 # Run the application
 CMD ["java","-jar","build/libs/office-duel-engine.jar"]

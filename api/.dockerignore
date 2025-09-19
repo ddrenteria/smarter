@@ -2,9 +2,11 @@
 build/
 bin/
 
-# Gradle
+# Gradle (exclude gradle wrapper and cache, install remotely)
 .gradle/
 gradle/
+gradlew
+gradlew.bat
 
 # IDE files
 .idea/
