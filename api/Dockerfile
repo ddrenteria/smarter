@@ -16,6 +16,9 @@ ENV PATH="/opt/gradle/bin:${PATH}"
 COPY build.gradle .
 COPY settings.gradle .
 
+# Copy card definitions (required for MatchRegistry)
+COPY "gameplay cards definition.txt" .
+
 # Copy source code
 COPY src/ src/
 
