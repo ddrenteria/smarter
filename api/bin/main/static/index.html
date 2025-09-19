@@ -3113,14 +3113,11 @@
       
       // FIXED: Invert for correct "push" visualization - positive = push toward opponent (top)
       let effectiveCounter = -clampedCounter;
-      console.log('🎯 DEBUG generateVisualCounter: Input counter:', clampedCounter, '→ Visual counter (inverted for push logic):', effectiveCounter, 'winPointsToReach:', winPointsToReach);
       
       // Top stones (when pushing toward opponent) - positive values
-      console.log('DEBUG generateVisualCounter: Generating opponent-side stones (when you\'re winning)');
       for (let i = winPointsToReach; i >= 1; i--) {
         const stoneIndex = stones.length;
         if (effectiveCounter === i) {
-          console.log('DEBUG generateVisualCounter: Activating opponent-side stone for value', i, 'at array position', stoneIndex);
           stones.push('<span class="stone active">●</span>'); // You're pushing toward opponent
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
@@ -3130,18 +3127,15 @@
       // Center neutral stone (0)
       const centerIndex = stones.length;
       if (effectiveCounter === 0) {
-        console.log('DEBUG generateVisualCounter: Activating center stone at array position', centerIndex);
         stones.push('<span class="stone active">●</span>'); // Neutral/balanced
       } else {
         stones.push('<span class="stone center">○</span>'); // Inactive center stone
       }
       
       // Bottom stones (when being pushed toward self) - negative values
-      console.log('DEBUG generateVisualCounter: Generating self-side stones (when you\'re losing)');
       for (let i = 1; i <= winPointsToReach; i++) {
         const stoneIndex = stones.length;
         if (effectiveCounter === -i) {
-          console.log('DEBUG generateVisualCounter: Activating self-side stone for value', -i, 'at array position', stoneIndex);
           stones.push('<span class="stone active">●</span>'); // Opponent is pushing toward you
         } else {
           stones.push('<span class="stone inactive">○</span>'); // Inactive stone
@@ -3195,9 +3189,6 @@
           winPointsToReach: gameState.winPointsToReach || 5
         };
         
-        console.log('🔍 DEBUG normalizeGameState: result.playTwoCardsTimeSeconds =', result.playTwoCardsTimeSeconds);
-        console.log('🔍 DEBUG normalizeGameState: result.opponentPickTimeSeconds =', result.opponentPickTimeSeconds);
-        console.log('🎯 WIN POINTS DEBUG: result.winPointsToReach =', result.winPointsToReach);
         return result;
       }
       
@@ -3254,8 +3245,6 @@
         playerB: gameState.playerB
       };
       
-      console.log('🎯 WIN POINTS DEBUG (legacy): gameState.winPointsToReach =', gameState.winPointsToReach);
-      console.log('🎯 WIN POINTS DEBUG (legacy): final winPointsToReach =', gameState.winPointsToReach || 5);
     }
     
     function toggleOpponentHand() {
@@ -3451,8 +3440,6 @@
         const topPlayerName = normalizedState.opponent.name;
         const bottomPlayerName = normalizedState.self.name;
         
-        console.log('🎯 WIN POINTS DEBUG: normalizedState.winPointsToReach =', normalizedState.winPointsToReach);
-        console.log('🎯 WIN POINTS DEBUG: Full normalizedState =', normalizedState);
         const visualCounter = generateVisualCounter(dotCounter, topPlayerName, bottomPlayerName, playerSeat, normalizedState.winPointsToReach);
         dotCounterElement.innerHTML = visualCounter;
         console.log('DEBUG: dotCounterElement updated, innerHTML =', dotCounterElement.innerHTML);
@@ -3713,30 +3700,21 @@
             // Ensure event listeners are attached when host sees game config
             if (playTwoCardsSelect && !playTwoCardsSelect.dataset.listenerAttached) {
               playTwoCardsSelect.removeEventListener('change', updateGameSettings);
-              playTwoCardsSelect.addEventListener('change', function(event) {
-                console.log('🎯 CHANGE EVENT: playTwoCardsTime changed to:', event.target.value);
-                updateGameSettings();
-              });
+              playTwoCardsSelect.addEventListener('change', updateGameSettings);
               playTwoCardsSelect.dataset.listenerAttached = 'true';
               console.log('🎯 HOST DEBUG: Added change listener to playTwoCardsTime');
             }
             
             if (opponentPickSelect && !opponentPickSelect.dataset.listenerAttached) {
               opponentPickSelect.removeEventListener('change', updateGameSettings);
-              opponentPickSelect.addEventListener('change', function(event) {
-                console.log('🎯 CHANGE EVENT: opponentPickTime changed to:', event.target.value);
-                updateGameSettings();
-              });
+              opponentPickSelect.addEventListener('change', updateGameSettings);
               opponentPickSelect.dataset.listenerAttached = 'true';
               console.log('🎯 HOST DEBUG: Added change listener to opponentPickTime');
             }
             
             if (winPointsSelect && !winPointsSelect.dataset.listenerAttached) {
               winPointsSelect.removeEventListener('change', updateGameSettings);
-              winPointsSelect.addEventListener('change', function(event) {
-                console.log('🎯 CHANGE EVENT: winPointsToReach changed to:', event.target.value);
-                updateGameSettings();
-              });
+              winPointsSelect.addEventListener('change', updateGameSettings);
               winPointsSelect.dataset.listenerAttached = 'true';
               console.log('🎯 HOST DEBUG: Added change listener to winPointsToReach');
             }
@@ -3836,8 +3814,6 @@
           
           // If we have pending game settings, use those, otherwise get current values
           if (window.pendingGameSettings) {
-            console.log('⚙️ Using pending game settings:', window.pendingGameSettings);
-            console.log('🎯 WIN POINTS DEBUG: Sending winPointsToReach =', window.pendingGameSettings.winPointsToReach);
             
             // Send the pending settings now that we have matchId and token
             try {
@@ -5821,10 +5797,6 @@
       opponentPickSelect.dataset.userModified = 'true';
       winPointsSelect.dataset.userModified = 'true';
       
-      console.log(`⚙️ updateGameSettings called: PLAY_TWO_CARDS=${playTwoCardsTime}s, OPPONENT_PICK=${opponentPickTime}s, WIN_POINTS=${winPointsToReach}`);
-      console.log(`⚙️ matchId=${matchId}, playerToken=${playerToken}`);
-      console.log('🎯 WIN POINTS DEBUG: winPointsSelect.value =', winPointsSelect.value);
-      console.log('🎯 WIN POINTS DEBUG: parsed winPointsToReach =', winPointsToReach);
       
       if (!matchId || !playerToken) {
         console.log('⚙️ No match or token available for game settings update - storing locally for when ready is clicked');
@@ -5835,13 +5807,10 @@
           opponentPickTimeSeconds: opponentPickTime,
           winPointsToReach: winPointsToReach
         };
-        console.log('⚙️ Stored pending game settings:', window.pendingGameSettings);
-        console.log('🎯 WIN POINTS DEBUG: Stored winPointsToReach =', winPointsToReach);
         return;
       }
       
       try {
-        console.log('⚙️ Sending game settings to backend...');
         const response = await fetch(`/api/match/${matchId}/game-settings`, {
           method: 'POST',
           headers: {
@@ -5856,15 +5825,14 @@
         });
         
         if (response.ok) {
-          console.log('✅ Game settings updated successfully');
           // Clear pending settings since they were sent successfully
           delete window.pendingGameSettings;
         } else {
           const errorText = await response.text();
-          console.warn('❌ Failed to update game settings:', errorText);
+          console.warn('Failed to update game settings:', errorText);
         }
       } catch (error) {
-        console.error('❌ Error updating game settings:', error);
+        console.error('Error updating game settings:', error);
       }
     }
     
@@ -5894,30 +5862,21 @@
       if (playTwoCardsTimeSelect) {
         // Remove existing listeners first
         playTwoCardsTimeSelect.removeEventListener('change', updateGameSettings);
-        playTwoCardsTimeSelect.addEventListener('change', function(event) {
-          console.log('🎯 CHANGE EVENT (DOM): playTwoCardsTime changed to:', event.target.value);
-          updateGameSettings();
-        });
+        playTwoCardsTimeSelect.addEventListener('change', updateGameSettings);
         console.log('🎯 EVENT DEBUG: Added change listener to playTwoCardsTime');
       }
       
       if (opponentPickTimeSelect) {
         // Remove existing listeners first
         opponentPickTimeSelect.removeEventListener('change', updateGameSettings);
-        opponentPickTimeSelect.addEventListener('change', function(event) {
-          console.log('🎯 CHANGE EVENT (DOM): opponentPickTime changed to:', event.target.value);
-          updateGameSettings();
-        });
+        opponentPickTimeSelect.addEventListener('change', updateGameSettings);
         console.log('🎯 EVENT DEBUG: Added change listener to opponentPickTime');
       }
       
       if (winPointsSelect) {
         // Remove existing listeners first
         winPointsSelect.removeEventListener('change', updateGameSettings);
-        winPointsSelect.addEventListener('change', function(event) {
-          console.log('🎯 CHANGE EVENT (DOM): winPointsToReach changed to:', event.target.value);
-          updateGameSettings();
-        });
+        winPointsSelect.addEventListener('change', updateGameSettings);
         console.log('🎯 EVENT DEBUG: Added change listener to winPointsToReach');
       }
     });

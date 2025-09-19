@@ -631,18 +631,13 @@ public class MatchController {
      */
     @PostMapping("/{id}/timer-settings")
     public ResponseEntity<String> updateTimerSettings(@PathVariable String id, @RequestHeader("X-Player-Token") String token, @RequestBody UpdateTimerSettingsBody body) {
-        System.out.println("🔧 TIMER SETTINGS: Received request for match " + id);
-        System.out.println("🔧 TIMER SETTINGS: playTwoCardsTimeSeconds = " + body.playTwoCardsTimeSeconds);
-        System.out.println("🔧 TIMER SETTINGS: opponentPickTimeSeconds = " + body.opponentPickTimeSeconds);
         
         int playerSeat = registry.getPlayerSeat(id, token);
-        System.out.println("🔧 TIMER SETTINGS: playerSeat = " + playerSeat);
         if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
         
         var entry = registry.get(id);
         if (entry == null) return ResponseEntity.notFound().build();
         
-        System.out.println("🔧 TIMER SETTINGS: Current entry timers = " + entry.playTwoCardsTimeSeconds() + "s, " + entry.opponentPickTimeSeconds() + "s");
         
         // Determine who is the host based on game type
         boolean isHost = false;
@@ -670,12 +665,6 @@ public class MatchController {
         }
         
         boolean success = registry.updateTimerSettings(id, body.playTwoCardsTimeSeconds, body.opponentPickTimeSeconds);
-        System.out.println("🔧 TIMER SETTINGS: Update success = " + success);
-        
-        if (success) {
-            var updatedEntry = registry.get(id);
-            System.out.println("🔧 TIMER SETTINGS: Updated entry timers = " + updatedEntry.playTwoCardsTimeSeconds() + "s, " + updatedEntry.opponentPickTimeSeconds() + "s");
-        }
         
         return success ? ResponseEntity.ok("Timer settings updated") : ResponseEntity.badRequest().body("Could not update timer settings");
     }
@@ -685,19 +674,13 @@ public class MatchController {
      */
     @PostMapping("/{id}/game-settings")
     public ResponseEntity<String> updateGameSettings(@PathVariable String id, @RequestHeader("X-Player-Token") String token, @RequestBody UpdateGameSettingsBody body) {
-        System.out.println("🔧 GAME SETTINGS: Received request for match " + id);
-        System.out.println("🔧 GAME SETTINGS: playTwoCardsTimeSeconds = " + body.playTwoCardsTimeSeconds);
-        System.out.println("🔧 GAME SETTINGS: opponentPickTimeSeconds = " + body.opponentPickTimeSeconds);
-        System.out.println("🔧 GAME SETTINGS: winPointsToReach = " + body.winPointsToReach);
         
         int playerSeat = registry.getPlayerSeat(id, token);
-        System.out.println("🔧 GAME SETTINGS: playerSeat = " + playerSeat);
         if (playerSeat == -1) return ResponseEntity.status(401).build(); // Unauthorized
         
         var entry = registry.get(id);
         if (entry == null) return ResponseEntity.notFound().build();
         
-        System.out.println("🔧 GAME SETTINGS: Current entry settings = " + entry.playTwoCardsTimeSeconds() + "s, " + entry.opponentPickTimeSeconds() + "s, " + entry.winPointsToReach() + " points");
         
         // Determine who is the host based on game type
         boolean isHost = false;
@@ -728,12 +711,6 @@ public class MatchController {
         }
         
         boolean success = registry.updateGameSettings(id, body.playTwoCardsTimeSeconds, body.opponentPickTimeSeconds, body.winPointsToReach);
-        System.out.println("🔧 GAME SETTINGS: Update success = " + success);
-        
-        if (success) {
-            var updatedEntry = registry.get(id);
-            System.out.println("🔧 GAME SETTINGS: Updated entry settings = " + updatedEntry.playTwoCardsTimeSeconds() + "s, " + updatedEntry.opponentPickTimeSeconds() + "s, " + updatedEntry.winPointsToReach() + " points");
-        }
         
         return success ? ResponseEntity.ok("Game settings updated") : ResponseEntity.badRequest().body("Could not update game settings");
     }

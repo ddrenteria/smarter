@@ -1,0 +1,42 @@
+# Build artifacts
+build/
+bin/
+
+# Gradle
+.gradle/
+gradle/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README*
+
+# Test files
+src/test/
+
+# Large distribution files
+*.zip
+*.tar
+*.jar
+
+# Server logs
+server.log
