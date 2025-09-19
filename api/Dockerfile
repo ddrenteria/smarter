@@ -12,15 +12,10 @@ RUN apt-get update && apt-get install -y wget unzip && \
 # Add Gradle to PATH
 ENV PATH="/opt/gradle/bin:${PATH}"
 
-# Copy build files
-COPY build.gradle .
-COPY settings.gradle .
-
-# Copy card definitions (required for MatchRegistry)
-COPY "gameplay cards definition.txt" .
-
-# Copy source code
-COPY src/ src/
+# Copy build files and card definitions
+COPY build.gradle settings.gradle ./
+COPY gameplay*definition.txt ./
+COPY src/ ./src/
 
 # Build the application
 RUN gradle clean build -x test
